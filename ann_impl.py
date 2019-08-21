@@ -30,13 +30,13 @@ dataset16 = pd.read_excel(os.getcwd() + '/datasets/2016_smd_hourly.xls', 'ISO NE
 dataset15 = pd.read_excel(os.getcwd() + '/datasets/2015_smd_hourly.xls', 'ISONE CA')
 dataset14 = pd.read_excel(os.getcwd() + '/datasets/2014_smd_hourly.xls', 'ISONE CA')
 dataset13 = pd.read_excel(os.getcwd() + '/datasets/2013_smd_hourly.xls', 'ISONE CA')
-#dataset12 = pd.read_excel(os.getcwd() + '/datasets/2012_smd_hourly.xls', 'ISONE CA')
-#dataset11 = pd.read_excel(os.getcwd() + '/datasets/2011_smd_hourly.xls', 'ISONE CA')
-#dataset10 = pd.read_excel(os.getcwd() + '/datasets/2010_smd_hourly.xls', 'ISONE CA')
-#dataset09 = pd.read_excel(os.getcwd() + '/datasets/2009_smd_hourly.xls', 'ISONE CA')
+dataset12 = pd.read_excel(os.getcwd() + '/datasets/2012_smd_hourly.xls', 'ISONE CA')
+dataset11 = pd.read_excel(os.getcwd() + '/datasets/2011_smd_hourly.xls', 'ISONE CA')
+dataset10 = pd.read_excel(os.getcwd() + '/datasets/2010_smd_hourly.xls', 'ISONE CA')
+dataset09 = pd.read_excel(os.getcwd() + '/datasets/2009_smd_hourly.xls', 'ISONE CA')
 
-#concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
-concatlist = [dataset13,dataset14,dataset15,dataset16,dataset17]
+concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
+#concatlist = [dataset13,dataset14,dataset15,dataset16,dataset17]
 dataset = pd.concat(concatlist,axis=0,sort=False,ignore_index=True)
 
 ## Pre-processing input data 
@@ -102,7 +102,7 @@ df = pd.DataFrame(test)
 #X = pd.concat(concatlist,axis=1)
 
 # Splitting the dataset into the Training set and Test set
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 0, shuffle = False)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, shuffle = False)
 
 # Feature Scaling
 from sklearn.preprocessing import StandardScaler
