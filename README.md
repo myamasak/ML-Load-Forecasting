@@ -17,6 +17,10 @@ The techniques that are and will be explored are:
 - Automated Machine Learning (nni - https://github.com/microsoft/nni);
 - Others.
 
+Use these files:
+* **ann_impl.py** for ANN
+* **LSTM_regression.py** for LSTM
+
 
 **First results**
 ```
