@@ -1,4 +1,4 @@
-This is a Machine Learning for Load Forecasting repository.
+**This is a Machine Learning for Load Forecasting repository.**
 
 I'm working on Load Forecasting techniques, and this repository has the algorithms and the datasets that will be used in my study.
 
@@ -19,7 +19,7 @@ The techniques that are and will be explored are:
 
 
 **First results**
-
+```
 ANN
 3 layers - 8-16-16-1
 Removed outliers
@@ -41,3 +41,9 @@ register_matplotlib_converters()
   warnings.warn(msg, FutureWarning)
 The R2 score on the Train set is:       0.884
 The R2 score on the Test set is:        0.847
+
+```
+![ANN_01](/results/ANN_2009-2017_zoomout_outliers12.png)
+![ANN_02](/results/ANN_2009-2017_zoomout_outliers12_2.png)
+![ANN_03](/results/ANN_2009-2017_zoomin_outliers12.png)
+
