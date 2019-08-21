@@ -102,7 +102,7 @@ df = pd.DataFrame(test)
 #X = pd.concat(concatlist,axis=1)
 
 # Splitting the dataset into the Training set and Test set
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, shuffle = False)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 0, shuffle = False)
 
 # Feature Scaling
 from sklearn.preprocessing import StandardScaler
@@ -140,7 +140,7 @@ model.add(Dense(units = 1))
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
 # Fitting the ANN to the Training set
-model.fit(X_trainsc, y_train, batch_size = 10, epochs = 100)
+model.fit(X_trainsc, y_train, batch_size = 5, epochs = 200)
 
 
 rows = X_test.index
