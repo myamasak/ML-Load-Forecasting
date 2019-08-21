@@ -18,11 +18,55 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 # Importing the dataset
-dataset = pd.read_excel('2017_smd_hourly.xls', 'ISO NE CA')
+dataset17 = pd.read_excel(os.getcwd() + '/datasets/2017_smd_hourly.xls', 'ISO NE CA')
+dataset16 = pd.read_excel(os.getcwd() + '/datasets/2016_smd_hourly.xls', 'ISO NE CA')
+dataset15 = pd.read_excel(os.getcwd() + '/datasets/2015_smd_hourly.xls', 'ISONE CA')
+dataset14 = pd.read_excel(os.getcwd() + '/datasets/2014_smd_hourly.xls', 'ISONE CA')
+dataset13 = pd.read_excel(os.getcwd() + '/datasets/2013_smd_hourly.xls', 'ISONE CA')
+#dataset12 = pd.read_excel(os.getcwd() + '/datasets/2012_smd_hourly.xls', 'ISONE CA')
+#dataset11 = pd.read_excel(os.getcwd() + '/datasets/2011_smd_hourly.xls', 'ISONE CA')
+#dataset10 = pd.read_excel(os.getcwd() + '/datasets/2010_smd_hourly.xls', 'ISONE CA')
+#dataset09 = pd.read_excel(os.getcwd() + '/datasets/2009_smd_hourly.xls', 'ISONE CA')
+
+# Concatenate datasets into one dataset
+#concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
+concatlist = [dataset13,dataset14,dataset15,dataset16,dataset17]
+dataset = pd.concat(concatlist,axis=0,sort=False,ignore_index=True)
+
+
+## Pre-processing input data 
+# Verify zero values in dataset (X,y)
+print("Any null value in dataset?")
+display(dataset.isnull().any())
+print("How many are they?")
+display(dataset.isnull().sum())
+print("How many zero values?")
+display(dataset.eq(0).sum())
+print("How many zero values in y (DEMAND)?")
+display(dataset['DEMAND'].eq(0).sum())
+
+
+# Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
 X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','RT_LMP','RT_EC','RT_CC','RT_MLC'], axis=1)
-y = dataset.iloc[:, 3]
+
+
+# Taking care of missing data
+if (dataset['DEMAND'].eq(0).sum() > 0):    
+    # Replace zero values by NaN
+    dataset['DEMAND'].replace(0, np.nan, inplace= True)
+    # Save y column (output)
+    y = dataset.iloc[:, 3]
+    # Replace NaN values by meaningful values
+    from sklearn.preprocessing import Imputer
+    y_matrix = y.as_matrix()
+    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
+    imputer = Imputer(missing_values="NaN", strategy="median", axis=0)
+    imputer = imputer.fit(y_matrix)
+    y =  imputer.transform(y_matrix)
+
 
 
 date = pd.DataFrame() 
@@ -35,6 +79,8 @@ Hour = pd.DataFrame({'Hour':dataset.Hour})
 
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
+
+
 
 test = pd.to_datetime(dataset.Date)
 i = 0
@@ -115,20 +161,35 @@ X_testsc = sc.transform(X_test)
 #y_test = test_sc_df.dropna().drop('X_1', axis=1)
 
 
-X_train_lmse = X_trainsc.reshape(X_trainsc.shape[0],6,1)
-X_test_lmse = X_testsc.reshape(X_testsc.shape[0],6,1)
+X_train_lmse = X_trainsc.reshape(X_trainsc.shape[0],X_trainsc.shape[1],1)
+X_test_lmse = X_testsc.reshape(X_testsc.shape[0],X_trainsc.shape[1],1)
 
 print('Train shape: ', X_train_lmse.shape)
 print('Test shape: ', X_test_lmse.shape)
-y_train_df = y_train.as_matrix()
+y_train_df = y_train
 y_train_df = y_train_df.reshape(y_train_df.shape[0],1)
 
 lstm_model = Sequential()
-lstm_model.add(LSTM(7, input_shape=(6,X_train_lmse.shape[2]), activation='relu', kernel_initializer='lecun_uniform', return_sequences=False))
-lstm_model.add(Dense(1))
+#lstm_model.add(LSTM(7, input_shape=(6,X_train_lmse.shape[2]), activation='relu', kernel_initializer='lecun_uniform', return_sequences=False))
+lstm_model.add(LSTM(X_trainsc.shape[1], input_shape=(X_trainsc.shape[1],1), activation='relu', kernel_initializer='lecun_uniform', return_sequences=False))
+
+# Adding the second hidden layer
+lstm_model.add(Dense(units = 16, activation = 'relu'))
+
+# Adding the third hidden layer
+lstm_model.add(Dense(units = 16, activation = 'relu'))
+
+lstm_model.add(Dense(units = 8, activation = 'relu'))
+
+# Adding the output layer
+lstm_model.add(Dense(units = 1))
+
+#lstm_model.add(Dense(1))
+
 lstm_model.compile(loss='mean_squared_error', optimizer='adam')
-early_stop = EarlyStopping(monitor='loss', patience=2, verbose=1)
-history_lstm_model = lstm_model.fit(X_train_lmse, y_train_df, epochs=100, batch_size=1, verbose=1, shuffle=False, callbacks=[early_stop])
+#early_stop = EarlyStopping(monitor='loss', patience=2, verbose=1)
+#history_lstm_model = lstm_model.fit(X_train_lmse, y_train_df, epochs=100, batch_size=1, verbose=1, shuffle=False, callbacks=[early_stop])
+history_lstm_model = lstm_model.fit(X_train_lmse, y_train_df, epochs=100, batch_size=20, verbose=1, shuffle=False)
 
 
 y_pred_test_lstm = lstm_model.predict(X_test_lmse)
@@ -141,8 +202,8 @@ rows = X_test.index
 df2 = df.iloc[rows[0]:]
 
 y_pred = lstm_model.predict(X_test_lmse)
-y_tested = y_test.reset_index()
-y_tested = y_tested.drop(['index'],axis=1)
+#y_tested = y_test.reset_index()
+#y_tested = y_tested.drop(['index'],axis=1)
 plt.figure(1)
 #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
 plt.plot(df,y, color = 'gray', label = 'Real data')
@@ -151,6 +212,7 @@ plt.title('Prediction')
 plt.legend()
 plt.show()
 
+#history_lstm_model = lstm_model.fit(X_train_lmse, y_train_df, epochs=100, batch_size=20, verbose=1, shuffle=False)
 
 
 
