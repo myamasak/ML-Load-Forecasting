@@ -68,7 +68,7 @@ if (dataset['DEMAND'].eq(0).sum() > 0):
     from sklearn.preprocessing import Imputer
     y_matrix = y.as_matrix()
     y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-    imputer = Imputer(missing_values="NaN", strategy="median", axis=0)
+    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
     imputer = imputer.fit(y_matrix)
     y =  imputer.transform(y_matrix)
 
@@ -124,13 +124,16 @@ X_testsc = sc.transform(X_test)
 model = Sequential()
 
 # Adding the input layer and the first hidden layer
-model.add(Dense(8, activation = 'relu', input_dim = X_trainsc.shape[1]))
+model.add(Dense(64, activation = 'relu', input_dim = X_trainsc.shape[1]))
 
 # Adding the second hidden layer
-model.add(Dense(units = 16, activation = 'relu'))
+model.add(Dense(units = 64, activation = 'relu'))
 
 # Adding the third hidden layer
-model.add(Dense(units = 16, activation = 'relu'))
+model.add(Dense(units = 64, activation = 'relu'))
+
+# Adding the fourth hidden layer
+model.add(Dense(units = 64, activation = 'relu'))
 
 # Adding the output layer
 model.add(Dense(units = 1))
@@ -140,7 +143,7 @@ model.add(Dense(units = 1))
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
 # Fitting the ANN to the Training set
-model.fit(X_trainsc, y_train, batch_size = 5, epochs = 200)
+model.fit(X_trainsc, y_train, batch_size = 20, epochs = 100)
 
 
 rows = X_test.index
