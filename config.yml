@@ -1,0 +1,21 @@
+authorName: default
+experimentName: ann_impl_auto
+trialConcurrency: 2
+maxExecDuration: 9999999h
+maxTrialNum: 999999999999
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+#choice: true, false
+useAnnotation: false
+tuner:
+  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
+  #SMAC (SMAC should be installed through nnictl)
+  builtinTunerName: TPE
+  classArgs:
+    #choice: maximize, minimize
+    optimize_mode: maximize
+trial:
+  command: python ann_impl_nni.py
+  codeDir: .
+  gpuNum: 0
