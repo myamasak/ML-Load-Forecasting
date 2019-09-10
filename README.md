@@ -95,4 +95,4 @@ The R2 score on the Test set is:        0.877
 ----------------
 NNI - Neural Network Intelligence
 
-![ANN_100919](/results/ANN_2009-2017_NNI_100919.png)
+![ANN_100919_01](/results/ANN_2009-2017_NNI_100919.PNG)
