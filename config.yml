@@ -1,8 +1,8 @@
 authorName: default
 experimentName: ann_impl_auto
-trialConcurrency: 2
-maxExecDuration: 9999999h
-maxTrialNum: 999999999999
+trialConcurrency: 1
+maxExecDuration: 999999h
+maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json

@@ -1,8 +1,8 @@
 {
-    "neuron_size":{"_type":"choice","_value":[16,32,64,128,256]},
+    "neuron_size":{"_type":"choice","_value":[16,32,64,128]},
     "layer_size":{"_type":"choice","_value":[1,2,4,8,16,32]},
-    "batch_size": {"_type":"choice", "_value": [20]},
-    "optimizer":{"_type":"choice","_value":["Adam", "SGD"]},
+    "batch_size": {"_type":"choice", "_value": [10,20,30]},
+    "optimizer":{"_type":"choice","_value":["Adam"]},
     "activation":{"_type":"choice","_value":["relu","softmax","sigmoid","tanh"]},
-    "epochs":{"_type":"choice","_value":[20]}
+    "epochs":{"_type":"choice","_value":[20,40]}
 }
