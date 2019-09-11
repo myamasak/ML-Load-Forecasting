@@ -54,7 +54,7 @@ The R2 score on the Test set is:        0.847
 
 -------
 
-**Best trial**
+**Best trial** (until 22/08)
 
 ```
 22/08/2019
@@ -93,8 +93,11 @@ The R2 score on the Test set is:        0.877
 
 
 ----------------
-NNI - Neural Network Intelligence
+**UPDATE**
 
-![ANN_100919_01](/results/ANN_2009-2017_NNI_100919.PNG)
-![ANN_100919_02](/results/ANN_2009-2017_NNI_100919_02.PNG)
-![ANN_100919_03](/results/ANN_2009-2017_NNI_100919_03.PNG)
+**NNI - Neural Network Intelligence**
+(11/09/19)
+
+![ANN_110919_01](/results/ANN_2009-2017_NNI_110919.PNG)
+![ANN_110919_02](/results/ANN_2009-2017_NNI_110919_02.PNG)
+![ANN_110919_03](/results/ANN_2009-2017_NNI_110919_03.PNG)
