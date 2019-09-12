@@ -121,11 +121,11 @@ def run_trial(params):
     model = Sequential()
     
     # Adding the input layer and the first hidden layer
-    model.add(Dense(params['neuron_size'], activation = 'relu', input_dim = X_trainsc.shape[1]))
+    model.add(Dense(params['neurons'], activation = params['activation'], input_dim = X_trainsc.shape[1]))
     
     # Adding the hidden layers
-    for i in range(params['layer_size']):
-        model.add(Dense(units = params['neuron_size'], activation = 'relu'))
+    for i in range(params['layers']):
+        model.add(Dense(units = params['neurons'], activation = params['activation']))
         
     
     # Adding the output layer
