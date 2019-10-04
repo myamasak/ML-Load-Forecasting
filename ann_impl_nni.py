@@ -112,37 +112,76 @@ X_trainsc = sc.fit_transform(X_train)
 X_testsc = sc.transform(X_test)
 
 import nni
+from keras.layers import LeakyReLU
+from keras.layers import BatchNormalization
 
 params = nni.get_next_parameter()
 
-def run_trial(params):
+#def run_trial(params):
       
-    # Initialising the ANN
-    model = Sequential()
+# Initialising the ANN
+model = Sequential()
+
+# Adding the input layer and the first hidden layer
+model.add(Dense(params['neurons_width'], input_dim = X_trainsc.shape[1]))
+
+
+if params['activation'].find("LeakyReLU_0.01") > -1:  
+    LReLU = LeakyReLU(alpha=0.01)
+    isLReLU = True
+elif params['activation'].find("LeakyReLU_0.05") > -1:
+    LReLU = LeakyReLU(alpha=0.05)
+    isLReLU = True
+elif params['activation'].find("LeakyReLU_0.1") > -1:
+    LReLU = LeakyReLU(alpha=0.1)
+    isLReLU = True
+else:     
+    isLReLU = False
     
-    # Adding the input layer and the first hidden layer
-    model.add(Dense(params['neurons_width'], activation = params['activation'], input_dim = X_trainsc.shape[1]))
+if isLReLU:
+    model.add(LReLU)
+else:        
+    model.add(Activation(params['activation']))
     
-    # Adding the hidden layers
-    for i in range(params['layers']):
-        model.add(Dense(units = params['neurons_width'], activation = params['activation']))
+if params['batch_normalization'].find("BatchNorm") > -1:
+    model.add(BatchNormalization())
+     
+
+
+# Adding the hidden layers
+for i in range(params['hidden_layers']):
+    model.add(Dense(units = params['neurons_width']))    
+    if isLReLU:
+        model.add(LReLU)
+    else:
+        model.add(Activation(params['activation']))        
+    
+    if params['batch_normalization'].find("BatchNorm") > -1:
+        model.add(BatchNormalization())
         
+
+
+
+
+# Adding the output layer
+model.add(Dense(units = 1))
+
+#model.add(Dense(1))
+# Compiling the ANN
+model.compile(optimizer = params['optimizer'], loss = 'mean_squared_error')
+
+
+early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
+#model.fit(X_trainsc, y_train, batch_size = params['batch_size'], epochs = params['epochs'], callbacks = [early_stop])
+
+# Fitting the ANN to the Training set
+model.fit(X_trainsc, y_train, batch_size = params['batch_size'], epochs = params['epochs'])
     
-    # Adding the output layer
-    model.add(Dense(units = 1))
-    
-    #model.add(Dense(1))
-    # Compiling the ANN
-    model.compile(optimizer = params['optimizer'], loss = 'mean_squared_error')
-    
-    # Fitting the ANN to the Training set
-    model.fit(X_trainsc, y_train, batch_size = params['batch_size'], epochs = params['epochs'])
-    
-    # Adjusting data to plot
+# Adjusting data to plot
 #    rows = X_test.index
 #    df2 = df.iloc[rows[0]:]
 #    
-    y_pred = model.predict(X_testsc)
+y_pred = model.predict(X_testsc)
 #    #y_tested = y_test
 #    #y_tested = y_tested.drop(['index'],axis=1)
 #    plt.figure(1)
@@ -153,13 +192,17 @@ def run_trial(params):
 #    plt.legend()
 #    plt.show()
 #    
-    from sklearn.metrics import r2_score
-    y_pred_train = model.predict(X_trainsc)
-    print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-    print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+from sklearn.metrics import r2_score
+y_pred_train = model.predict(X_trainsc)
+print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
+print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
     
     
-    nni.report_final_result(r2_score(y_test, y_pred))
+r2score = r2_score(y_test, y_pred)
+if r2score > 0:
+    nni.report_final_result(r2score)
+else:
+    nni.report_final_result(0)
 
 
 #A = pd.DataFrame(np.array([1, 2, 3, 4, 5, 6, 7, 8]))
@@ -169,7 +212,7 @@ def run_trial(params):
 
 
 
-run_trial(params)
+#run_trial(params)
 
 
 

@@ -120,20 +120,21 @@ X_testsc = sc.transform(X_test)
 #Ns = number of samples in training data set.
 #α = an arbitrary scaling factor usually 2-10.
 
+
+from keras.layers import LeakyReLU
+
 # Initialising the ANN
 model = Sequential()
 
 # Adding the input layer and the first hidden layer
-model.add(Dense(64, activation = 'relu', input_dim = X_trainsc.shape[1]))
+model.add(Dense(32, input_dim = X_trainsc.shape[1]))
+model.add(Activation('relu'))
 
-# Adding the second hidden layer
-model.add(Dense(units = 64, activation = 'relu'))
-
-# Adding the third hidden layer
-model.add(Dense(units = 64, activation = 'relu'))
-
-# Adding the fourth hidden layer
-model.add(Dense(units = 64, activation = 'relu'))
+# Adding the hidden layers
+for i in range(8):
+    model.add(Dense(units = 32))
+    model.add(Activation('relu'))
+        
 
 # Adding the output layer
 model.add(Dense(units = 1))
@@ -142,8 +143,13 @@ model.add(Dense(units = 1))
 # Compiling the ANN
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
+# EarlyStopping condition
+from keras.callbacks import EarlyStopping
+early_stop = EarlyStopping(monitor='loss', patience=4, verbose=1)
+
 # Fitting the ANN to the Training set
-model.fit(X_trainsc, y_train, batch_size = 20, epochs = 100)
+#model.fit(X_trainsc, y_train, batch_size = 20, epochs = 20)
+model.fit(X_trainsc, y_train, validation_data=(X_testsc, y_test), batch_size = 10, epochs = 20, callbacks = [early_stop])
 
 
 rows = X_test.index
