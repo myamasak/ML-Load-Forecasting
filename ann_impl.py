@@ -26,15 +26,18 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 # Importing the dataset
 path = r'%s' % os.getcwd().replace('\\','/')
-dataset17 = pd.read_excel(path + '/datasets/2017_smd_hourly.xls', 'ISO NE CA')
-dataset16 = pd.read_excel(path + '/datasets/2016_smd_hourly.xls', 'ISO NE CA')
-dataset15 = pd.read_excel(path + '/datasets/2015_smd_hourly.xls', 'ISONE CA')
-dataset14 = pd.read_excel(path + '/datasets/2014_smd_hourly.xls', 'ISONE CA')
-dataset13 = pd.read_excel(path + '/datasets/2013_smd_hourly.xls', 'ISONE CA')
-dataset12 = pd.read_excel(path + '/datasets/2012_smd_hourly.xls', 'ISONE CA')
-dataset11 = pd.read_excel(path + '/datasets/2011_smd_hourly.xls', 'ISONE CA')
-dataset10 = pd.read_excel(path + '/datasets/2010_smd_hourly.xls', 'ISONE CA')
-dataset09 = pd.read_excel(path + '/datasets/2009_smd_hourly.xls', 'ISONE CA')
+#path = path + '/code/ML/ML-Load-Forecasting'
+#dataset19 = pd.read_csv(path + r'/datasets/2019_smd_hourly_ISONE CA.csv')
+#dataset18 = pd.read_csv(path + r'/datasets/2018_smd_hourly_ISONE CA.csv')
+#dataset17 = pd.read_csv(path + r'/datasets/2017_smd_hourly_ISONE CA.csv')
+dataset16 = pd.read_csv(path + r'/datasets/2016_smd_hourly_ISONE CA.csv')
+dataset15 = pd.read_csv(path + r'/datasets/2015_smd_hourly_ISONE CA.csv')
+dataset14 = pd.read_csv(path + r'/datasets/2014_smd_hourly_ISONE CA.csv')
+dataset13 = pd.read_csv(path + r'/datasets/2013_smd_hourly_ISONE CA.csv')
+dataset12 = pd.read_csv(path + r'/datasets/2012_smd_hourly_ISONE CA.csv')
+dataset11 = pd.read_csv(path + r'/datasets/2011_smd_hourly_ISONE CA.csv')
+dataset10 = pd.read_csv(path + r'/datasets/2010_smd_hourly_ISONE CA.csv')
+dataset09 = pd.read_csv(path + r'/datasets/2009_smd_hourly_ISONE CA.csv')
 
 concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
 #concatlist = [dataset13,dataset14,dataset15,dataset16,dataset17]

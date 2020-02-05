@@ -26,25 +26,56 @@ Created on Mon Jul  1 19:04:58 2019
 """
 import numpy as np
 import pandas as pd
-import os
+
 #from keras.layers import Dense, Activation
 #from keras.models import Sequential
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import os
+#os.environ["MODIN_ENGINE"] = "dask"  # Modin will use Dask
+
+#try: 
+#    import modin.pandas as pd
+#except IOError:
+#    print('An error occured trying to read the file.')
+#    
+#except ValueError:
+#    print('Non-numeric data found in the file.')
+#
+#except ImportError:
+#    print ("NO module found")
+#    
+#except EOFError:
+#    print('Why did you do an EOF on me?')
+#
+#except KeyboardInterrupt:
+#    print('You cancelled the operation.')
+#
+#except:
+#    print('An error occured.')
+    
+
 # Importing the dataset
 path = r'%s' % os.getcwd().replace('\\','/')
-dataset17 = pd.read_excel(path + '/datasets/2017_smd_hourly.xls', 'ISO NE CA')
-dataset16 = pd.read_excel(path + '/datasets/2016_smd_hourly.xls', 'ISO NE CA')
-dataset15 = pd.read_excel(path + '/datasets/2015_smd_hourly.xls', 'ISONE CA')
-dataset14 = pd.read_excel(path + '/datasets/2014_smd_hourly.xls', 'ISONE CA')
-#dataset13 = pd.read_excel(path + '/datasets/2013_smd_hourly.xls', 'ISONE CA')
-#dataset12 = pd.read_excel(path + '/datasets/2012_smd_hourly.xls', 'ISONE CA')
-#dataset11 = pd.read_excel(path + '/datasets/2011_smd_hourly.xls', 'ISONE CA')
-#dataset10 = pd.read_excel(path + '/datasets/2010_smd_hourly.xls', 'ISONE CA')
-#dataset09 = pd.read_excel(path + '/datasets/2009_smd_hourly.xls', 'ISONE CA')
+#path = path + '/code/ML/ML-Load-Forecasting'
+#dataset19 = pd.read_csv(path + r'/datasets/2019_smd_hourly_ISONE CA.csv')
+#dataset18 = pd.read_csv(path + r'/datasets/2018_smd_hourly_ISONE CA.csv')
+#dataset17 = pd.read_csv(path + r'/datasets/2017_smd_hourly_ISONE CA.csv')
+dataset16 = pd.read_csv(path + r'/datasets/2016_smd_hourly_ISONE CA.csv')
+dataset15 = pd.read_csv(path + r'/datasets/2015_smd_hourly_ISONE CA.csv')
+dataset14 = pd.read_csv(path + r'/datasets/2014_smd_hourly_ISONE CA.csv')
+dataset13 = pd.read_csv(path + r'/datasets/2013_smd_hourly_ISONE CA.csv')
+#dataset12 = pd.read_csv(path + r'/datasets/2012_smd_hourly_ISONE CA.csv')
+#dataset11 = pd.read_csv(path + r'/datasets/2011_smd_hourly_ISONE CA.csv')
+#dataset10 = pd.read_csv(path + r'/datasets/2010_smd_hourly_ISONE CA.csv')
+#dataset09 = pd.read_csv(path + r'/datasets/2009_smd_hourly_ISONE CA.csv')
+
+
+#dataset17 = pd.read_csv(r'C:/Users/z003t8hn/code/ML/ML-Load-Forecasting/datasets/2017_smd_hourly_ISONE CA.csv')
+
 
 #concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
-concatlist = [dataset14,dataset15,dataset16,dataset17]
+concatlist = [dataset13,dataset14,dataset15,dataset16]
 dataset = pd.concat(concatlist,axis=0,sort=False,ignore_index=True)
 
 ## Pre-processing input data 
@@ -129,24 +160,12 @@ X_trainsc = sc.fit_transform(X_train)
 X_testsc = sc.transform(X_test)
 
 
-#rows = X_test.index
-#df2 = df.iloc[rows[0]:]
 
-#y_pred = model.predict(X_testsc)
-#y_tested = y_test
-#y_tested = y_tested.drop(['index'],axis=1)
 plt.figure(1)
-#plt.plot(df2,y_tested, color = 'red', label = 'Real data')
 plt.plot(df,y, color = 'gray', label = 'Real data')
-#plt.plot(df2,y_pred, color = 'blue', label = 'Predicted data')
-#plt.title('Prediction')
 plt.legend()
 plt.show()
 
-#from sklearn.metrics import r2_score
-#y_pred_train = model.predict(X_trainsc)
-#print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-#print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
 
 #from plotly.plotly import plot_mpl
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -173,7 +192,7 @@ from statsmodels.tsa.arima_model import ARIMA
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-
+plt.figure(3)
 rolling_mean = data[0].rolling(window = 12).mean()
 rolling_std = data[0].rolling(window = 12).std()
 plt.plot(data[0], color = 'blue', label = 'Original')
@@ -190,3 +209,7 @@ print('p-value: {}'.format(result2[1]))
 print('Critical Values:')
 for key, value in result2[4].items():
     print('\t{}: {}'.format(key, value))
+
+pvalue = result2[1]
+
+
