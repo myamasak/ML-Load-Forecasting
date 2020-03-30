@@ -4,6 +4,8 @@ Created on Mon Jul  1 19:04:58 2019
 
 @author: z003t8hn
 """
+import time
+start_time = time.time()
 import numpy as np
 import pandas as pd
 
@@ -118,10 +120,10 @@ df = pd.DataFrame(test)
 
 
 # Seed Random Numbers with the TensorFlow Backend
-from numpy.random import seed
-seed(43)
-from tensorflow import set_random_seed
-set_random_seed(43)
+#from numpy.random import seed
+#seed(43)
+#from tensorflow import set_random_seed
+#set_random_seed(43)
 
 
 
@@ -226,7 +228,7 @@ plt.figure()
 #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
 plt.plot(df,y, label = 'Real data')
 plt.plot(df2,y_pred, label = 'Predicted data')
-plt.title('Prediction')
+plt.title('Prediction - Decision Tree')
 plt.legend()
 plt.show()
 
@@ -234,6 +236,10 @@ from sklearn.metrics import r2_score
 y_pred_train = model.predict(X_trainsc)
 print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
 print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+from sklearn.metrics import mean_squared_error
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE: %f" % (rmse))
 
 
 # import export_graphviz 
@@ -266,7 +272,7 @@ plt.figure()
 #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
 plt.plot(df,y, label = 'Real data')
 plt.plot(df2,y_pred, label = 'Predicted data')
-plt.title('Prediction')
+plt.title('Prediction - Random Forest')
 plt.legend()
 plt.show()
 
@@ -275,6 +281,110 @@ plt.show()
 y_pred_train = model.predict(X_trainsc)
 print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
 print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE: %f" % (rmse))
+
+
+
+# XGBoost
+import xgboost
+from sklearn.model_selection import GridSearchCV   #Perforing grid search
+
+#for tuning parameters
+#parameters_for_testing = {
+#    'colsample_bytree':[0.4,0.6,0.8],
+#    'gamma':[0,0.03,0.1,0.3],
+#    'min_child_weight':[1.5,6,10],
+#    'learning_rate':[0.1,0.07],
+#    'max_depth':[3,5],
+#    'n_estimators':[10000],
+#    'reg_alpha':[1e-5, 1e-2,  0.75],
+#    'reg_lambda':[1e-5, 1e-2, 0.45],
+#    'subsample':[0.6,0.95]  
+#}
+#
+#                    
+#xgb_model = xgboost.XGBRegressor(learning_rate =0.1, n_estimators=1000, max_depth=5,
+#     min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8, nthread=6, scale_pos_weight=1, seed=42)
+#
+#gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
+#gsearch1.fit(X_trainsc,y_train)
+#print (gsearch1.grid_scores_)
+#print('best params')
+#print (gsearch1.best_params_)
+#print('best score')
+#print (gsearch1.best_score_)
+
+
+best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
+                 gamma=0,                 
+                 learning_rate=0.07,
+                 max_depth=3,
+                 min_child_weight=1.5,
+                 n_estimators=10000,                                                                    
+                 reg_alpha=0.75,
+                 reg_lambda=0.45,
+                 subsample=0.6,
+                 seed=42)
+best_xgb_model.fit(X_trainsc,y_train)
+
+
+y_pred = best_xgb_model.predict(X_testsc)
+
+
+rows = X_test.index
+df2 = df.iloc[rows[0]:]
+
+plt.figure()
+#plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+plt.plot(df,y, label = 'Real data')
+plt.plot(df2,y_pred, label = 'Predicted data')
+plt.title('Prediction - XGBoost')
+plt.legend()
+plt.show()
+
+#from sklearn.metrics import r2_score
+y_pred_train = best_xgb_model.predict(X_trainsc)
+print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
+print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE: %f" % (rmse))
+
+
+# Feature importance of XGBoost
+xgboost.plot_importance(best_xgb_model)
+plt.rcParams['figure.figsize'] = [5, 5]
+# Calculate feature importances
+importances = best_xgb_model.feature_importances_
+# Sort feature importances in descending order
+#indices = np.argsort(importances)[::-1]
+indices = np.argsort(importances)[::]
+# Rearrange feature names so they match the sorted feature importances
+names = [X.columns[i] for i in indices]
+# Add bars
+plt.bar(range(X.shape[1]), importances[indices])
+# Add feature names as x-axis labels
+plt.yticks(range(X.shape[1]), names, rotation=0)
+
+plt.show()
+
+
+# Optimized structured data
+data_dmatrix = xgboost.DMatrix(data=X_trainsc,label=y_train)
+
+params = {"objective":"reg:linear",'colsample_bytree': 0.3,'learning_rate': 0.1,
+                'max_depth': 5, 'alpha': 10}
+
+cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
+                    num_boost_round=500,early_stopping_rounds=10,metrics="rmse", as_pandas=True, seed=123)
+
+cv_results.head()
+print((cv_results["test-rmse-mean"]).tail(1))
+
+
+print("\n--- %s seconds ---" % (time.time() - start_time))
 
 
 
