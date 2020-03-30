@@ -67,9 +67,9 @@ path = r'%s' % os.getcwd().replace('\\','/')
 #dataset18 = pd.read_csv(path + r'/datasets/2018_smd_hourly_ISONE CA.csv')
 #dataset17 = pd.read_csv(path + r'/datasets/2017_smd_hourly_ISONE CA.csv')
 dataset16 = pd.read_csv(path + r'/datasets/2016_smd_hourly_ISONE CA.csv')
-#dataset15 = pd.read_csv(path + r'/datasets/2015_smd_hourly_ISONE CA.csv')
-#dataset14 = pd.read_csv(path + r'/datasets/2014_smd_hourly_ISONE CA.csv')
-#dataset13 = pd.read_csv(path + r'/datasets/2013_smd_hourly_ISONE CA.csv')
+dataset15 = pd.read_csv(path + r'/datasets/2015_smd_hourly_ISONE CA.csv')
+dataset14 = pd.read_csv(path + r'/datasets/2014_smd_hourly_ISONE CA.csv')
+dataset13 = pd.read_csv(path + r'/datasets/2013_smd_hourly_ISONE CA.csv')
 #dataset12 = pd.read_csv(path + r'/datasets/2012_smd_hourly_ISONE CA.csv')
 #dataset11 = pd.read_csv(path + r'/datasets/2011_smd_hourly_ISONE CA.csv')
 #dataset10 = pd.read_csv(path + r'/datasets/2010_smd_hourly_ISONE CA.csv')
@@ -80,8 +80,8 @@ dataset16 = pd.read_csv(path + r'/datasets/2016_smd_hourly_ISONE CA.csv')
 
 
 #concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
-#concatlist = [dataset13,dataset14,dataset15,dataset16]
-concatlist = [dataset16]
+concatlist = [dataset13,dataset14,dataset15,dataset16]
+#concatlist = [dataset16]
 dataset = pd.concat(concatlist,axis=0,sort=False,ignore_index=True)
 
 ## Pre-processing input data 
@@ -186,6 +186,8 @@ data.reset_index(inplace=True)
 data['Date'] = pd.to_datetime(data['Date'])
 data = data.set_index('Date')
 data = data.drop(['index'], axis=1)
+#data.columns = ['Date','DEMAND']
+data.columns = ['DEMAND']
 result = seasonal_decompose(data, model='multiplicative')
 #result = sm.tsa.seasonal_decompose(data)
 result.plot()
@@ -251,7 +253,7 @@ plt.show()
 #from statsmodels.tsa.arima_model import ARIMA
 
 # 1,1,2 ARIMA Model
-model = ARIMA(data, order=(2,1,2))
+model = ARIMA(data, order=(6,0,1))
 model_fit = model.fit(disp=0)
 print(model_fit.summary())
 
@@ -277,7 +279,7 @@ train, test = train_test_split(data, test_size = 0.2, random_state = 0, shuffle 
 
 # Build Model
 # model = ARIMA(train, order=(3,2,1))  
-model = ARIMA(train, order=(3, 1, 2))  
+model = ARIMA(train, order=(3, 0, 2))  
 fitted = model.fit(disp=-1)  
 print(fitted.summary())
 
@@ -335,59 +337,70 @@ plt.ylabel('DEMAND')
 from statsmodels.tsa.arima_model import ARIMA
 import pmdarima as pm
 
-
-model = pm.auto_arima(train, start_p=1, start_q=1,
-                      test='adf',       # use adftest to find optimal 'd'
-                      max_p=6, max_q=6, # maximum p and q
-                      m=24,              # frequency of series
-                      d=None,           # let model determine 'd'
-                      seasonal=True,   # Yes Seasonality
-                      start_P=0, 
-                      D=0, 
-                      trace=True,
-                      error_action='ignore',  
-                      suppress_warnings=True, 
-                      stepwise=True)
-
-print(model.summary())
-
-#from statsmodels.tsa.arima_model import SARIMAX
-#import statsmodels.api as sm
-#model = sm.tsa.statespace.SARIMAX(train,order=(6,1,6),seasonal_order=(1,0,2,24),
-#                                  enforce_stationarity=False, enforce_invertibility=False)
-
-#fitted = model.fit(disp=-1)
-fitted = model.fit(train)
-#print(fitted.summary())
-
-# Forecast
-nIndex = test.index.size
-#fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
-#y_pred = fitted.predict(test.index[0],test.index[-1])
-y_pred = fitted.predict(test.shape[0])
-
-# Make as pandas series
-fc_series = pd.Series(y_pred, index=test.index[:nIndex])
-lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
-upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
-# Plot
-plt.figure(figsize=(12,5), dpi=100)
-plt.plot(train, label='training')
-plt.plot(test, label='actual')
-plt.plot(fc_series, label='forecast')
-plt.fill_between(lower_series.index, lower_series, upper_series, 
-                 color='k', alpha=.15)
-plt.title('Forecast vs Actuals')
-plt.legend(loc='upper left', fontsize=8)
-plt.show()
-
-model.plot_diagnostics()
+#
+#model = pm.auto_arima(train, start_p=1, start_q=1,
+#                      test='adf',       # use adftest to find optimal 'd'
+#                      max_p=6, max_q=6, # maximum p and q
+#                      m=24,              # frequency of series
+#                      d=None,           # let model determine 'd'
+#                      seasonal=True,   # Yes Seasonality
+#                      start_P=0, 
+#                      D=0, 
+#                      trace=True,
+#                      error_action='ignore',  
+#                      suppress_warnings=True, 
+#                      stepwise=True)
+#
+#print(model.summary())
+#
+##from statsmodels.tsa.arima_model import SARIMAX
+##import statsmodels.api as sm
+##model = sm.tsa.statespace.SARIMAX(train,order=(6,1,6),seasonal_order=(1,0,2,24),
+##                                  enforce_stationarity=False, enforce_invertibility=False)
+#
+##fitted = model.fit(disp=-1)
+#fitted = model.fit(train)
+##print(fitted.summary())
+#
+## Forecast
+#nIndex = test.index.size
+##fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
+##y_pred = fitted.predict(test.index[0],test.index[-1])
+#y_pred = fitted.predict(test.shape[0])
+#
+## Make as pandas series
+#fc_series = pd.Series(y_pred, index=test.index[:nIndex])
+#lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
+#upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
+## Plot
+#plt.figure(figsize=(12,5), dpi=100)
+#plt.plot(train, label='training')
+#plt.plot(test, label='actual')
+#plt.plot(fc_series, label='forecast')
+#plt.fill_between(lower_series.index, lower_series, upper_series, 
+#                 color='k', alpha=.15)
+#plt.title('Forecast vs Actuals')
+#plt.legend(loc='upper left', fontsize=8)
+#plt.show()
+#
+#model.plot_diagnostics()
 
 
 ## Feature importance
 # Import random forest
 #from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor  
+
+
+    # Replace NaN values by meaningful values
+    from sklearn.preprocessing import Imputer
+    y_matrix = Xdata['RegSP'].as_matrix()
+    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
+    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
+    imputer = imputer.fit(y_matrix)
+    Xdata['RegSP'] =  imputer.transform(y_matrix)
+
+
 
 # Create decision tree classifer object
 #clf = RandomForestClassifier(random_state=0, n_jobs=-1)
@@ -397,7 +410,7 @@ Xdata = dataset.iloc[:, :]
 Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
 
 # Train model
-model = clf.fit(Xdata, dataset.DEMAND)
+model = clf.fit(Xdata, y)
 
 # Calculate feature importances
 importances = model.feature_importances_

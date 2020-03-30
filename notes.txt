@@ -26,3 +26,7 @@ https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c68
 
 Exemplo dissertacao - CRISTIAN SIMIONI MILANI
 https://www.ppgia.pucpr.br/pt/arquivos/mestrado/dissertacoes/2016/Dissertacao_CristianMilani.pdf
+
+
+How GraphQL blows REST out of the water
+https://swizec.com/blog/how-graphql-blows-rest-out-of-the-water/swizec/9300 
