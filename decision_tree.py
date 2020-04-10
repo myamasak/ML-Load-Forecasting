@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 import os
 import glob
 import seaborn as sns
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
 
@@ -143,248 +146,284 @@ plt.legend()
 plt.show()
 
 
-#from plotly.plotly import plot_mpl
-from statsmodels.tsa.seasonal import seasonal_decompose
-#import statsmodels.api as sm
-data = pd.DataFrame(data=df)
-concatlist = [data,pd.DataFrame(y)]
-data = pd.concat(concatlist,axis=1)
-
-data.reset_index(inplace=True)
-data['Date'] = pd.to_datetime(data['Date'])
-data = data.set_index('Date')
-data = data.drop(['index'], axis=1)
-result = seasonal_decompose(data, model='multiplicative')
-#result = sm.tsa.seasonal_decompose(data)
-result.plot()
-plt.show
-
-
-
-## Feature importance
-# Import random forest
-#from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor  
-
-# Create decision tree classifer object
-#clf = RandomForestClassifier(random_state=0, n_jobs=-1)
-clf = RandomForestRegressor(random_state=0, n_jobs=-1)
-
-Xdata = dataset.iloc[:, :]
-Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
-concatlist = [Xdata,Year,Month,Day,Hour]
-Xdata = pd.concat(concatlist,axis=1)
-
-# Replace NaN values by 0
-Xdata.replace(np.nan, 0, inplace= True)
+def seasonDecomposeCalc():
+    start_time_seasonDecompose = time.time()
     
-# Train model
-model = clf.fit(Xdata, y)
-
-# Calculate feature importances
-importances = model.feature_importances_
-
-# Sort feature importances in descending order
-indices = np.argsort(importances)[::-1]
-
-# Rearrange feature names so they match the sorted feature importances
-names = [Xdata.columns[i] for i in indices]
-
-#plot_feature_importances(importances,Xdata.columns)
-
-# Create plot
-plt.figure()
-
-# Create plot title
-plt.title("Feature Importance")
-
-# Add bars
-plt.bar(range(Xdata.shape[1]), importances[indices])
-
-# Add feature names as x-axis labels
-plt.xticks(range(Xdata.shape[1]), names, rotation=0)
-
-# Show plot
-plt.show()
-
-
-# import the regressor 
-from sklearn.tree import DecisionTreeRegressor 
-
-# create a regressor object 
-model = DecisionTreeRegressor(random_state = 0) 
-
-# fit the regressor with X and Y data 
-#model.fit(X, y) 
-model.fit(X_trainsc, y_train)
-
-y_pred = model.predict(X_testsc)
-
-
-rows = X_test.index
-df2 = df.iloc[rows[0]:]
-
-plt.figure()
-#plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-plt.plot(df,y, label = 'Real data')
-plt.plot(df2,y_pred, label = 'Predicted data')
-plt.title('Prediction - Decision Tree')
-plt.legend()
-plt.show()
-
-from sklearn.metrics import r2_score
-y_pred_train = model.predict(X_trainsc)
-print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
-from sklearn.metrics import mean_squared_error
-
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print("RMSE: %f" % (rmse))
-
-
-# import export_graphviz 
-#from sklearn.tree import export_graphviz  
-  
-# export the decision tree to a tree.dot file 
-# for visualizing the plot easily anywhere 
-#export_graphviz(model, out_file ='tree.dot', 
-#               feature_names = X.columns.values.tolist()) 
-#
-
-
-# Fitting Random Forest Regression to the dataset 
-# import the regressor 
-from sklearn.ensemble import RandomForestRegressor 
-
-# create regressor object 
-model = RandomForestRegressor(n_estimators = 100, random_state = 0) 
-
-# fit the regressor with x and y data 
-model.fit(X_trainsc, y_train)
-
-y_pred = model.predict(X_testsc)
-
-
-rows = X_test.index
-df2 = df.iloc[rows[0]:]
-
-plt.figure()
-#plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-plt.plot(df,y, label = 'Real data')
-plt.plot(df2,y_pred, label = 'Predicted data')
-plt.title('Prediction - Random Forest')
-plt.legend()
-plt.show()
-
-
-#from sklearn.metrics import r2_score
-y_pred_train = model.predict(X_trainsc)
-print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
-
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print("RMSE: %f" % (rmse))
+    #from plotly.plotly import plot_mpl
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    #import statsmodels.api as sm
+    data = pd.DataFrame(data=df)
+    concatlist = [data,pd.DataFrame(y)]
+    data = pd.concat(concatlist,axis=1)
+    
+    data.reset_index(inplace=True)
+    data['Date'] = pd.to_datetime(data['Date'])
+    data = data.set_index('Date')
+    data = data.drop(['index'], axis=1)
+    result = seasonal_decompose(data, model='multiplicative')
+    #result = sm.tsa.seasonal_decompose(data)
+    result.plot()
+    plt.show
+    
+    print("\n--- \t{:0.3f} seconds --- Seasonal Decompose".format(time.time() - start_time_seasonDecompose))
 
 
 
-# XGBoost
-import xgboost
-from sklearn.model_selection import GridSearchCV   #Perforing grid search
-
-#for tuning parameters
-#parameters_for_testing = {
-#    'colsample_bytree':[0.4,0.6,0.8],
-#    'gamma':[0,0.03,0.1,0.3],
-#    'min_child_weight':[1.5,6,10],
-#    'learning_rate':[0.1,0.07],
-#    'max_depth':[3,5],
-#    'n_estimators':[10000],
-#    'reg_alpha':[1e-5, 1e-2,  0.75],
-#    'reg_lambda':[1e-5, 1e-2, 0.45],
-#    'subsample':[0.6,0.95]  
-#}
-#
-#                    
-#xgb_model = xgboost.XGBRegressor(learning_rate =0.1, n_estimators=1000, max_depth=5,
-#     min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8, nthread=6, scale_pos_weight=1, seed=42)
-#
-#gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
-#gsearch1.fit(X_trainsc,y_train)
-#print (gsearch1.grid_scores_)
-#print('best params')
-#print (gsearch1.best_params_)
-#print('best score')
-#print (gsearch1.best_score_)
-
-
-best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
-                 gamma=0,                 
-                 learning_rate=0.07,
-                 max_depth=3,
-                 min_child_weight=1.5,
-                 n_estimators=10000,                                                                    
-                 reg_alpha=0.75,
-                 reg_lambda=0.45,
-                 subsample=0.6,
-                 seed=42)
-best_xgb_model.fit(X_trainsc,y_train)
-
-
-y_pred = best_xgb_model.predict(X_testsc)
-
-
-rows = X_test.index
-df2 = df.iloc[rows[0]:]
-
-plt.figure()
-#plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-plt.plot(df,y, label = 'Real data')
-plt.plot(df2,y_pred, label = 'Predicted data')
-plt.title('Prediction - XGBoost')
-plt.legend()
-plt.show()
-
-#from sklearn.metrics import r2_score
-y_pred_train = best_xgb_model.predict(X_trainsc)
-print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
-
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print("RMSE: %f" % (rmse))
+def featImportanceCalc():
+    
+    start_time_featImportance = time.time()
+    
+    ## Feature importance
+    # Import random forest
+    #from sklearn.ensemble import RandomForestClassifier
+    from sklearn.ensemble import RandomForestRegressor  
+    
+    # Create decision tree classifer object
+    #clf = RandomForestClassifier(random_state=0, n_jobs=-1)
+    clf = RandomForestRegressor(random_state=0, n_jobs=-1)
+    
+    Xdata = dataset.iloc[:, :]
+    Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
+    concatlist = [Xdata,Year,Month,Day,Hour]
+    Xdata = pd.concat(concatlist,axis=1)
+    
+    # Replace NaN values by 0
+    Xdata.replace(np.nan, 0, inplace= True)
+        
+    # Train model
+    model = clf.fit(Xdata, y)
+    
+    # Calculate feature importances
+    importances = model.feature_importances_
+    
+    # Sort feature importances in descending order
+    indices = np.argsort(importances)[::-1]
+    
+    # Rearrange feature names so they match the sorted feature importances
+    names = [Xdata.columns[i] for i in indices]
+    
+    #plot_feature_importances(importances,Xdata.columns)
+    
+    # Create plot
+    plt.figure()
+    
+    # Create plot title
+    plt.title("Feature Importance")
+    
+    # Add bars
+    plt.bar(range(Xdata.shape[1]), importances[indices])
+    
+    # Add feature names as x-axis labels
+    plt.xticks(range(Xdata.shape[1]), names, rotation=0)
+    
+    # Show plot
+    plt.show()
+    
+    print("\n--- \t{:0.3f} seconds --- Feature Importance".format(time.time() - start_time_featImportance))
 
 
-# Feature importance of XGBoost
-xgboost.plot_importance(best_xgb_model)
-plt.rcParams['figure.figsize'] = [5, 5]
-# Calculate feature importances
-importances = best_xgb_model.feature_importances_
-# Sort feature importances in descending order
-#indices = np.argsort(importances)[::-1]
-indices = np.argsort(importances)[::]
-# Rearrange feature names so they match the sorted feature importances
-names = [X.columns[i] for i in indices]
-# Add bars
-plt.bar(range(X.shape[1]), importances[indices])
-# Add feature names as x-axis labels
-plt.yticks(range(X.shape[1]), names, rotation=0)
 
-plt.show()
+def decisionTreeCalc():
+    start_time_decisionTree = time.time()
+
+    # import the regressor 
+    from sklearn.tree import DecisionTreeRegressor 
+    
+    # create a regressor object 
+    model = DecisionTreeRegressor(random_state = 0) 
+    
+    # fit the regressor with X and Y data 
+    #model.fit(X, y) 
+    model.fit(X_trainsc, y_train)
+    
+    y_pred = model.predict(X_testsc)
+    
+    
+    rows = X_test.index
+    df2 = df.iloc[rows[0]:]
+    
+    plt.figure()
+    #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+    plt.plot(df,y, label = 'Real data')
+    plt.plot(df2,y_pred, label = 'Predicted data')
+    plt.title('Prediction - Decision Tree')
+    plt.legend()
+    plt.show()
+    
+    
+    y_pred_train = model.predict(X_trainsc)
+    print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
+    print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+    
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    print("RMSE: %f" % (rmse))
+    
+    print("\n--- \t{:0.3f} seconds --- Decision Tree".format(time.time() - start_time_decisionTree))
 
 
-# Optimized structured data
-data_dmatrix = xgboost.DMatrix(data=X_trainsc,label=y_train)
+    # import export_graphviz 
+    #from sklearn.tree import export_graphviz  
+      
+    # export the decision tree to a tree.dot file 
+    # for visualizing the plot easily anywhere 
+    #export_graphviz(model, out_file ='tree.dot', 
+    #               feature_names = X.columns.values.tolist()) 
+    #
 
-params = {"objective":"reg:linear",'colsample_bytree': 0.3,'learning_rate': 0.1,
-                'max_depth': 5, 'alpha': 10}
+def randForestCalc():
+    start_time_randForest = time.time()
+    # Fitting Random Forest Regression to the dataset 
+    # import the regressor 
+    from sklearn.ensemble import RandomForestRegressor 
+    
+    # create regressor object 
+    model = RandomForestRegressor(n_estimators = 100, random_state = 0) 
+    
+    # fit the regressor with x and y data 
+    model.fit(X_trainsc, y_train)
+    
+    y_pred = model.predict(X_testsc)
+    
+    
+    rows = X_test.index
+    df2 = df.iloc[rows[0]:]
+    
+    plt.figure()
+    #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+    plt.plot(df,y, label = 'Real data')
+    plt.plot(df2,y_pred, label = 'Predicted data')
+    plt.title('Prediction - Random Forest')
+    plt.legend()
+    plt.show()
+    
+    
+    from sklearn.metrics import r2_score
+    y_pred_train = model.predict(X_trainsc)
+    print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
+    print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+    
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    print("RMSE: %f" % (rmse))
+     
+    print("\n--- \t{:0.3f} seconds --- Random Forest".format(time.time() - start_time_randForest))
 
-cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
-                    num_boost_round=500,early_stopping_rounds=10,metrics="rmse", as_pandas=True, seed=123)
-
-cv_results.head()
-print((cv_results["test-rmse-mean"]).tail(1))
 
 
-print("\n--- %s seconds ---" % (time.time() - start_time))
+
+def xgboostCalc():
+    start_time_xgboost = time.time()
+    
+    # XGBoost
+    import xgboost
+    from sklearn.model_selection import GridSearchCV   #Perforing grid search
+    
+    #for tuning parameters
+    #parameters_for_testing = {
+    #    'colsample_bytree':[0.4,0.6,0.8],
+    #    'gamma':[0,0.03,0.1,0.3],
+    #    'min_child_weight':[1.5,6,10],
+    #    'learning_rate':[0.1,0.07],
+    #    'max_depth':[3,5],
+    #    'n_estimators':[10000],
+    #    'reg_alpha':[1e-5, 1e-2,  0.75],
+    #    'reg_lambda':[1e-5, 1e-2, 0.45],
+    #    'subsample':[0.6,0.95]  
+    #}
+    #
+    #                    
+    #xgb_model = xgboost.XGBRegressor(learning_rate =0.1, n_estimators=1000, max_depth=5,
+    #     min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8, nthread=6, scale_pos_weight=1, seed=42)
+    #
+    #gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
+    #gsearch1.fit(X_trainsc,y_train)
+    #print (gsearch1.grid_scores_)
+    #print('best params')
+    #print (gsearch1.best_params_)
+    #print('best score')
+    #print (gsearch1.best_score_)
+    
+    
+    best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
+                     gamma=0,                 
+                     learning_rate=0.07,
+                     max_depth=3,
+                     min_child_weight=1.5,
+                     n_estimators=1000,                                                                    
+                     reg_alpha=0.75,
+                     reg_lambda=0.45,
+                     subsample=0.6,
+                     seed=42)
+    best_xgb_model.fit(X_trainsc,y_train)
+    
+    
+    y_pred = best_xgb_model.predict(X_testsc)
+    
+    
+    rows = X_test.index
+    df2 = df.iloc[rows[0]:]
+    
+    plt.figure()
+    #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+    plt.plot(df,y, label = 'Real data')
+    plt.plot(df2,y_pred, label = 'Predicted data')
+    plt.title('Prediction - XGBoost')
+    plt.legend()
+    plt.show()
+    
+    #from sklearn.metrics import r2_score
+    y_pred_train = best_xgb_model.predict(X_trainsc)
+    print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
+    print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+    
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    print("RMSE: %f" % (rmse))
+    
+    
+    # Feature importance of XGBoost
+    xgboost.plot_importance(best_xgb_model)
+    #plt.rcParams['figure.figsize'] = [5, 5]
+    # Calculate feature importances
+    importances = best_xgb_model.feature_importances_
+    # Sort feature importances in descending order
+    #indices = np.argsort(importances)[::-1]
+    indices = np.argsort(importances)[::]
+    # Rearrange feature names so they match the sorted feature importances
+    names = [X.columns[i] for i in indices]
+    # Add bars
+    plt.bar(range(X.shape[1]), importances[indices])
+    # Add feature names as x-axis labels
+    plt.yticks(range(X.shape[1]), names, rotation=0)
+    
+    plt.show()
+    
+    
+    print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgboost))
+
+    start_time_xgboost2 = time.time()
+
+    # Optimized structured data
+    data_dmatrix = xgboost.DMatrix(data=X_trainsc,label=y_train)
+    
+    params = {"objective":"reg:linear",'colsample_bytree': 0.3,'learning_rate': 0.1,
+                    'max_depth': 5, 'alpha': 10}
+    
+    cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
+                        num_boost_round=100,early_stopping_rounds=10,metrics="rmse", as_pandas=True, seed=123)
+    
+    print(cv_results.head())
+    print((cv_results["test-rmse-mean"]).tail(1))
+    
+    print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
+
+
+seasonDecomposeCalc()
+featImportanceCalc()
+decisionTreeCalc()
+randForestCalc()
+xgboostCalc()
+
+
+print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))
 
 
 
