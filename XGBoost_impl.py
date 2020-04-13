@@ -18,6 +18,9 @@ import glob
 import seaborn as sns
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+import datetime
+import calendar
+
 
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
@@ -40,6 +43,7 @@ selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016"]
 
 # Initialize dataset list
 datasetList = []
+holidayList = []
 
 
 # Read all csv files and concat them
@@ -49,9 +53,31 @@ for filename in all_files:
             if (filename.find(data) != -1):
                 df = pd.read_csv(filename,index_col=None, header=0)
                 datasetList.append(df)
+    if (filename.find("holidays") != -1):
+        for data in selectDatasets:
+            if (filename.find(data) != -1):
+                df = pd.read_csv(filename,index_col=None, header=0, sep=';')
+                holidayList.append(df)
 
 # Concat
 dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
+holidays = pd.concat(holidayList, axis=0, sort=False, ignore_index=True)
+
+# Pre-processing holidays data
+#calendar.day_name[datetime.datetime.today().weekday()]
+#The day of the week with Monday=0, Sunday=6.
+days = dict(zip(calendar.day_name, range(7)))
+weekdayList = []
+for weekday in holidays['Weekday']:
+     weekdayList.append(days[weekday])
+
+# Add weekday number
+holidays['Weekday_number'] = weekdayList
+
+# Drop duplicated holiday dates
+holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
+holidays.reset_index(drop=True,inplace=True)
+
 
 
 ## Pre-processing input data 
@@ -104,20 +130,28 @@ Hour = pd.DataFrame({'Hour':dataset.Hour})
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
 
-test = pd.to_datetime(dataset.Date)
-i = 0
-i2 = 0
-for row in test:
-    test[i] = test[i] + pd.DateOffset(hours=1+i2)  
-    if (i2 == 23):
-         i2 = 0
-    else:
-        i2 = i2 + 1
-    i = i + 1
-print(test.head())
-df = pd.DataFrame(test)
-#concatlist = [X,df]
-#X = pd.concat(concatlist,axis=1)
+
+######### DATASET CONVERTED to DATE + TIME
+#test = pd.to_datetime(dataset.Date)
+#i = 0
+#i2 = 0
+#for row in test:
+#    test[i] = test[i] + pd.DateOffset(hours=1+i2)  
+#    if (i2 == 23):
+#         i2 = 0
+#    else:
+#        i2 = i2 + 1
+#    i = i + 1
+#print(test.head())
+#df = pd.DataFrame(test)
+##concatlist = [X,df]
+##X = pd.concat(concatlist,axis=1)
+#
+#
+## Add weekday number to dataset
+#dataset.drop(['Date'],axis=1,inplace=True)
+#concatlist = [df,dataset]
+#dataset = pd.concat(concatlist,axis=1)
 
 
 
@@ -156,10 +190,9 @@ def seasonDecomposeCalc():
     concatlist = [data,pd.DataFrame(y)]
     data = pd.concat(concatlist,axis=1)
     
-    data.reset_index(inplace=True)
+    data.reset_index(drop=True,inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
     data = data.set_index('Date')
-    data = data.drop(['index'], axis=1)
     result = seasonal_decompose(data, model='multiplicative')
     #result = sm.tsa.seasonal_decompose(data)
     result.plot()
@@ -423,18 +456,23 @@ def xgboostCalc():
     aux_test['abs_error'] = aux_test['error'].apply(np.abs)
     aux_test['DEMAND'] = y_test
     aux_test['PRED'] = y_pred
-#    aux_test['Year'] = X_test['Year']
-#    aux_test['Month'] = X_test['Month']
-#    aux_test['Day'] = X_test['Day']
-#    aux_test['Hour'] = X_test['Hour']
-#    aux_test = aux_test.drop(['Year','Month','Day','Hour'], axis=1)
-    concatlist = []
-    concatlist = [aux_test,Year,Month,Day,Hour]
-    aux_test = pd.concat(concatlist,axis=1)
+    aux_test['Year'] = X_test['Year'].reset_index(drop=True)
+    aux_test['Month'] = X_test['Month'].reset_index(drop=True)
+    aux_test['Day'] = X_test['Day'].reset_index(drop=True)
+    aux_test['Hour'] = X_test['Hour'].reset_index(drop=True)
+
     error_by_day = aux_test.groupby(['Year','Month','Day','Hour']) \
     .mean()[['DEMAND','PRED','error','abs_error']]
 
+#    Over forecasted days
+    error_by_day.sort_values('error', ascending=True).head(10)
     
+    # Worst absolute predicted days
+    error_by_day.sort_values('abs_error', ascending=False).head(10)
+    
+    # Best predicted days
+    error_by_day.sort_values('abs_error', ascending=True).head(10)
+
     
     
     
