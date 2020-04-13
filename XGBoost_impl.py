@@ -17,7 +17,7 @@ import os
 import glob
 import seaborn as sns
 from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
@@ -109,7 +109,6 @@ i = 0
 i2 = 0
 for row in test:
     test[i] = test[i] + pd.DateOffset(hours=1+i2)  
-#     print(test[i])
     if (i2 == 23):
          i2 = 0
     else:
@@ -372,6 +371,12 @@ def xgboostCalc():
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     print("RMSE: %f" % (rmse))
     
+    mae = mean_absolute_error(y_test, y_pred)
+    print("MAE: %f" % (mae))
+    
+    mape = mean_absolute_percentage_error(y_test, y_pred)
+    print("MAPE: %.2f%%" % (mape))
+    
     
     # Feature importance of XGBoost
     xgboost.plot_importance(best_xgb_model)
@@ -402,18 +407,46 @@ def xgboostCalc():
                     'max_depth': 5, 'alpha': 10}
     
     cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
-                        num_boost_round=100,early_stopping_rounds=10,metrics="rmse", as_pandas=True, seed=123)
+                        num_boost_round=100,early_stopping_rounds=50,metrics="rmse", as_pandas=True, seed=42)
     
     print(cv_results.head())
     print((cv_results["test-rmse-mean"]).tail(1))
     
     print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
 
+    
+    aux_test = pd.DataFrame()    
+    y_pred = np.float64(y_pred)
+    y_pred = y_pred.reshape(y_pred.shape[0])
+    y_test = y_test.reshape(y_test.shape[0])
+    aux_test['error'] = y_test - y_pred
+    aux_test['abs_error'] = aux_test['error'].apply(np.abs)
+    aux_test['DEMAND'] = y_test
+    aux_test['PRED'] = y_pred
+#    aux_test['Year'] = X_test['Year']
+#    aux_test['Month'] = X_test['Month']
+#    aux_test['Day'] = X_test['Day']
+#    aux_test['Hour'] = X_test['Hour']
+#    aux_test = aux_test.drop(['Year','Month','Day','Hour'], axis=1)
+    concatlist = []
+    concatlist = [aux_test,Year,Month,Day,Hour]
+    aux_test = pd.concat(concatlist,axis=1)
+    error_by_day = aux_test.groupby(['Year','Month','Day','Hour']) \
+    .mean()[['DEMAND','PRED','error','abs_error']]
+
+    
+    
+    
+    
+def mean_absolute_percentage_error(y_true, y_pred): 
+    """Calculates MAPE given y_true and y_pred"""
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 seasonDecomposeCalc()
 featImportanceCalc()
-decisionTreeCalc()
-randForestCalc()
+# decisionTreeCalc()
+# randForestCalc()
 xgboostCalc()
 
 
