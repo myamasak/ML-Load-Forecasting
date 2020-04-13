@@ -1,0 +1,235 @@
+Date;Year;Month;Day;Weekday;Holiday_name;Type;Details
+2008-01-01;2008;1;1;Tuesday;New Year's Day;Federal Holiday; 
+2008-01-06;2008;1;6;Sunday;Epiphany;Christian; 
+2008-01-07;2008;1;7;Monday;Orthodox Christmas Day;Orthodox; 
+2008-01-10;2008;1;10;Thursday;Muharram;Muslim; 
+2008-01-13;2008;1;13;Sunday;Stephen Foster Memorial Day;Observance; 
+2008-01-14;2008;1;14;Monday;Orthodox New Year;Orthodox; 
+2008-01-18;2008;1;18;Friday;Lee-Jackson Day;State holiday;Virginia
+2008-01-19;2008;1;19;Saturday;Robert E. Lee's Birthday;State holiday;Florida
+2008-01-19;2008;1;19;Saturday;Confederate Heroes' Day;State holiday;Texas
+2008-01-21;2008;1;21;Monday;Martin Luther King Jr. Day;Federal Holiday; 
+2008-01-21;2008;1;21;Monday;Robert E. Lee's Birthday;State holiday;Alabama
+2008-01-21;2008;1;21;Monday;Robert E. Lee's Birthday;State holiday;AR, GA, MS
+2008-01-21;2008;1;21;Monday;Idaho Human Rights Day;State holiday;Idaho
+2008-01-21;2008;1;21;Monday;Civil Rights Day;State holiday;Arizona, New Hampshire
+2008-01-22;2008;1;22;Tuesday;Tu Bishvat/Tu B'Shevat;Jewish holiday; 
+2008-01-29;2008;1;29;Tuesday;Kansas Day;Observance; 
+2008-02-01;2008;2;1;Friday;National Freedom Day;Observance; 
+2008-02-01;2008;2;1;Friday;National Wear Red Day;Observance; 
+2008-02-01;2008;2;1;Friday;First Day of Black History Month;Annual monthly observance; 
+2008-02-02;2008;2;2;Saturday;Groundhog Day;Observance; 
+2008-02-03;2008;2;3;Sunday;Super Bowl;Sporting event; 
+2008-02-04;2008;2;4;Monday;Rosa Parks Day;Local observance;California
+2008-02-05;2008;2;5;Tuesday;Shrove Tuesday/Mardi Gras;Observance, Christian; 
+2008-02-05;2008;2;5;Tuesday;Shrove Tuesday/Mardi Gras;State holiday;Alabama*, Louisiana
+2008-02-06;2008;2;6;Wednesday;Ash Wednesday;Christian; 
+2008-02-07;2008;2;7;Thursday;Chinese New Year;Observance; 
+2008-02-12;2008;2;12;Tuesday;Lincoln's Birthday;State holiday;CA, CT, IL, MO, NJ, NY
+2008-02-14;2008;2;14;Thursday;Valentine's Day;Observance; 
+2008-02-14;2008;2;14;Thursday;Statehood Day;Local observance;Arizona
+2008-02-15;2008;2;15;Friday;Susan B. Anthony's Birthday;Local observance;New York, Wisconsin
+2008-02-16;2008;2;16;Saturday;Elizabeth Peratrovich Day;Local observance;Alaska
+2008-02-18;2008;2;18;Monday;Presidents' Day;Federal Holiday;All except DE, GA, IA, IN, KS, KY, LA, NC, NM, RI, WI
+2008-02-18;2008;2;18;Monday;Daisy Gatson Bates Day;State holiday;Arkansas
+2008-02-28;2008;2;28;Thursday;Linus Pauling Day;Local observance;Oregon
+2008-03-01;2008;3;1;Saturday;St. David's Day;Observance, Christian; 
+2008-03-01;2008;3;1;Saturday;First Day of Women's History Month;Annual monthly observance; 
+2008-03-02;2008;3;2;Sunday;Texas Independence Day;State holiday;Texas
+2008-03-03;2008;3;3;Monday;Casimir Pulaski Day;Local observance;Illinois**
+2008-03-03;2008;3;3;Monday;Read Across America Day;Observance; 
+2008-03-04;2008;3;4;Tuesday;Town Meeting Day;State holiday;Vermont
+2008-03-05;2008;3;5;Wednesday;Maha Shivaratri;Hindu Holiday; 
+2008-03-07;2008;3;7;Friday;Employee Appreciation Day;Observance; 
+2008-03-09;2008;3;9;Sunday;Daylight Saving Time starts;Clock change/Daylight Saving Time; 
+2008-03-15;2008;3;15;Saturday;St. Patrick's Day;Observance, Christian; 
+2008-03-16;2008;3;16;Sunday;Palm Sunday;Christian; 
+2008-03-17;2008;3;17;Monday;Evacuation Day;State holiday;Massachusetts*
+2008-03-20;2008;3;20;Thursday;Maundy Thursday;Christian; 
+2008-03-20;2008;3;20;Thursday;The Prophet's Birthday;Muslim; 
+2008-03-20;2008;3;20;Thursday;March Equinox;Season; 
+2008-03-21;2008;3;21;Friday;Holi;Hindu Holiday; 
+2008-03-21;2008;3;21;Friday;Purim;Jewish holiday; 
+2008-03-21;2008;3;21;Friday;Good Friday;State holiday;CT, DE, HI, IN, KY, LA, NC, ND, NJ, TN, TX***
+2008-03-22;2008;3;22;Saturday;Holy Saturday;Christian; 
+2008-03-23;2008;3;23;Sunday;Easter Sunday;Observance, Christian; 
+2008-03-24;2008;3;24;Monday;Easter Monday;Observance, Christian; 
+2008-03-25;2008;3;25;Tuesday;Maryland Day;Local observance;Maryland
+2008-03-26;2008;3;26;Wednesday;Prince Jonah Kuhio Kalanianaole Day;State holiday;Hawaii
+2008-03-31;2008;3;31;Monday;Seward's Day;State holiday;Alaska
+2008-03-31;2008;3;31;Monday;César Chávez Day;State holiday;CA*, CO***, TX***
+2008-04-02;2008;4;2;Wednesday;Pascua Florida Day;Local observance;Florida
+2008-04-06;2008;4;6;Sunday;National Tartan Day;Observance; 
+2008-04-08;2008;4;8;Tuesday;National Library Workers' Day;Observance; 
+2008-04-15;2008;4;15;Tuesday;Tax Day;Observance; 
+2008-04-15;2008;4;15;Tuesday;Father Damien Day;Local observance;Hawaii
+2008-04-16;2008;4;16;Wednesday;Emancipation Day;State holiday;DC
+2008-04-20;2008;4;20;Sunday;Passover (first day);Jewish holiday; 
+2008-04-21;2008;4;21;Monday;Patriot's Day;State holiday;Maine, Massachusetts
+2008-04-21;2008;4;21;Monday;San Jacinto Day;State holiday;Texas
+2008-04-21;2008;4;21;Monday;Boston Marathon;Sporting event; 
+2008-04-22;2008;4;22;Tuesday;Oklahoma Day;Local observance;Oklahoma
+2008-04-23;2008;4;23;Wednesday;Administrative Professionals Day;Observance; 
+2008-04-24;2008;4;24;Thursday;Take our Daughters and Sons to Work Day;Observance; 
+2008-04-25;2008;4;25;Friday;Orthodox Good Friday;Orthodox; 
+2008-04-25;2008;4;25;Friday;Arbor Day;State holiday;Nebraska
+2008-04-26;2008;4;26;Saturday;Orthodox Holy Saturday;Orthodox; 
+2008-04-26;2008;4;26;Saturday;Confederate Heroes' Day;Local observance;Florida
+2008-04-27;2008;4;27;Sunday;Last Day of Passover;Jewish holiday; 
+2008-04-27;2008;4;27;Sunday;Orthodox Easter;Orthodox; 
+2008-04-28;2008;4;28;Monday;Orthodox Easter Monday;Orthodox; 
+2008-04-28;2008;4;28;Monday;Confederate Memorial Day;State holiday;Alabama
+2008-04-28;2008;4;28;Monday;Confederate Memorial Day;State holiday;Mississippi
+2008-04-28;2008;4;28;Monday;Confederate Heroes' Day;State holiday;Georgia
+2008-05-01;2008;5;1;Thursday;Ascension Day;Christian; 
+2008-05-01;2008;5;1;Thursday;Yom HaShoah;Jewish commemoration; 
+2008-05-01;2008;5;1;Thursday;Law Day;Observance; 
+2008-05-01;2008;5;1;Thursday;Loyalty Day;Observance; 
+2008-05-01;2008;5;1;Thursday;National Day of Prayer;Observance; 
+2008-05-01;2008;5;1;Thursday;Lei Day;Local observance;Hawaii
+2008-05-02;2008;5;2;Friday;Kentucky Oaks;Sporting event; 
+2008-05-03;2008;5;3;Saturday;Kentucky Derby;Sporting event; 
+2008-05-04;2008;5;4;Sunday;Kent State Shootings Remembrance;Local observance;Ohio
+2008-05-04;2008;5;4;Sunday;Rhode Island Independence Day;Local observance;Rhode Island
+2008-05-05;2008;5;5;Monday;Cinco de Mayo;Observance; 
+2008-05-06;2008;5;6;Tuesday;National Nurses Day;Observance; 
+2008-05-06;2008;5;6;Tuesday;Primary Election Day;State holiday;Indiana
+2008-05-08;2008;5;8;Thursday;Yom Ha'atzmaut;Jewish holiday; 
+2008-05-08;2008;5;8;Thursday;Truman Day;State holiday;Missouri
+2008-05-08;2008;5;8;Thursday;Victory in Europe Day;Observance; 
+2008-05-09;2008;5;9;Friday;Confederate Memorial Day observed;State holiday;South Carolina
+2008-05-10;2008;5;10;Saturday;Confederate Memorial Day;State holiday;North Carolina, South Carolina
+2008-05-11;2008;5;11;Sunday;Pentecost;Christian; 
+2008-05-11;2008;5;11;Sunday;Mother's Day;Observance; 
+2008-05-12;2008;5;12;Monday;Whit Monday;Christian; 
+2008-05-13;2008;5;13;Tuesday;Primary Election Day;State holiday;West Virginia
+2008-05-15;2008;5;15;Thursday;Peace Officers Memorial Day;Observance; 
+2008-05-16;2008;5;16;Friday;National Defense Transportation Day;Observance; 
+2008-05-17;2008;5;17;Saturday;Armed Forces Day;Observance; 
+2008-05-17;2008;5;17;Saturday;Preakness Stakes;Sporting event; 
+2008-05-18;2008;5;18;Sunday;Trinity Sunday;Christian; 
+2008-05-22;2008;5;22;Thursday;Corpus Christi;Christian; 
+2008-05-22;2008;5;22;Thursday;National Maritime Day;Observance; 
+2008-05-23;2008;5;23;Friday;Lag BaOmer;Jewish holiday; 
+2008-05-25;2008;5;25;Sunday;National Missing Children's Day;Observance; 
+2008-05-26;2008;5;26;Monday;Memorial Day;Federal Holiday; 
+2008-05-26;2008;5;26;Monday;Jefferson Davis' Birthday;Local observance;Mississippi
+2008-06-01;2008;6;1;Sunday;Statehood Day;Local observance;Kentucky, Tennessee
+2008-06-02;2008;6;2;Monday;Jefferson Davis' Birthday;State holiday;Alabama
+2008-06-03;2008;6;3;Tuesday;Jefferson Davis' Birthday;Local observance;Florida
+2008-06-06;2008;6;6;Friday;D-Day;Observance; 
+2008-06-07;2008;6;7;Saturday;Belmont Stakes;Sporting event; 
+2008-06-09;2008;6;9;Monday;Shavuot;Jewish holiday; 
+2008-06-11;2008;6;11;Wednesday;Kamehameha Day;State holiday;Hawaii
+2008-06-14;2008;6;14;Saturday;Army Birthday;Observance; 
+2008-06-14;2008;6;14;Saturday;Flag Day;Observance; 
+2008-06-15;2008;6;15;Sunday;Father's Day;Observance; 
+2008-06-17;2008;6;17;Tuesday;Bunker Hill Day;State holiday;Massachusetts
+2008-06-19;2008;6;19;Thursday;Juneteenth;Local observance;All except AZ, HI, MD, MT, ND, NH, SD, TX, UT
+2008-06-19;2008;6;19;Thursday;Emancipation Day;State holiday;Texas
+2008-06-20;2008;6;20;Friday;June Solstice;Season; 
+2008-06-20;2008;6;20;Friday;West Virginia Day;State holiday;West Virginia
+2008-06-20;2008;6;20;Friday;American Eagle Day;Observance; 
+2008-07-04;2008;7;4;Friday;Independence Day;Federal Holiday; 
+2008-07-13;2008;7;13;Sunday;Nathan Bedford Forrest Day;Local observance;Tennessee
+2008-07-14;2008;7;14;Monday;Bastille Day;Observance; 
+2008-07-24;2008;7;24;Thursday;Pioneer Day;State holiday;Utah
+2008-07-27;2008;7;27;Sunday;Parents' Day;Observance; 
+2008-07-27;2008;7;27;Sunday;National Korean War Veterans Armistice Day;Observance; 
+2008-07-31;2008;7;31;Thursday;Isra and Mi'raj;Muslim; 
+2008-08-01;2008;8;1;Friday;Colorado Day;Local observance;Colorado
+2008-08-04;2008;8;4;Monday;Coast Guard Birthday;Observance; 
+2008-08-07;2008;8;7;Thursday;Purple Heart Day;Observance; 
+2008-08-10;2008;8;10;Sunday;Tisha B'Av;Jewish holiday; 
+2008-08-11;2008;8;11;Monday;Victory Day;State holiday;Rhode Island
+2008-08-15;2008;8;15;Friday;Assumption of Mary;Christian; 
+2008-08-15;2008;8;15;Friday;Hawaii Statehood Day;State holiday;Hawaii
+2008-08-15;2008;8;15;Friday;Bennington Battle Day observed;State holiday;Vermont
+2008-08-16;2008;8;16;Saturday;Raksha Bandhan;Hindu Holiday; 
+2008-08-16;2008;8;16;Saturday;Bennington Battle Day;State holiday;Vermont
+2008-08-19;2008;8;19;Tuesday;National Aviation Day;Observance; 
+2008-08-21;2008;8;21;Thursday;Senior Citizens Day;Observance; 
+2008-08-23;2008;8;23;Saturday;Janmashtami;Hindu Holiday; 
+2008-08-26;2008;8;26;Tuesday;Women's Equality Day;Observance; 
+2008-08-27;2008;8;27;Wednesday;Lyndon Baines Johnson Day;State holiday;Texas
+2008-09-01;2008;9;1;Monday;Labor Day;Federal Holiday; 
+2008-09-02;2008;9;2;Tuesday;Ramadan Starts;Muslim; 
+2008-09-03;2008;9;3;Wednesday;Ganesh Chaturthi;Hindu Holiday; 
+2008-09-06;2008;9;6;Saturday;Carl Garner Federal Lands Cleanup Day;Observance; 
+2008-09-07;2008;9;7;Sunday;National Grandparents Day;Observance; 
+2008-09-09;2008;9;9;Tuesday;California Admission Day;Local observance;California
+2008-09-11;2008;9;11;Thursday;Patriot Day;Observance; 
+2008-09-17;2008;9;17;Wednesday;Constitution Day and Citizenship Day;Observance; 
+2008-09-18;2008;9;18;Thursday;Air Force Birthday;Observance; 
+2008-09-19;2008;9;19;Friday;National POW/MIA Recognition Day;Observance; 
+2008-09-22;2008;9;22;Monday;September Equinox;Season; 
+2008-09-22;2008;9;22;Monday;Emancipation Day;Local observance;Ohio
+2008-09-26;2008;9;26;Friday;Native American Day;Local observance;California
+2008-09-27;2008;9;27;Saturday;Lailat al-Qadr;Muslim; 
+2008-09-28;2008;9;28;Sunday;Gold Star Mother's Day;Observance; 
+2008-09-29;2008;9;29;Monday;Navratri;Hindu Holiday; 
+2008-09-30;2008;9;30;Tuesday;Rosh Hashana;State holiday;Texas***
+2008-09-30;2008;9;30;Tuesday;Rosh Hashana;Jewish holiday; 
+2008-10-02;2008;10;2;Thursday;Eid al-Fitr;Muslim; 
+2008-10-04;2008;10;4;Saturday;Feast of St Francis of Assisi;Christian; 
+2008-10-06;2008;10;6;Monday;Child Health Day;Observance; 
+2008-10-09;2008;10;9;Thursday;Dussehra;Hindu Holiday; 
+2008-10-09;2008;10;9;Thursday;Leif Erikson Day;Observance; 
+2008-10-09;2008;10;9;Thursday;Yom Kippur;Jewish holiday; 
+2008-10-09;2008;10;9;Thursday;Yom Kippur;State holiday;Texas***
+2008-10-12;2008;10;12;Sunday;Chicago Marathon;Sporting event; 
+2008-10-13;2008;10;13;Monday;Navy Birthday;Observance; 
+2008-10-13;2008;10;13;Monday;Columbus Day;Federal Holiday;All except AK, AR, HI, MI, NV
+2008-10-13;2008;10;13;Monday;Native Americans' Day;Local observance;South Dakota
+2008-10-13;2008;10;13;Monday;Indigenous People's Day;Local observance;California*
+2008-10-14;2008;10;14;Tuesday;First Day of Sukkot;Jewish holiday; 
+2008-10-15;2008;10;15;Wednesday;White Cane Safety Day;Observance; 
+2008-10-16;2008;10;16;Thursday;Boss's Day;Observance; 
+2008-10-17;2008;10;17;Friday;Alaska Day observed;State holiday;Alaska
+2008-10-18;2008;10;18;Saturday;Alaska Day;State holiday;Alaska
+2008-10-18;2008;10;18;Saturday;Sweetest Day;Observance;13 states
+2008-10-20;2008;10;20;Monday;Last Day of Sukkot;Jewish holiday; 
+2008-10-21;2008;10;21;Tuesday;Shmini Atzeret;Jewish holiday; 
+2008-10-22;2008;10;22;Wednesday;Simchat Torah;Jewish holiday; 
+2008-10-28;2008;10;28;Tuesday;Diwali/Deepavali;Observance, Hinduism; 
+2008-10-31;2008;10;31;Friday;Halloween;Observance; 
+2008-10-31;2008;10;31;Friday;Nevada Day;State holiday;Nevada
+2008-11-01;2008;11;1;Saturday;All Saints' Day;Christian; 
+2008-11-02;2008;11;2;Sunday;All Souls' Day;Christian; 
+2008-11-02;2008;11;2;Sunday;Daylight Saving Time ends;Clock change/Daylight Saving Time; 
+2008-11-02;2008;11;2;Sunday;New York City Marathon;Sporting event; 
+2008-11-04;2008;11;4;Tuesday;Election Day (General Election);Observance; 
+2008-11-04;2008;11;4;Tuesday;Election Day;State holiday;12 states
+2008-11-06;2008;11;6;Thursday;Return Day;State holiday;Delaware*
+2008-11-10;2008;11;10;Monday;Marine Corps Birthday;Observance; 
+2008-11-11;2008;11;11;Tuesday;Veterans Day;Federal Holiday; 
+2008-11-27;2008;11;27;Thursday;Thanksgiving Day;Federal Holiday; 
+2008-11-28;2008;11;28;Friday;Presidents' Day;State holiday;New Mexico
+2008-11-28;2008;11;28;Friday;Day After Thanksgiving;State holiday;19 states
+2008-11-28;2008;11;28;Friday;Family Day;State holiday;Nevada
+2008-11-28;2008;11;28;Friday;Acadian Day;State holiday;Louisiana
+2008-11-28;2008;11;28;Friday;Black Friday;Observance; 
+2008-11-28;2008;11;28;Friday;American Indian Heritage Day;State holiday;Maryland
+2008-11-30;2008;11;30;Sunday;First Sunday of Advent;Christian; 
+2008-12-01;2008;12;1;Monday;Cyber Monday;Observance; 
+2008-12-01;2008;12;1;Monday;Rosa Parks Day;Local observance;Ohio
+2008-12-06;2008;12;6;Saturday;St Nicholas Day;Observance; 
+2008-12-07;2008;12;7;Sunday;Pearl Harbor Remembrance Day;Observance; 
+2008-12-08;2008;12;8;Monday;Feast of the Immaculate Conception;Christian; 
+2008-12-09;2008;12;9;Tuesday;Eid al-Adha;Muslim; 
+2008-12-12;2008;12;12;Friday;Feast of Our Lady of Guadalupe;Christian; 
+2008-12-13;2008;12;13;Saturday;National Guard Birthday;Observance; 
+2008-12-15;2008;12;15;Monday;Bill of Rights Day;Observance; 
+2008-12-17;2008;12;17;Wednesday;Pan American Aviation Day;Observance; 
+2008-12-17;2008;12;17;Wednesday;Wright Brothers Day;Observance; 
+2008-12-21;2008;12;21;Sunday;December Solstice;Season; 
+2008-12-22;2008;12;22;Monday;Chanukah/Hanukkah (first day);Jewish holiday; 
+2008-12-24;2008;12;24;Wednesday;Christmas Eve;Observance, Christian; 
+2008-12-24;2008;12;24;Wednesday;Christmas Eve;State holiday;Texas
+2008-12-25;2008;12;25;Thursday;Christmas Day;Federal Holiday; 
+2008-12-26;2008;12;26;Friday;Kwanzaa (first day);Observance; 
+2008-12-26;2008;12;26;Friday;Day After Christmas Day;State holiday;Texas
+2008-12-26;2008;12;26;Friday;Washington's Birthday;State holiday;Indiana
+2008-12-29;2008;12;29;Monday;Last Day of Chanukah;Jewish holiday; 
+2008-12-29;2008;12;29;Monday;Muharram;Muslim; 
+2008-12-31;2008;12;31;Wednesday;New Year's Eve;Observance; 

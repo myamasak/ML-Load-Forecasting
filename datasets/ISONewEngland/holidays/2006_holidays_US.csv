@@ -1,0 +1,228 @@
+Date;Year;Month;Day;Weekday;Holiday_name;Type;Details
+2006-01-01;2006;1;1;Sunday;New Year's Day;Federal Holiday; 
+2006-01-02;2006;1;2;Monday;Last Day of Chanukah;Jewish holiday; 
+2006-01-02;2006;1;2;Monday;New Year's Day observed;Federal Holiday; 
+2006-01-06;2006;1;6;Friday;Epiphany;Christian; 
+2006-01-07;2006;1;7;Saturday;Orthodox Christmas Day;Orthodox; 
+2006-01-10;2006;1;10;Tuesday;Eid al-Adha;Muslim; 
+2006-01-13;2006;1;13;Friday;Lee-Jackson Day;State holiday;Virginia
+2006-01-13;2006;1;13;Friday;Stephen Foster Memorial Day;Observance; 
+2006-01-14;2006;1;14;Saturday;Orthodox New Year;Orthodox; 
+2006-01-16;2006;1;16;Monday;Martin Luther King Jr. Day;Federal Holiday; 
+2006-01-16;2006;1;16;Monday;Robert E. Lee's Birthday;State holiday;AL, AR, GA, MS
+2006-01-16;2006;1;16;Monday;Idaho Human Rights Day;State holiday;Idaho
+2006-01-16;2006;1;16;Monday;Civil Rights Day;State holiday;Arizona, New Hampshire
+2006-01-19;2006;1;19;Thursday;Robert E. Lee's Birthday;State holiday;Florida
+2006-01-19;2006;1;19;Thursday;Confederate Heroes' Day;State holiday;Texas
+2006-01-29;2006;1;29;Sunday;Kansas Day;Observance; 
+2006-01-29;2006;1;29;Sunday;Chinese New Year;Observance; 
+2006-01-31;2006;1;31;Tuesday;Muharram;Muslim; 
+2006-02-01;2006;2;1;Wednesday;National Freedom Day;Observance; 
+2006-02-01;2006;2;1;Wednesday;First Day of Black History Month;Annual monthly observance; 
+2006-02-02;2006;2;2;Thursday;Groundhog Day;Observance; 
+2006-02-03;2006;2;3;Friday;National Wear Red Day;Observance; 
+2006-02-04;2006;2;4;Saturday;Rosa Parks Day;Local observance;California
+2006-02-05;2006;2;5;Sunday;Super Bowl;Sporting event; 
+2006-02-12;2006;2;12;Sunday;Lincoln's Birthday;State holiday;CA, CT, IL, MO, NJ, NY
+2006-02-13;2006;2;13;Monday;Tu Bishvat/Tu B'Shevat;Jewish holiday; 
+2006-02-13;2006;2;13;Monday;Lincoln's Birthday observed;State holiday;CA, CT, IL, MO, NJ, NY
+2006-02-14;2006;2;14;Tuesday;Valentine's Day;Observance; 
+2006-02-14;2006;2;14;Tuesday;Statehood Day;Local observance;Arizona
+2006-02-15;2006;2;15;Wednesday;Susan B. Anthony's Birthday;Local observance;New York, Wisconsin
+2006-02-16;2006;2;16;Thursday;Elizabeth Peratrovich Day;Local observance;Alaska
+2006-02-20;2006;2;20;Monday;Presidents' Day;Federal Holiday;All except DE, GA, IA, IN, KS, KY, LA, NC, NM, RI, WI
+2006-02-20;2006;2;20;Monday;Daisy Gatson Bates Day;State holiday;Arkansas
+2006-02-28;2006;2;28;Tuesday;Shrove Tuesday/Mardi Gras;Observance, Christian; 
+2006-02-28;2006;2;28;Tuesday;Shrove Tuesday/Mardi Gras;State holiday;Alabama*, Louisiana
+2006-02-28;2006;2;28;Tuesday;Linus Pauling Day;Local observance;Oregon
+2006-03-01;2006;3;1;Wednesday;Ash Wednesday;Christian; 
+2006-03-01;2006;3;1;Wednesday;St. David's Day;Observance, Christian; 
+2006-03-01;2006;3;1;Wednesday;First Day of Women's History Month;Annual monthly observance; 
+2006-03-02;2006;3;2;Thursday;Texas Independence Day;State holiday;Texas
+2006-03-02;2006;3;2;Thursday;Read Across America Day;Observance; 
+2006-03-03;2006;3;3;Friday;Employee Appreciation Day;Observance; 
+2006-03-06;2006;3;6;Monday;Casimir Pulaski Day;Local observance;Illinois**
+2006-03-07;2006;3;7;Tuesday;Town Meeting Day;State holiday;Vermont
+2006-03-14;2006;3;14;Tuesday;Purim;Jewish holiday; 
+2006-03-17;2006;3;17;Friday;St. Patrick's Day;Observance, Christian; 
+2006-03-17;2006;3;17;Friday;Evacuation Day;State holiday;Massachusetts*
+2006-03-20;2006;3;20;Monday;March Equinox;Season; 
+2006-03-25;2006;3;25;Saturday;Maryland Day;Local observance;Maryland
+2006-03-26;2006;3;26;Sunday;Prince Jonah Kuhio Kalanianaole Day;State holiday;Hawaii
+2006-03-27;2006;3;27;Monday;Prince Jonah Kuhio Kalanianaole Day observed;State holiday;Hawaii
+2006-03-27;2006;3;27;Monday;Seward's Day;State holiday;Alaska
+2006-03-31;2006;3;31;Friday;César Chávez Day;State holiday;CA*, CO***, TX***
+2006-04-02;2006;4;2;Sunday;Daylight Saving Time starts;Clock change/Daylight Saving Time; 
+2006-04-02;2006;4;2;Sunday;Pascua Florida Day;Local observance;Florida
+2006-04-03;2006;4;3;Monday;Pascua Florida Day observed;Local observance;Florida
+2006-04-06;2006;4;6;Thursday;National Tartan Day;Observance; 
+2006-04-09;2006;4;9;Sunday;Palm Sunday;Christian; 
+2006-04-11;2006;4;11;Tuesday;The Prophet's Birthday;Muslim; 
+2006-04-11;2006;4;11;Tuesday;National Library Workers' Day;Observance; 
+2006-04-13;2006;4;13;Thursday;Maundy Thursday;Christian; 
+2006-04-13;2006;4;13;Thursday;Passover (first day);Jewish holiday; 
+2006-04-14;2006;4;14;Friday;Good Friday;State holiday;CT, DE, HI, IN, KY, LA, NC, ND, NJ, TN, TX***
+2006-04-15;2006;4;15;Saturday;Holy Saturday;Christian; 
+2006-04-15;2006;4;15;Saturday;Father Damien Day;Local observance;Hawaii
+2006-04-16;2006;4;16;Sunday;Easter Sunday;Observance, Christian; 
+2006-04-16;2006;4;16;Sunday;Emancipation Day;State holiday;DC
+2006-04-17;2006;4;17;Monday;Easter Monday;Observance, Christian; 
+2006-04-17;2006;4;17;Monday;Tax Day;Observance; 
+2006-04-17;2006;4;17;Monday;Emancipation Day observed;State holiday;DC
+2006-04-17;2006;4;17;Monday;Patriot's Day;State holiday;Maine, Massachusetts
+2006-04-17;2006;4;17;Monday;Boston Marathon;Sporting event; 
+2006-04-20;2006;4;20;Thursday;Last Day of Passover;Jewish holiday; 
+2006-04-21;2006;4;21;Friday;Orthodox Good Friday;Orthodox; 
+2006-04-21;2006;4;21;Friday;San Jacinto Day;State holiday;Texas
+2006-04-22;2006;4;22;Saturday;Orthodox Holy Saturday;Orthodox; 
+2006-04-22;2006;4;22;Saturday;Oklahoma Day;Local observance;Oklahoma
+2006-04-23;2006;4;23;Sunday;Orthodox Easter;Orthodox; 
+2006-04-24;2006;4;24;Monday;Orthodox Easter Monday;Orthodox; 
+2006-04-24;2006;4;24;Monday;Confederate Memorial Day;State holiday;Alabama
+2006-04-24;2006;4;24;Monday;Confederate Memorial Day;State holiday;Mississippi
+2006-04-24;2006;4;24;Monday;Confederate Heroes' Day;State holiday;Georgia
+2006-04-25;2006;4;25;Tuesday;Yom HaShoah;Jewish commemoration; 
+2006-04-26;2006;4;26;Wednesday;Confederate Heroes' Day;Local observance;Florida
+2006-04-26;2006;4;26;Wednesday;Administrative Professionals Day;Observance; 
+2006-04-27;2006;4;27;Thursday;Take our Daughters and Sons to Work Day;Observance; 
+2006-04-28;2006;4;28;Friday;Arbor Day;State holiday;Nebraska
+2006-05-01;2006;5;1;Monday;Law Day;Observance; 
+2006-05-01;2006;5;1;Monday;Loyalty Day;Observance; 
+2006-05-01;2006;5;1;Monday;Lei Day;Local observance;Hawaii
+2006-05-02;2006;5;2;Tuesday;Primary Election Day;State holiday;Indiana
+2006-05-03;2006;5;3;Wednesday;Yom Ha'atzmaut;Jewish holiday; 
+2006-05-04;2006;5;4;Thursday;Kent State Shootings Remembrance;Local observance;Ohio
+2006-05-04;2006;5;4;Thursday;National Day of Prayer;Observance; 
+2006-05-04;2006;5;4;Thursday;Rhode Island Independence Day;Local observance;Rhode Island
+2006-05-05;2006;5;5;Friday;Cinco de Mayo;Observance; 
+2006-05-05;2006;5;5;Friday;Kentucky Oaks;Sporting event; 
+2006-05-06;2006;5;6;Saturday;Kentucky Derby;Sporting event; 
+2006-05-06;2006;5;6;Saturday;National Nurses Day;Observance; 
+2006-05-08;2006;5;8;Monday;Truman Day;State holiday;Missouri
+2006-05-08;2006;5;8;Monday;Victory in Europe Day;Observance; 
+2006-05-09;2006;5;9;Tuesday;Primary Election Day;State holiday;West Virginia
+2006-05-10;2006;5;10;Wednesday;Confederate Memorial Day;State holiday;North Carolina, South Carolina
+2006-05-14;2006;5;14;Sunday;Mother's Day;Observance; 
+2006-05-15;2006;5;15;Monday;Peace Officers Memorial Day;Observance; 
+2006-05-16;2006;5;16;Tuesday;Lag BaOmer;Jewish holiday; 
+2006-05-19;2006;5;19;Friday;National Defense Transportation Day;Observance; 
+2006-05-20;2006;5;20;Saturday;Armed Forces Day;Observance; 
+2006-05-20;2006;5;20;Saturday;Preakness Stakes;Sporting event; 
+2006-05-22;2006;5;22;Monday;National Maritime Day;Observance; 
+2006-05-25;2006;5;25;Thursday;Ascension Day;Christian; 
+2006-05-25;2006;5;25;Thursday;National Missing Children's Day;Observance; 
+2006-05-29;2006;5;29;Monday;Memorial Day;Federal Holiday; 
+2006-05-29;2006;5;29;Monday;Jefferson Davis' Birthday;Local observance;Mississippi
+2006-06-01;2006;6;1;Thursday;Statehood Day;Local observance;Kentucky, Tennessee
+2006-06-02;2006;6;2;Friday;Shavuot;Jewish holiday; 
+2006-06-03;2006;6;3;Saturday;Jefferson Davis' Birthday;Local observance;Florida
+2006-06-04;2006;6;4;Sunday;Pentecost;Christian; 
+2006-06-05;2006;6;5;Monday;Whit Monday;Christian; 
+2006-06-05;2006;6;5;Monday;Jefferson Davis' Birthday;State holiday;Alabama
+2006-06-06;2006;6;6;Tuesday;D-Day;Observance; 
+2006-06-10;2006;6;10;Saturday;Belmont Stakes;Sporting event; 
+2006-06-11;2006;6;11;Sunday;Trinity Sunday;Christian; 
+2006-06-11;2006;6;11;Sunday;Kamehameha Day;State holiday;Hawaii
+2006-06-14;2006;6;14;Wednesday;Army Birthday;Observance; 
+2006-06-14;2006;6;14;Wednesday;Flag Day;Observance; 
+2006-06-15;2006;6;15;Thursday;Corpus Christi;Christian; 
+2006-06-17;2006;6;17;Saturday;Bunker Hill Day;State holiday;Massachusetts
+2006-06-18;2006;6;18;Sunday;Father's Day;Observance; 
+2006-06-19;2006;6;19;Monday;Juneteenth;Local observance;All except AZ, HI, MD, MT, ND, NH, SD, TX, UT
+2006-06-19;2006;6;19;Monday;Emancipation Day;State holiday;Texas
+2006-06-20;2006;6;20;Tuesday;West Virginia Day;State holiday;West Virginia
+2006-06-21;2006;6;21;Wednesday;June Solstice;Season; 
+2006-07-04;2006;7;4;Tuesday;Independence Day;Federal Holiday; 
+2006-07-13;2006;7;13;Thursday;Nathan Bedford Forrest Day;Local observance;Tennessee
+2006-07-14;2006;7;14;Friday;Bastille Day;Observance; 
+2006-07-23;2006;7;23;Sunday;Parents' Day;Observance; 
+2006-07-24;2006;7;24;Monday;Pioneer Day;State holiday;Utah
+2006-07-27;2006;7;27;Thursday;National Korean War Veterans Armistice Day;Observance; 
+2006-08-01;2006;8;1;Tuesday;Colorado Day;Local observance;Colorado
+2006-08-03;2006;8;3;Thursday;Tisha B'Av;Jewish holiday; 
+2006-08-04;2006;8;4;Friday;Coast Guard Birthday;Observance; 
+2006-08-07;2006;8;7;Monday;Purple Heart Day;Observance; 
+2006-08-14;2006;8;14;Monday;Victory Day;State holiday;Rhode Island
+2006-08-15;2006;8;15;Tuesday;Assumption of Mary;Christian; 
+2006-08-16;2006;8;16;Wednesday;Bennington Battle Day;State holiday;Vermont
+2006-08-18;2006;8;18;Friday;Hawaii Statehood Day;State holiday;Hawaii
+2006-08-19;2006;8;19;Saturday;National Aviation Day;Observance; 
+2006-08-21;2006;8;21;Monday;Senior Citizens Day;Observance; 
+2006-08-22;2006;8;22;Tuesday;Isra and Mi'raj;Muslim; 
+2006-08-26;2006;8;26;Saturday;Women's Equality Day;Observance; 
+2006-08-27;2006;8;27;Sunday;Lyndon Baines Johnson Day;State holiday;Texas
+2006-09-04;2006;9;4;Monday;Labor Day;Federal Holiday; 
+2006-09-09;2006;9;9;Saturday;Carl Garner Federal Lands Cleanup Day;Observance; 
+2006-09-09;2006;9;9;Saturday;California Admission Day;Local observance;California
+2006-09-10;2006;9;10;Sunday;National Grandparents Day;Observance; 
+2006-09-11;2006;9;11;Monday;Patriot Day;Observance; 
+2006-09-15;2006;9;15;Friday;National POW/MIA Recognition Day;Observance; 
+2006-09-17;2006;9;17;Sunday;Constitution Day and Citizenship Day;Observance; 
+2006-09-18;2006;9;18;Monday;Air Force Birthday;Observance; 
+2006-09-18;2006;9;18;Monday;Constitution Day and Citizenship Day observed;Observance; 
+2006-09-22;2006;9;22;Friday;Emancipation Day;Local observance;Ohio
+2006-09-22;2006;9;22;Friday;Native American Day;Local observance;California
+2006-09-23;2006;9;23;Saturday;September Equinox;Season; 
+2006-09-23;2006;9;23;Saturday;Rosh Hashana;Jewish holiday; 
+2006-09-23;2006;9;23;Saturday;Rosh Hashana;State holiday;Texas***
+2006-09-24;2006;9;24;Sunday;Ramadan Starts;Muslim; 
+2006-09-24;2006;9;24;Sunday;Gold Star Mother's Day;Observance; 
+2006-10-02;2006;10;2;Monday;Child Health Day;Observance; 
+2006-10-02;2006;10;2;Monday;Yom Kippur;State holiday;Texas***
+2006-10-02;2006;10;2;Monday;Yom Kippur;Jewish holiday; 
+2006-10-04;2006;10;4;Wednesday;Feast of St Francis of Assisi;Christian; 
+2006-10-07;2006;10;7;Saturday;First Day of Sukkot;Jewish holiday; 
+2006-10-09;2006;10;9;Monday;Leif Erikson Day;Observance; 
+2006-10-09;2006;10;9;Monday;Columbus Day;Federal Holiday;All except AK, AR, HI, NV
+2006-10-09;2006;10;9;Monday;Native Americans' Day;Local observance;South Dakota
+2006-10-09;2006;10;9;Monday;Indigenous People's Day;Local observance;California*
+2006-10-13;2006;10;13;Friday;Last Day of Sukkot;Jewish holiday; 
+2006-10-13;2006;10;13;Friday;Navy Birthday;Observance; 
+2006-10-14;2006;10;14;Saturday;Shmini Atzeret;Jewish holiday; 
+2006-10-15;2006;10;15;Sunday;Simchat Torah;Jewish holiday; 
+2006-10-15;2006;10;15;Sunday;White Cane Safety Day;Observance; 
+2006-10-16;2006;10;16;Monday;Boss's Day;Observance; 
+2006-10-18;2006;10;18;Wednesday;Alaska Day;State holiday;Alaska
+2006-10-19;2006;10;19;Thursday;Lailat al-Qadr;Muslim; 
+2006-10-21;2006;10;21;Saturday;Diwali/Deepavali;Observance, Hinduism; 
+2006-10-21;2006;10;21;Saturday;Sweetest Day;Observance;13 states
+2006-10-22;2006;10;22;Sunday;Chicago Marathon;Sporting event; 
+2006-10-24;2006;10;24;Tuesday;Eid al-Fitr;Muslim; 
+2006-10-27;2006;10;27;Friday;Nevada Day;State holiday;Nevada
+2006-10-29;2006;10;29;Sunday;Daylight Saving Time ends;Clock change/Daylight Saving Time; 
+2006-10-31;2006;10;31;Tuesday;Halloween;Observance; 
+2006-11-01;2006;11;1;Wednesday;All Saints' Day;Christian; 
+2006-11-02;2006;11;2;Thursday;All Souls' Day;Christian; 
+2006-11-05;2006;11;5;Sunday;New York City Marathon;Sporting event; 
+2006-11-07;2006;11;7;Tuesday;Election Day;Observance; 
+2006-11-09;2006;11;9;Thursday;Return Day;State holiday;Delaware*
+2006-11-10;2006;11;10;Friday;Marine Corps Birthday;Observance; 
+2006-11-11;2006;11;11;Saturday;Veterans Day;Federal Holiday; 
+2006-11-23;2006;11;23;Thursday;Thanksgiving Day;Federal Holiday; 
+2006-11-24;2006;11;24;Friday;Presidents' Day;State holiday;New Mexico
+2006-11-24;2006;11;24;Friday;Day After Thanksgiving;State holiday;19 states
+2006-11-24;2006;11;24;Friday;Family Day;State holiday;Nevada
+2006-11-24;2006;11;24;Friday;Acadian Day;State holiday;Louisiana
+2006-11-24;2006;11;24;Friday;Black Friday;Observance; 
+2006-11-27;2006;11;27;Monday;Cyber Monday;Observance; 
+2006-12-01;2006;12;1;Friday;Rosa Parks Day;Local observance;Ohio
+2006-12-03;2006;12;3;Sunday;First Sunday of Advent;Christian; 
+2006-12-06;2006;12;6;Wednesday;St Nicholas Day;Observance; 
+2006-12-07;2006;12;7;Thursday;Pearl Harbor Remembrance Day;Observance; 
+2006-12-08;2006;12;8;Friday;Feast of the Immaculate Conception;Christian; 
+2006-12-12;2006;12;12;Tuesday;Feast of Our Lady of Guadalupe;Christian; 
+2006-12-13;2006;12;13;Wednesday;National Guard Birthday;Observance; 
+2006-12-15;2006;12;15;Friday;Bill of Rights Day;Observance; 
+2006-12-16;2006;12;16;Saturday;Chanukah/Hanukkah (first day);Jewish holiday; 
+2006-12-17;2006;12;17;Sunday;Pan American Aviation Day;Observance; 
+2006-12-17;2006;12;17;Sunday;Wright Brothers Day;Observance; 
+2006-12-21;2006;12;21;Thursday;December Solstice;Season; 
+2006-12-23;2006;12;23;Saturday;Last Day of Chanukah;Jewish holiday; 
+2006-12-24;2006;12;24;Sunday;Christmas Eve;State holiday;Texas
+2006-12-24;2006;12;24;Sunday;Christmas Eve;Observance, Christian; 
+2006-12-25;2006;12;25;Monday;Christmas Day;Federal Holiday; 
+2006-12-25;2006;12;25;Monday;Christmas Eve observed;State holiday;Texas
+2006-12-26;2006;12;26;Tuesday;Kwanzaa (first day);Observance; 
+2006-12-26;2006;12;26;Tuesday;Day After Christmas Day;State holiday;Texas
+2006-12-31;2006;12;31;Sunday;Eid al-Adha;Muslim; 
+2006-12-31;2006;12;31;Sunday;New Year's Eve;Observance; 

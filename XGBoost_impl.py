@@ -18,7 +18,7 @@ import glob
 import seaborn as sns
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-import datetime
+import datetime as dt
 import calendar
 
 
@@ -33,12 +33,13 @@ path = r'%s' % os.getcwd().replace('\\','/')
 #path = path + '/code/ML-Load-Forecasting'
 
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/*.csv')
+all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv') + \
+            glob.glob(path + r'/datasets/ISONewEngland/holidays/*.csv')
 
 # Select datasets 
 #selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",
 #              "2014","2015","2015","2016","2017","2018","2019"]
-selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016"]
+selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
 #selectDatasets = ["2015","2016","2017","2018","2019"]
 
 # Initialize dataset list
@@ -56,7 +57,7 @@ for filename in all_files:
     if (filename.find("holidays") != -1):
         for data in selectDatasets:
             if (filename.find(data) != -1):
-                df = pd.read_csv(filename,index_col=None, header=0, sep=';')
+                df = pd.read_csv(filename,index_col=None, header=0, sep=';', error_bad_lines=False)
                 holidayList.append(df)
 
 # Concat
@@ -119,9 +120,12 @@ if (dataset['DEMAND'].eq(0).sum() > 0):
 
 # Decouple date and time from dataset
 # Then concat decoupled data
-date = pd.DataFrame() 
+#date = pd.DataFrame() 
 date = pd.to_datetime(dataset.Date)
-date.dt.year.head() 
+dataset['Date'] = pd.to_datetime(dataset.Date)
+
+#date.dt.year.head() 
+date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
@@ -154,6 +158,7 @@ X = pd.concat(concatlist,axis=1)
 #dataset = pd.concat(concatlist,axis=1)
 
 
+df = dataset['Date']
 
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
@@ -194,7 +199,7 @@ def seasonDecomposeCalc():
     data['Date'] = pd.to_datetime(data['Date'])
     data = data.set_index('Date')
     result = seasonal_decompose(data, model='multiplicative')
-    #result = sm.tsa.seasonal_decompose(data)
+#    result = sm.tsa.seasonal_decompose(data)
     result.plot()
     plt.show
     

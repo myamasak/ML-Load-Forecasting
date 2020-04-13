@@ -1,0 +1,240 @@
+Date;Year;Month;Day;Weekday;Holiday_name;Type;Details
+2010-01-01;2010;1;1;Friday;New Year's Day;Federal Holiday; 
+2010-01-06;2010;1;6;Wednesday;Epiphany;Christian; 
+2010-01-07;2010;1;7;Thursday;Orthodox Christmas Day;Orthodox; 
+2010-01-13;2010;1;13;Wednesday;Stephen Foster Memorial Day;Observance; 
+2010-01-14;2010;1;14;Thursday;Orthodox New Year;Orthodox; 
+2010-01-15;2010;1;15;Friday;Lee-Jackson Day;State holiday;Virginia
+2010-01-18;2010;1;18;Monday;Martin Luther King Jr. Day;Federal Holiday; 
+2010-01-18;2010;1;18;Monday;Robert E. Lee's Birthday;State holiday;Arkansas
+2010-01-18;2010;1;18;Monday;Robert E. Lee's Birthday;State holiday;AL, GA, MS
+2010-01-18;2010;1;18;Monday;Idaho Human Rights Day;State holiday;Idaho
+2010-01-18;2010;1;18;Monday;Civil Rights Day;State holiday;Arizona, New Hampshire
+2010-01-19;2010;1;19;Tuesday;Robert E. Lee's Birthday;State holiday;Florida
+2010-01-19;2010;1;19;Tuesday;Confederate Heroes' Day;State holiday;Texas
+2010-01-29;2010;1;29;Friday;Kansas Day;Observance; 
+2010-01-30;2010;1;30;Saturday;Tu Bishvat/Tu B'Shevat;Jewish holiday; 
+2010-02-01;2010;2;1;Monday;National Freedom Day;Observance; 
+2010-02-01;2010;2;1;Monday;First Day of Black History Month;Annual monthly observance; 
+2010-02-02;2010;2;2;Tuesday;Groundhog Day;Observance; 
+2010-02-04;2010;2;4;Thursday;Rosa Parks Day;Local observance;California
+2010-02-05;2010;2;5;Friday;National Wear Red Day;Observance; 
+2010-02-07;2010;2;7;Sunday;Super Bowl;Sporting event; 
+2010-02-11;2010;2;11;Thursday;Maha Shivaratri;Hindu Holiday; 
+2010-02-12;2010;2;12;Friday;Lincoln's Birthday;State holiday;CT, IL, MO, NJ, NY
+2010-02-14;2010;2;14;Sunday;Valentine's Day;Observance; 
+2010-02-14;2010;2;14;Sunday;Statehood Day;Local observance;Arizona
+2010-02-14;2010;2;14;Sunday;Chinese New Year;Observance; 
+2010-02-15;2010;2;15;Monday;Presidents' Day;Federal Holiday;All except DE, GA, IA, IN, KS, KY, LA, NC, NM, RI, WI
+2010-02-15;2010;2;15;Monday;Daisy Gatson Bates Day;State holiday;Arkansas
+2010-02-15;2010;2;15;Monday;Susan B. Anthony's Birthday;Local observance;New York, Wisconsin
+2010-02-16;2010;2;16;Tuesday;Shrove Tuesday/Mardi Gras;State holiday;Alabama*, Louisiana
+2010-02-16;2010;2;16;Tuesday;Shrove Tuesday/Mardi Gras;Observance, Christian; 
+2010-02-16;2010;2;16;Tuesday;Elizabeth Peratrovich Day;Local observance;Alaska
+2010-02-17;2010;2;17;Wednesday;Ash Wednesday;Christian; 
+2010-02-26;2010;2;26;Friday;The Prophet's Birthday;Muslim; 
+2010-02-28;2010;2;28;Sunday;Holi;Hindu Holiday; 
+2010-02-28;2010;2;28;Sunday;Purim;Jewish holiday; 
+2010-02-28;2010;2;28;Sunday;Linus Pauling Day;Local observance;Oregon
+2010-03-01;2010;3;1;Monday;St. David's Day;Observance, Christian; 
+2010-03-01;2010;3;1;Monday;Casimir Pulaski Day;Local observance;Illinois**
+2010-03-01;2010;3;1;Monday;First Day of Women's History Month;Annual monthly observance; 
+2010-03-02;2010;3;2;Tuesday;Texas Independence Day;State holiday;Texas
+2010-03-02;2010;3;2;Tuesday;Read Across America Day;Observance; 
+2010-03-02;2010;3;2;Tuesday;Town Meeting Day;State holiday;Vermont
+2010-03-05;2010;3;5;Friday;Employee Appreciation Day;Observance; 
+2010-03-14;2010;3;14;Sunday;Daylight Saving Time starts;Clock change/Daylight Saving Time; 
+2010-03-17;2010;3;17;Wednesday;St. Patrick's Day;Observance, Christian; 
+2010-03-17;2010;3;17;Wednesday;Evacuation Day;State holiday;Massachusetts*
+2010-03-20;2010;3;20;Saturday;March Equinox;Season; 
+2010-03-25;2010;3;25;Thursday;Maryland Day;Local observance;Maryland
+2010-03-26;2010;3;26;Friday;Prince Jonah Kuhio Kalanianaole Day;State holiday;Hawaii
+2010-03-28;2010;3;28;Sunday;Palm Sunday;Christian; 
+2010-03-29;2010;3;29;Monday;Seward's Day;State holiday;Alaska
+2010-03-30;2010;3;30;Tuesday;Passover (first day);Jewish holiday; 
+2010-03-31;2010;3;31;Wednesday;César Chávez Day;State holiday;CA*, CO***, TX***
+2010-04-01;2010;4;1;Thursday;Maundy Thursday;Christian; 
+2010-04-02;2010;4;2;Friday;Orthodox Good Friday;Orthodox; 
+2010-04-02;2010;4;2;Friday;Good Friday;State holiday;CT, DE, HI, IN, KY, LA, NC, ND, NJ, TN, TX***
+2010-04-02;2010;4;2;Friday;Pascua Florida Day;Local observance;Florida
+2010-04-03;2010;4;3;Saturday;Holy Saturday;Christian; 
+2010-04-03;2010;4;3;Saturday;Orthodox Holy Saturday;Orthodox; 
+2010-04-04;2010;4;4;Sunday;Orthodox Easter;Orthodox; 
+2010-04-04;2010;4;4;Sunday;Easter Sunday;Observance, Christian; 
+2010-04-05;2010;4;5;Monday;Orthodox Easter Monday;Orthodox; 
+2010-04-05;2010;4;5;Monday;Easter Monday;Observance, Christian; 
+2010-04-06;2010;4;6;Tuesday;Last Day of Passover;Jewish holiday; 
+2010-04-06;2010;4;6;Tuesday;National Tartan Day;Observance; 
+2010-04-11;2010;4;11;Sunday;Yom HaShoah;Jewish commemoration; 
+2010-04-13;2010;4;13;Tuesday;National Library Workers' Day;Observance; 
+2010-04-15;2010;4;15;Thursday;Tax Day;Observance; 
+2010-04-15;2010;4;15;Thursday;Father Damien Day;Local observance;Hawaii
+2010-04-16;2010;4;16;Friday;Emancipation Day;State holiday;DC
+2010-04-19;2010;4;19;Monday;Patriot's Day;State holiday;Maine, Massachusetts
+2010-04-19;2010;4;19;Monday;Boston Marathon;Sporting event; 
+2010-04-20;2010;4;20;Tuesday;Yom Ha'atzmaut;Jewish holiday; 
+2010-04-21;2010;4;21;Wednesday;San Jacinto Day;State holiday;Texas
+2010-04-21;2010;4;21;Wednesday;Administrative Professionals Day;Observance; 
+2010-04-22;2010;4;22;Thursday;Oklahoma Day;Local observance;Oklahoma
+2010-04-22;2010;4;22;Thursday;Take our Daughters and Sons to Work Day;Observance; 
+2010-04-26;2010;4;26;Monday;Confederate Memorial Day;State holiday;Mississippi
+2010-04-26;2010;4;26;Monday;Confederate Memorial Day;State holiday;Alabama
+2010-04-26;2010;4;26;Monday;Confederate Heroes' Day;State holiday;Georgia
+2010-04-26;2010;4;26;Monday;Confederate Heroes' Day;Local observance;Florida
+2010-04-30;2010;4;30;Friday;Arbor Day;State holiday;Nebraska
+2010-04-30;2010;4;30;Friday;Kentucky Oaks;Sporting event; 
+2010-05-01;2010;5;1;Saturday;Kentucky Derby;Sporting event; 
+2010-05-01;2010;5;1;Saturday;Law Day;Observance; 
+2010-05-01;2010;5;1;Saturday;Loyalty Day;Observance; 
+2010-05-01;2010;5;1;Saturday;Lei Day;Local observance;Hawaii
+2010-05-02;2010;5;2;Sunday;Lag BaOmer;Jewish holiday; 
+2010-05-04;2010;5;4;Tuesday;Kent State Shootings Remembrance;Local observance;Ohio
+2010-05-04;2010;5;4;Tuesday;Rhode Island Independence Day;Local observance;Rhode Island
+2010-05-04;2010;5;4;Tuesday;Primary Election Day;State holiday;Indiana
+2010-05-05;2010;5;5;Wednesday;Cinco de Mayo;Observance; 
+2010-05-06;2010;5;6;Thursday;National Nurses Day;Observance; 
+2010-05-06;2010;5;6;Thursday;National Day of Prayer;Observance; 
+2010-05-07;2010;5;7;Friday;Truman Day observed;State holiday;Missouri
+2010-05-08;2010;5;8;Saturday;Truman Day;State holiday;Missouri
+2010-05-08;2010;5;8;Saturday;Victory in Europe Day;Observance; 
+2010-05-09;2010;5;9;Sunday;Mother's Day;Observance; 
+2010-05-10;2010;5;10;Monday;Confederate Memorial Day;State holiday;North Carolina, South Carolina
+2010-05-11;2010;5;11;Tuesday;Primary Election Day;State holiday;West Virginia
+2010-05-13;2010;5;13;Thursday;Ascension Day;Christian; 
+2010-05-15;2010;5;15;Saturday;Peace Officers Memorial Day;Observance; 
+2010-05-15;2010;5;15;Saturday;Armed Forces Day;Observance; 
+2010-05-15;2010;5;15;Saturday;Preakness Stakes;Sporting event; 
+2010-05-19;2010;5;19;Wednesday;Shavuot;Jewish holiday; 
+2010-05-19;2010;5;19;Wednesday;Emergency Medical Services for Children Day;Observance; 
+2010-05-21;2010;5;21;Friday;National Defense Transportation Day;Observance; 
+2010-05-22;2010;5;22;Saturday;National Maritime Day;Observance; 
+2010-05-22;2010;5;22;Saturday;Harvey Milk Day;Local observance;California
+2010-05-23;2010;5;23;Sunday;Pentecost;Christian; 
+2010-05-24;2010;5;24;Monday;Whit Monday;Christian; 
+2010-05-25;2010;5;25;Tuesday;National Missing Children's Day;Observance; 
+2010-05-30;2010;5;30;Sunday;Trinity Sunday;Christian; 
+2010-05-31;2010;5;31;Monday;Memorial Day;Federal Holiday; 
+2010-05-31;2010;5;31;Monday;Jefferson Davis' Birthday;Local observance;Mississippi
+2010-06-01;2010;6;1;Tuesday;Statehood Day;Local observance;Kentucky, Tennessee
+2010-06-03;2010;6;3;Thursday;Corpus Christi;Christian; 
+2010-06-03;2010;6;3;Thursday;Jefferson Davis' Birthday;Local observance;Florida
+2010-06-05;2010;6;5;Saturday;Belmont Stakes;Sporting event; 
+2010-06-06;2010;6;6;Sunday;D-Day;Observance; 
+2010-06-07;2010;6;7;Monday;Jefferson Davis' Birthday;State holiday;Alabama
+2010-06-11;2010;6;11;Friday;Kamehameha Day;State holiday;Hawaii
+2010-06-13;2010;6;13;Sunday;Bunker Hill Day;Local observance;Massachusetts
+2010-06-14;2010;6;14;Monday;Army Birthday;Observance; 
+2010-06-14;2010;6;14;Monday;Flag Day;Observance; 
+2010-06-19;2010;6;19;Saturday;Juneteenth;Local observance;All except AZ, HI, MD, MT, ND, NH, SD, TX, UT
+2010-06-19;2010;6;19;Saturday;Emancipation Day;State holiday;Texas
+2010-06-20;2010;6;20;Sunday;Father's Day;Observance; 
+2010-06-20;2010;6;20;Sunday;West Virginia Day;State holiday;West Virginia
+2010-06-20;2010;6;20;Sunday;American Eagle Day;Observance; 
+2010-06-21;2010;6;21;Monday;June Solstice;Season; 
+2010-06-21;2010;6;21;Monday;West Virginia Day observed;State holiday;West Virginia
+2010-07-04;2010;7;4;Sunday;Independence Day;Federal Holiday; 
+2010-07-05;2010;7;5;Monday;Independence Day observed;Federal Holiday; 
+2010-07-09;2010;7;9;Friday;Isra and Mi'raj;Muslim; 
+2010-07-13;2010;7;13;Tuesday;Nathan Bedford Forrest Day;Local observance;Tennessee
+2010-07-14;2010;7;14;Wednesday;Bastille Day;Observance; 
+2010-07-20;2010;7;20;Tuesday;Tisha B'Av;Jewish holiday; 
+2010-07-23;2010;7;23;Friday;Pioneer Day observed;State holiday;Utah
+2010-07-24;2010;7;24;Saturday;Pioneer Day;State holiday;Utah
+2010-07-25;2010;7;25;Sunday;Parents' Day;Observance; 
+2010-07-27;2010;7;27;Tuesday;National Korean War Veterans Armistice Day;Observance; 
+2010-08-01;2010;8;1;Sunday;Colorado Day;Local observance;Colorado
+2010-08-04;2010;8;4;Wednesday;Coast Guard Birthday;Observance; 
+2010-08-07;2010;8;7;Saturday;Purple Heart Day;Observance; 
+2010-08-09;2010;8;9;Monday;Victory Day;State holiday;Rhode Island
+2010-08-11;2010;8;11;Wednesday;Ramadan Starts;Muslim; 
+2010-08-15;2010;8;15;Sunday;Assumption of Mary;Christian; 
+2010-08-16;2010;8;16;Monday;Bennington Battle Day;State holiday;Vermont
+2010-08-19;2010;8;19;Thursday;National Aviation Day;Observance; 
+2010-08-20;2010;8;20;Friday;Hawaii Statehood Day;State holiday;Hawaii
+2010-08-21;2010;8;21;Saturday;Senior Citizens Day;Observance; 
+2010-08-24;2010;8;24;Tuesday;Raksha Bandhan;Hindu Holiday; 
+2010-08-26;2010;8;26;Thursday;Women's Equality Day;Observance; 
+2010-08-27;2010;8;27;Friday;Lyndon Baines Johnson Day;State holiday;Texas
+2010-09-01;2010;9;1;Wednesday;Janmashtami;Hindu Holiday; 
+2010-09-05;2010;9;5;Sunday;Lailat al-Qadr;Muslim; 
+2010-09-06;2010;9;6;Monday;Labor Day;Federal Holiday; 
+2010-09-09;2010;9;9;Thursday;Rosh Hashana;Jewish holiday; 
+2010-09-09;2010;9;9;Thursday;Rosh Hashana;State holiday;Texas***
+2010-09-09;2010;9;9;Thursday;California Admission Day;Local observance;California
+2010-09-10;2010;9;10;Friday;Eid al-Fitr;Muslim; 
+2010-09-11;2010;9;11;Saturday;Ganesh Chaturthi;Hindu Holiday; 
+2010-09-11;2010;9;11;Saturday;Patriot Day;Observance; 
+2010-09-11;2010;9;11;Saturday;Carl Garner Federal Lands Cleanup Day;Observance; 
+2010-09-12;2010;9;12;Sunday;National Grandparents Day;Observance; 
+2010-09-17;2010;9;17;Friday;Constitution Day and Citizenship Day;Observance; 
+2010-09-17;2010;9;17;Friday;National POW/MIA Recognition Day;Observance; 
+2010-09-18;2010;9;18;Saturday;Air Force Birthday;Observance; 
+2010-09-18;2010;9;18;Saturday;Yom Kippur;Jewish holiday; 
+2010-09-18;2010;9;18;Saturday;Yom Kippur;State holiday;Texas***
+2010-09-22;2010;9;22;Wednesday;Emancipation Day;Local observance;Ohio
+2010-09-23;2010;9;23;Thursday;First Day of Sukkot;Jewish holiday; 
+2010-09-22;2010;9;22;Wednesday;September Equinox;Season; 
+2010-09-24;2010;9;24;Friday;Native American Day;Local observance;California
+2010-09-26;2010;9;26;Sunday;Gold Star Mother's Day;Observance; 
+2010-09-29;2010;9;29;Wednesday;Last Day of Sukkot;Jewish holiday; 
+2010-09-30;2010;9;30;Thursday;Shmini Atzeret;Jewish holiday; 
+2010-10-01;2010;10;1;Friday;Simchat Torah;Jewish holiday; 
+2010-10-04;2010;10;4;Monday;Feast of St Francis of Assisi;Christian; 
+2010-10-04;2010;10;4;Monday;Child Health Day;Observance; 
+2010-10-08;2010;10;8;Friday;Navratri;Hindu Holiday; 
+2010-10-09;2010;10;9;Saturday;Leif Erikson Day;Observance; 
+2010-10-10;2010;10;10;Sunday;Chicago Marathon;Sporting event; 
+2010-10-11;2010;10;11;Monday;Columbus Day;Federal Holiday;All except AK, AR, CA, DE, FL, HI, MI, NV, OR, SD, TX, WA
+2010-10-11;2010;10;11;Monday;Native Americans' Day;Local observance;South Dakota
+2010-10-11;2010;10;11;Monday;Indigenous People's Day;Local observance;California*
+2010-10-13;2010;10;13;Wednesday;Navy Birthday;Observance; 
+2010-10-15;2010;10;15;Friday;White Cane Safety Day;Observance; 
+2010-10-15;2010;10;15;Friday;Boss's Day;Observance; 
+2010-10-16;2010;10;16;Saturday;Dussehra;Hindu Holiday; 
+2010-10-16;2010;10;16;Saturday;Sweetest Day;Observance;13 states
+2010-10-18;2010;10;18;Monday;Alaska Day;State holiday;Alaska
+2010-10-29;2010;10;29;Friday;Nevada Day;State holiday;Nevada
+2010-10-31;2010;10;31;Sunday;Halloween;Observance; 
+2010-11-01;2010;11;1;Monday;All Saints' Day;Christian; 
+2010-11-02;2010;11;2;Tuesday;All Souls' Day;Christian; 
+2010-11-02;2010;11;2;Tuesday;Election Day;Observance; 
+2010-11-02;2010;11;2;Tuesday;Election Day;State holiday;12 states
+2010-11-04;2010;11;4;Thursday;Return Day;State holiday;Delaware*
+2010-11-05;2010;11;5;Friday;Diwali/Deepavali;Observance, Hinduism; 
+2010-11-07;2010;11;7;Sunday;Daylight Saving Time ends;Clock change/Daylight Saving Time; 
+2010-11-07;2010;11;7;Sunday;New York City Marathon;Sporting event; 
+2010-11-10;2010;11;10;Wednesday;Marine Corps Birthday;Observance; 
+2010-11-11;2010;11;11;Thursday;Veterans Day;Federal Holiday; 
+2010-11-17;2010;11;17;Wednesday;Eid al-Adha;Muslim; 
+2010-11-25;2010;11;25;Thursday;Thanksgiving Day;Federal Holiday; 
+2010-11-26;2010;11;26;Friday;Presidents' Day;State holiday;New Mexico
+2010-11-26;2010;11;26;Friday;Lincoln's Birthday;State holiday;Indiana
+2010-11-26;2010;11;26;Friday;Day After Thanksgiving;State holiday;19 states
+2010-11-26;2010;11;26;Friday;Family Day;State holiday;Nevada
+2010-11-26;2010;11;26;Friday;Acadian Day;State holiday;Louisiana
+2010-11-26;2010;11;26;Friday;Black Friday;Observance; 
+2010-11-26;2010;11;26;Friday;American Indian Heritage Day;State holiday;Maryland
+2010-11-28;2010;11;28;Sunday;First Sunday of Advent;Christian; 
+2010-11-29;2010;11;29;Monday;Cyber Monday;Observance; 
+2010-12-01;2010;12;1;Wednesday;Rosa Parks Day;Local observance;Ohio
+2010-12-02;2010;12;2;Thursday;Chanukah/Hanukkah (first day);Jewish holiday; 
+2010-12-06;2010;12;6;Monday;St Nicholas Day;Observance; 
+2010-12-07;2010;12;7;Tuesday;Pearl Harbor Remembrance Day;Observance; 
+2010-12-08;2010;12;8;Wednesday;Feast of the Immaculate Conception;Christian; 
+2010-12-08;2010;12;8;Wednesday;Muharram;Muslim; 
+2010-12-09;2010;12;9;Thursday;Last Day of Chanukah;Jewish holiday; 
+2010-12-12;2010;12;12;Sunday;Feast of Our Lady of Guadalupe;Christian; 
+2010-12-13;2010;12;13;Monday;National Guard Birthday;Observance; 
+2010-12-15;2010;12;15;Wednesday;Bill of Rights Day;Observance; 
+2010-12-17;2010;12;17;Friday;Pan American Aviation Day;Observance; 
+2010-12-17;2010;12;17;Friday;Wright Brothers Day;Observance; 
+2010-12-21;2010;12;21;Tuesday;December Solstice;Season; 
+2010-12-23;2010;12;23;Thursday;Washington's Birthday;State holiday;Indiana
+2010-12-24;2010;12;24;Friday;Christmas Day observed;Federal Holiday; 
+2010-12-24;2010;12;24;Friday;Christmas Eve;State holiday;Texas
+2010-12-24;2010;12;24;Friday;Christmas Eve;Observance, Christian; 
+2010-12-25;2010;12;25;Saturday;Christmas Day;Federal Holiday; 
+2010-12-26;2010;12;26;Sunday;Kwanzaa (first day);Observance; 
+2010-12-26;2010;12;26;Sunday;Day After Christmas Day;State holiday;Texas
+2010-12-31;2010;12;31;Friday;New Year's Day observed;Federal Holiday; 
+2010-12-31;2010;12;31;Friday;New Year's Eve;Observance; 

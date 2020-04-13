@@ -1,0 +1,234 @@
+Date;Year;Month;Day;Weekday;Holiday_name;Type;Details
+2009-01-01;2009;1;1;Thursday;New Year's Day;Federal Holiday; 
+2009-01-06;2009;1;6;Tuesday;Epiphany;Christian; 
+2009-01-07;2009;1;7;Wednesday;Orthodox Christmas Day;Orthodox; 
+2009-01-13;2009;1;13;Tuesday;Stephen Foster Memorial Day;Observance; 
+2009-01-14;2009;1;14;Wednesday;Orthodox New Year;Orthodox; 
+2009-01-16;2009;1;16;Friday;Lee-Jackson Day;State holiday;Virginia
+2009-01-19;2009;1;19;Monday;Martin Luther King Jr. Day;Federal Holiday; 
+2009-01-19;2009;1;19;Monday;Robert E. Lee's Birthday;State holiday;Arkansas
+2009-01-19;2009;1;19;Monday;Robert E. Lee's Birthday;State holiday;AL, GA, MS
+2009-01-19;2009;1;19;Monday;Robert E. Lee's Birthday;State holiday;Florida
+2009-01-19;2009;1;19;Monday;Confederate Heroes' Day;State holiday;Texas
+2009-01-19;2009;1;19;Monday;Idaho Human Rights Day;State holiday;Idaho
+2009-01-19;2009;1;19;Monday;Civil Rights Day;State holiday;Arizona, New Hampshire
+2009-01-20;2009;1;20;Tuesday;Inauguration Day;State holiday;DC, LA, MD, VA
+2009-01-26;2009;1;26;Monday;Chinese New Year;Observance; 
+2009-01-29;2009;1;29;Thursday;Kansas Day;Observance; 
+2009-02-01;2009;2;1;Sunday;National Freedom Day;Observance; 
+2009-02-01;2009;2;1;Sunday;Super Bowl;Sporting event; 
+2009-02-01;2009;2;1;Sunday;First Day of Black History Month;Annual monthly observance; 
+2009-02-02;2009;2;2;Monday;Groundhog Day;Observance; 
+2009-02-04;2009;2;4;Wednesday;Rosa Parks Day;Local observance;California
+2009-02-06;2009;2;6;Friday;National Wear Red Day;Observance; 
+2009-02-09;2009;2;9;Monday;Tu Bishvat/Tu B'Shevat;Jewish holiday; 
+2009-02-12;2009;2;12;Thursday;Lincoln's Birthday;State holiday;CA, CT, IL, MO, NJ, NY
+2009-02-14;2009;2;14;Saturday;Valentine's Day;Observance; 
+2009-02-14;2009;2;14;Saturday;Statehood Day;Local observance;Arizona
+2009-02-15;2009;2;15;Sunday;Susan B. Anthony's Birthday;Local observance;New York, Wisconsin
+2009-02-16;2009;2;16;Monday;Presidents' Day;Federal Holiday;All except DE, GA, IA, IN, KS, KY, LA, NC, NM, RI, WI
+2009-02-16;2009;2;16;Monday;Daisy Gatson Bates Day;State holiday;Arkansas
+2009-02-16;2009;2;16;Monday;Elizabeth Peratrovich Day;Local observance;Alaska
+2009-02-22;2009;2;22;Sunday;Maha Shivaratri;Hindu Holiday; 
+2009-02-24;2009;2;24;Tuesday;Shrove Tuesday/Mardi Gras;State holiday;Alabama*, Louisiana
+2009-02-24;2009;2;24;Tuesday;Shrove Tuesday/Mardi Gras;Observance, Christian; 
+2009-02-25;2009;2;25;Wednesday;Ash Wednesday;Christian; 
+2009-02-28;2009;2;28;Saturday;Linus Pauling Day;Local observance;Oregon
+2009-03-01;2009;3;1;Sunday;St. David's Day;Observance, Christian; 
+2009-03-01;2009;3;1;Sunday;First Day of Women's History Month;Annual monthly observance; 
+2009-03-02;2009;3;2;Monday;Texas Independence Day;State holiday;Texas
+2009-03-02;2009;3;2;Monday;Casimir Pulaski Day;Local observance;Illinois**
+2009-03-02;2009;3;2;Monday;Read Across America Day;Observance; 
+2009-03-03;2009;3;3;Tuesday;Town Meeting Day;State holiday;Vermont
+2009-03-06;2009;3;6;Friday;Employee Appreciation Day;Observance; 
+2009-03-08;2009;3;8;Sunday;Daylight Saving Time starts;Clock change/Daylight Saving Time; 
+2009-03-09;2009;3;9;Monday;The Prophet's Birthday;Muslim; 
+2009-03-10;2009;3;10;Tuesday;Purim;Jewish holiday; 
+2009-03-11;2009;3;11;Wednesday;Holi;Hindu Holiday; 
+2009-03-17;2009;3;17;Tuesday;St. Patrick's Day;Observance, Christian; 
+2009-03-17;2009;3;17;Tuesday;Evacuation Day;State holiday;Massachusetts*
+2009-03-20;2009;3;20;Friday;March Equinox;Season; 
+2009-03-25;2009;3;25;Wednesday;Maryland Day;Local observance;Maryland
+2009-03-26;2009;3;26;Thursday;Prince Jonah Kuhio Kalanianaole Day;State holiday;Hawaii
+2009-03-30;2009;3;30;Monday;Seward's Day;State holiday;Alaska
+2009-03-31;2009;3;31;Tuesday;César Chávez Day;State holiday;CA*, CO***, TX***
+2009-04-02;2009;4;2;Thursday;Pascua Florida Day;Local observance;Florida
+2009-04-05;2009;4;5;Sunday;Palm Sunday;Christian; 
+2009-04-06;2009;4;6;Monday;National Tartan Day;Observance; 
+2009-04-09;2009;4;9;Thursday;Maundy Thursday;Christian; 
+2009-04-09;2009;4;9;Thursday;Passover (first day);Jewish holiday; 
+2009-04-10;2009;4;10;Friday;Good Friday;State holiday;CT, DE, HI, IN, KY, LA, NC, ND, NJ, TN, TX***
+2009-04-11;2009;4;11;Saturday;Holy Saturday;Christian; 
+2009-04-12;2009;4;12;Sunday;Easter Sunday;Observance, Christian; 
+2009-04-13;2009;4;13;Monday;Easter Monday;Observance, Christian; 
+2009-04-14;2009;4;14;Tuesday;National Library Workers' Day;Observance; 
+2009-04-15;2009;4;15;Wednesday;Tax Day;Observance; 
+2009-04-15;2009;4;15;Wednesday;Father Damien Day;Local observance;Hawaii
+2009-04-16;2009;4;16;Thursday;Last Day of Passover;Jewish holiday; 
+2009-04-16;2009;4;16;Thursday;Emancipation Day;State holiday;DC
+2009-04-17;2009;4;17;Friday;Orthodox Good Friday;Orthodox; 
+2009-04-18;2009;4;18;Saturday;Orthodox Holy Saturday;Orthodox; 
+2009-04-19;2009;4;19;Sunday;Orthodox Easter;Orthodox; 
+2009-04-20;2009;4;20;Monday;Orthodox Easter Monday;Orthodox; 
+2009-04-20;2009;4;20;Monday;Patriot's Day;State holiday;Maine, Massachusetts
+2009-04-20;2009;4;20;Monday;Boston Marathon;Sporting event; 
+2009-04-21;2009;4;21;Tuesday;Yom HaShoah;Jewish commemoration; 
+2009-04-21;2009;4;21;Tuesday;San Jacinto Day;State holiday;Texas
+2009-04-22;2009;4;22;Wednesday;Oklahoma Day;Local observance;Oklahoma
+2009-04-22;2009;4;22;Wednesday;Administrative Professionals Day;Observance; 
+2009-04-23;2009;4;23;Thursday;Take our Daughters and Sons to Work Day;Observance; 
+2009-04-24;2009;4;24;Friday;Arbor Day;State holiday;Nebraska
+2009-04-26;2009;4;26;Sunday;Confederate Heroes' Day;Local observance;Florida
+2009-04-27;2009;4;27;Monday;Confederate Memorial Day;State holiday;Mississippi
+2009-04-27;2009;4;27;Monday;Confederate Memorial Day;State holiday;Alabama
+2009-04-27;2009;4;27;Monday;Confederate Heroes' Day observed;Local observance;Florida
+2009-04-27;2009;4;27;Monday;Confederate Heroes' Day;State holiday;Georgia
+2009-04-29;2009;4;29;Wednesday;Yom Ha'atzmaut;Jewish holiday; 
+2009-05-01;2009;5;1;Friday;Kentucky Oaks;Sporting event; 
+2009-05-01;2009;5;1;Friday;Law Day;Observance; 
+2009-05-01;2009;5;1;Friday;Loyalty Day;Observance; 
+2009-05-01;2009;5;1;Friday;Lei Day;Local observance;Hawaii
+2009-05-02;2009;5;2;Saturday;Kentucky Derby;Sporting event; 
+2009-05-04;2009;5;4;Monday;Kent State Shootings Remembrance;Local observance;Ohio
+2009-05-04;2009;5;4;Monday;Rhode Island Independence Day;Local observance;Rhode Island
+2009-05-05;2009;5;5;Tuesday;Cinco de Mayo;Observance; 
+2009-05-06;2009;5;6;Wednesday;National Nurses Day;Observance; 
+2009-05-07;2009;5;7;Thursday;National Day of Prayer;Observance; 
+2009-05-08;2009;5;8;Friday;Truman Day;State holiday;Missouri
+2009-05-08;2009;5;8;Friday;Victory in Europe Day;Observance; 
+2009-05-10;2009;5;10;Sunday;Mother's Day;Observance; 
+2009-05-10;2009;5;10;Sunday;Confederate Memorial Day;State holiday;North Carolina, South Carolina
+2009-05-11;2009;5;11;Monday;Confederate Memorial Day observed;State holiday;North Carolina, South Carolina
+2009-05-12;2009;5;12;Tuesday;Lag BaOmer;Jewish holiday; 
+2009-05-15;2009;5;15;Friday;Peace Officers Memorial Day;Observance; 
+2009-05-15;2009;5;15;Friday;National Defense Transportation Day;Observance; 
+2009-05-16;2009;5;16;Saturday;Armed Forces Day;Observance; 
+2009-05-16;2009;5;16;Saturday;Preakness Stakes;Sporting event; 
+2009-05-20;2009;5;20;Wednesday;Emergency Medical Services for Children Day;Observance; 
+2009-05-21;2009;5;21;Thursday;Ascension Day;Christian; 
+2009-05-22;2009;5;22;Friday;National Maritime Day;Observance; 
+2009-05-25;2009;5;25;Monday;Memorial Day;Federal Holiday; 
+2009-05-25;2009;5;25;Monday;Jefferson Davis' Birthday;Local observance;Mississippi
+2009-05-25;2009;5;25;Monday;National Missing Children's Day;Observance; 
+2009-05-29;2009;5;29;Friday;Shavuot;Jewish holiday; 
+2009-05-31;2009;5;31;Sunday;Pentecost;Christian; 
+2009-06-01;2009;6;1;Monday;Whit Monday;Christian; 
+2009-06-01;2009;6;1;Monday;Statehood Day;Local observance;Kentucky, Tennessee
+2009-06-01;2009;6;1;Monday;Jefferson Davis' Birthday;State holiday;Alabama
+2009-06-03;2009;6;3;Wednesday;Jefferson Davis' Birthday;Local observance;Florida
+2009-06-06;2009;6;6;Saturday;D-Day;Observance; 
+2009-06-06;2009;6;6;Saturday;Belmont Stakes;Sporting event; 
+2009-06-07;2009;6;7;Sunday;Trinity Sunday;Christian; 
+2009-06-11;2009;6;11;Thursday;Corpus Christi;Christian; 
+2009-06-11;2009;6;11;Thursday;Kamehameha Day;State holiday;Hawaii
+2009-06-14;2009;6;14;Sunday;Army Birthday;Observance; 
+2009-06-14;2009;6;14;Sunday;Flag Day;Observance; 
+2009-06-17;2009;6;17;Wednesday;Bunker Hill Day;State holiday;Massachusetts
+2009-06-19;2009;6;19;Friday;Juneteenth;Local observance;All except AZ, HI, MD, MT, ND, NH, SD, TX, UT
+2009-06-19;2009;6;19;Friday;Emancipation Day;State holiday;Texas
+2009-06-20;2009;6;20;Saturday;West Virginia Day;State holiday;West Virginia
+2009-06-20;2009;6;20;Saturday;American Eagle Day;Observance; 
+2009-06-21;2009;6;21;Sunday;June Solstice;Season; 
+2009-06-21;2009;6;21;Sunday;Father's Day;Observance; 
+2009-07-03;2009;7;3;Friday;Independence Day observed;Federal Holiday; 
+2009-07-04;2009;7;4;Saturday;Independence Day;Federal Holiday; 
+2009-07-13;2009;7;13;Monday;Nathan Bedford Forrest Day;Local observance;Tennessee
+2009-07-14;2009;7;14;Tuesday;Bastille Day;Observance; 
+2009-07-20;2009;7;20;Monday;Isra and Mi'raj;Muslim; 
+2009-07-24;2009;7;24;Friday;Pioneer Day;State holiday;Utah
+2009-07-26;2009;7;26;Sunday;Parents' Day;Observance; 
+2009-07-27;2009;7;27;Monday;National Korean War Veterans Armistice Day;Observance; 
+2009-07-30;2009;7;30;Thursday;Tisha B'Av;Jewish holiday; 
+2009-08-01;2009;8;1;Saturday;Colorado Day;Local observance;Colorado
+2009-08-04;2009;8;4;Tuesday;Coast Guard Birthday;Observance; 
+2009-08-05;2009;8;5;Wednesday;Raksha Bandhan;Hindu Holiday; 
+2009-08-07;2009;8;7;Friday;Purple Heart Day;Observance; 
+2009-08-10;2009;8;10;Monday;Victory Day;State holiday;Rhode Island
+2009-08-13;2009;8;13;Thursday;Janmashtami;Hindu Holiday; 
+2009-08-15;2009;8;15;Saturday;Assumption of Mary;Christian; 
+2009-08-16;2009;8;16;Sunday;Bennington Battle Day;State holiday;Vermont
+2009-08-17;2009;8;17;Monday;Bennington Battle Day observed;State holiday;Vermont
+2009-08-19;2009;8;19;Wednesday;National Aviation Day;Observance; 
+2009-08-21;2009;8;21;Friday;Hawaii Statehood Day;State holiday;Hawaii
+2009-08-21;2009;8;21;Friday;Senior Citizens Day;Observance; 
+2009-08-22;2009;8;22;Saturday;Ramadan Starts;Muslim; 
+2009-08-23;2009;8;23;Sunday;Ganesh Chaturthi;Hindu Holiday; 
+2009-08-26;2009;8;26;Wednesday;Women's Equality Day;Observance; 
+2009-08-27;2009;8;27;Thursday;Lyndon Baines Johnson Day;State holiday;Texas
+2009-09-07;2009;9;7;Monday;Labor Day;Federal Holiday; 
+2009-09-09;2009;9;9;Wednesday;California Admission Day;Local observance;California
+2009-09-11;2009;9;11;Friday;Patriot Day;Observance; 
+2009-09-12;2009;9;12;Saturday;Carl Garner Federal Lands Cleanup Day;Observance; 
+2009-09-13;2009;9;13;Sunday;National Grandparents Day;Observance; 
+2009-09-16;2009;9;16;Wednesday;Lailat al-Qadr;Muslim; 
+2009-09-17;2009;9;17;Thursday;Constitution Day and Citizenship Day;Observance; 
+2009-09-18;2009;9;18;Friday;Air Force Birthday;Observance; 
+2009-09-18;2009;9;18;Friday;National POW/MIA Recognition Day;Observance; 
+2009-09-19;2009;9;19;Saturday;Navratri;Hindu Holiday; 
+2009-09-19;2009;9;19;Saturday;Rosh Hashana;Jewish holiday; 
+2009-09-19;2009;9;19;Saturday;Rosh Hashana;State holiday;Texas***
+2009-09-21;2009;9;21;Monday;Eid al-Fitr;Muslim; 
+2009-09-22;2009;9;22;Tuesday;September Equinox;Season; 
+2009-09-22;2009;9;22;Tuesday;Emancipation Day;Local observance;Ohio
+2009-09-25;2009;9;25;Friday;Native American Day;Local observance;California
+2009-09-27;2009;9;27;Sunday;Gold Star Mother's Day;Observance; 
+2009-09-28;2009;9;28;Monday;Dussehra;Hindu Holiday; 
+2009-09-28;2009;9;28;Monday;Yom Kippur;Jewish holiday; 
+2009-09-28;2009;9;28;Monday;Yom Kippur;State holiday;Texas***
+2009-10-03;2009;10;3;Saturday;First Day of Sukkot;Jewish holiday; 
+2009-10-04;2009;10;4;Sunday;Feast of St Francis of Assisi;Christian; 
+2009-10-05;2009;10;5;Monday;Child Health Day;Observance; 
+2009-10-09;2009;10;9;Friday;Last Day of Sukkot;Jewish holiday; 
+2009-10-09;2009;10;9;Friday;Leif Erikson Day;Observance; 
+2009-10-10;2009;10;10;Saturday;Shmini Atzeret;Jewish holiday; 
+2009-10-11;2009;10;11;Sunday;Simchat Torah;Jewish holiday; 
+2009-10-11;2009;10;11;Sunday;Chicago Marathon;Sporting event; 
+2009-10-12;2009;10;12;Monday;Columbus Day;Federal Holiday;All except AK, AR, CA, DE, FL, HI, MI, NV, OR, SD, TX, WA
+2009-10-12;2009;10;12;Monday;Native Americans' Day;Local observance;South Dakota
+2009-10-12;2009;10;12;Monday;Indigenous People's Day;Local observance;California*
+2009-10-13;2009;10;13;Tuesday;Navy Birthday;Observance; 
+2009-10-15;2009;10;15;Thursday;White Cane Safety Day;Observance; 
+2009-10-16;2009;10;16;Friday;Boss's Day;Observance; 
+2009-10-17;2009;10;17;Saturday;Diwali/Deepavali;Observance, Hinduism; 
+2009-10-17;2009;10;17;Saturday;Sweetest Day;Observance;13 states
+2009-10-18;2009;10;18;Sunday;Alaska Day;State holiday;Alaska
+2009-10-19;2009;10;19;Monday;Alaska Day observed;State holiday;Alaska
+2009-10-30;2009;10;30;Friday;Nevada Day;State holiday;Nevada
+2009-10-31;2009;10;31;Saturday;Halloween;Observance; 
+2009-11-01;2009;11;1;Sunday;All Saints' Day;Christian; 
+2009-11-01;2009;11;1;Sunday;Daylight Saving Time ends;Clock change/Daylight Saving Time; 
+2009-11-01;2009;11;1;Sunday;New York City Marathon;Sporting event; 
+2009-11-02;2009;11;2;Monday;All Souls' Day;Christian; 
+2009-11-03;2009;11;3;Tuesday;Election Day;Observance; 
+2009-11-10;2009;11;10;Tuesday;Marine Corps Birthday;Observance; 
+2009-11-11;2009;11;11;Wednesday;Veterans Day;Federal Holiday; 
+2009-11-26;2009;11;26;Thursday;Thanksgiving Day;Federal Holiday; 
+2009-11-27;2009;11;27;Friday;Presidents' Day;State holiday;New Mexico
+2009-11-27;2009;11;27;Friday;Day After Thanksgiving;State holiday;19 states
+2009-11-27;2009;11;27;Friday;Family Day;State holiday;Nevada
+2009-11-27;2009;11;27;Friday;Acadian Day;State holiday;Louisiana
+2009-11-27;2009;11;27;Friday;Black Friday;Observance; 
+2009-11-27;2009;11;27;Friday;American Indian Heritage Day;State holiday;Maryland
+2009-11-28;2009;11;28;Saturday;Eid al-Adha;Muslim; 
+2009-11-29;2009;11;29;Sunday;First Sunday of Advent;Christian; 
+2009-11-30;2009;11;30;Monday;Cyber Monday;Observance; 
+2009-12-01;2009;12;1;Tuesday;Rosa Parks Day;Local observance;Ohio
+2009-12-06;2009;12;6;Sunday;St Nicholas Day;Observance; 
+2009-12-07;2009;12;7;Monday;Pearl Harbor Remembrance Day;Observance; 
+2009-12-08;2009;12;8;Tuesday;Feast of the Immaculate Conception;Christian; 
+2009-12-12;2009;12;12;Saturday;Chanukah/Hanukkah (first day);Jewish holiday; 
+2009-12-12;2009;12;12;Saturday;Feast of Our Lady of Guadalupe;Christian; 
+2009-12-13;2009;12;13;Sunday;National Guard Birthday;Observance; 
+2009-12-15;2009;12;15;Tuesday;Bill of Rights Day;Observance; 
+2009-12-17;2009;12;17;Thursday;Pan American Aviation Day;Observance; 
+2009-12-17;2009;12;17;Thursday;Wright Brothers Day;Observance; 
+2009-12-18;2009;12;18;Friday;Muharram;Muslim; 
+2009-12-19;2009;12;19;Saturday;Last Day of Chanukah;Jewish holiday; 
+2009-12-21;2009;12;21;Monday;December Solstice;Season; 
+2009-12-24;2009;12;24;Thursday;Christmas Eve;State holiday;Texas
+2009-12-24;2009;12;24;Thursday;Christmas Eve;Observance, Christian; 
+2009-12-24;2009;12;24;Thursday;Washington's Birthday;State holiday;Indiana
+2009-12-25;2009;12;25;Friday;Christmas Day;Federal Holiday; 
+2009-12-26;2009;12;26;Saturday;Kwanzaa (first day);Observance; 
+2009-12-26;2009;12;26;Saturday;Day After Christmas Day;State holiday;Texas
+2009-12-31;2009;12;31;Thursday;New Year's Eve;Observance; 
