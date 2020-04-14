@@ -185,6 +185,7 @@ plt.ion()
 plt.show()
 
 
+
 def seasonDecomposeCalc():
     start_time_seasonDecompose = time.time()
     
@@ -198,6 +199,13 @@ def seasonDecomposeCalc():
     data.reset_index(drop=True,inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
     data = data.set_index('Date')
+    
+    # data.sort_values('DEMAND', ascending=False).head(10)
+    
+    data[data.isnull().any(axis=1)]
+    
+    
+    # result = seasonal_decompose(data.round(0), model='multiplicative', freq=24, extrapolate_trend='freq')
     result = seasonal_decompose(data, model='multiplicative')
 #    result = sm.tsa.seasonal_decompose(data)
     result.plot()
