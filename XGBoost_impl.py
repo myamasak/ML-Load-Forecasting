@@ -20,6 +20,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import datetime as dt
 import calendar
+import holidays
 
 
 # Use seaborn style defaults and set the default figure size
@@ -44,7 +45,7 @@ selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"
 
 # Initialize dataset list
 datasetList = []
-holidayList = []
+#holidayList = []
 
 
 # Read all csv files and concat them
@@ -54,30 +55,31 @@ for filename in all_files:
             if (filename.find(data) != -1):
                 df = pd.read_csv(filename,index_col=None, header=0)
                 datasetList.append(df)
-    if (filename.find("holidays") != -1):
-        for data in selectDatasets:
-            if (filename.find(data) != -1):
-                df = pd.read_csv(filename,index_col=None, header=0, sep=';', error_bad_lines=False)
-                holidayList.append(df)
+#    if (filename.find("holidays") != -1):
+#        for data in selectDatasets:
+#            if (filename.find(data) != -1):
+#                df = pd.read_csv(filename,index_col=None, header=0, sep=';', error_bad_lines=False)
+#                holidayList.append(df)
 
 # Concat
 dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
-holidays = pd.concat(holidayList, axis=0, sort=False, ignore_index=True)
+#holidays = pd.concat(holidayList, axis=0, sort=False, ignore_index=True)
 
 # Pre-processing holidays data
 #calendar.day_name[datetime.datetime.today().weekday()]
 #The day of the week with Monday=0, Sunday=6.
-days = dict(zip(calendar.day_name, range(7)))
-weekdayList = []
-for weekday in holidays['Weekday']:
-     weekdayList.append(days[weekday])
+#days = dict(zip(calendar.day_name, range(7)))
+#weekdayList = []
+#for weekday in holidays['Weekday']:
+#     weekdayList.append(days[weekday])
 
 # Add weekday number
-holidays['Weekday_number'] = weekdayList
+#holidays['Weekday_number'] = weekdayList
 
 # Drop duplicated holiday dates
-holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
-holidays.reset_index(drop=True,inplace=True)
+#holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
+#holidays.reset_index(drop=True,inplace=True)
+
 
 
 
@@ -97,14 +99,19 @@ print(dataset['DEMAND'].eq(0).sum())
 X = dataset.iloc[:, :]
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
 X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP'], axis=1)
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','RT_LMP','RT_EC','RT_CC','RT_MLC'], axis=1)
 
+for columnNames in X.columns:
+    if(columnNames.find("5min") != -1):
+        X.drop([columnNames], axis=1, inplace=True)
 
 y = dataset.iloc[:, 3]
 
 # Taking care of missing data
-if (dataset['DEMAND'].eq(0).sum() > 0):    
+if (dataset['DEMAND'].eq(0).sum() > 0
+    or dataset['DEMAND'].isnull().any()):    
     # Replace zero values by NaN
     dataset['DEMAND'].replace(0, np.nan, inplace= True)
     # Save y column (output)
@@ -131,7 +138,17 @@ Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
 Hour = pd.DataFrame({'Hour':dataset.Hour})
 
-concatlist = [X,Year,Month,Day,Hour]
+Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
+
+us_holidays = []
+
+for date2 in holidays.UnitedStates(years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]).items():
+    us_holidays.append(str(date2[0]))
+
+
+Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in us_holidays else 0 for val in date]})
+
+concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
 X = pd.concat(concatlist,axis=1)
 
 
@@ -352,6 +369,8 @@ def randForestCalc():
 def xgboostCalc():
     start_time_xgboost = time.time()
     
+    global y_test, y_pred
+    
     # XGBoost
     import xgboost
     from sklearn.model_selection import GridSearchCV   #Perforing grid search
@@ -472,19 +491,23 @@ def xgboostCalc():
     aux_test['Year'] = X_test['Year'].reset_index(drop=True)
     aux_test['Month'] = X_test['Month'].reset_index(drop=True)
     aux_test['Day'] = X_test['Day'].reset_index(drop=True)
+    aux_test['Weekday'] = date.iloc[X_train.shape[0]:].dt.day_name().reset_index(drop=True)
     aux_test['Hour'] = X_test['Hour'].reset_index(drop=True)
+    aux_test['Holiday'] = X_test['Holiday'].reset_index(drop=True)
+    
 
-    error_by_day = aux_test.groupby(['Year','Month','Day','Hour']) \
+
+    error_by_day = aux_test.groupby(['Year','Month','Day','Weekday','Hour', 'Holiday']) \
     .mean()[['DEMAND','PRED','error','abs_error']]
 
 #    Over forecasted days
-    error_by_day.sort_values('error', ascending=True).head(10)
+    print(error_by_day.sort_values(['error','Hour'], ascending=[False, True]).head(10))
     
     # Worst absolute predicted days
-    error_by_day.sort_values('abs_error', ascending=False).head(10)
+    print(error_by_day.sort_values('abs_error', ascending=False).head(10))
     
     # Best predicted days
-    error_by_day.sort_values('abs_error', ascending=True).head(10)
+    print(error_by_day.sort_values('abs_error', ascending=True).head(10))
 
     
     
@@ -499,6 +522,30 @@ featImportanceCalc()
 # decisionTreeCalc()
 # randForestCalc()
 xgboostCalc()
+
+#matplotlib inline
+#import numpy as np
+#import matplotlib.pyplot as plt
+import scipy.fftpack
+
+# Number of samplepoints
+N = y_test.shape[0]
+# sample spacing
+T = 1.0 / 24
+x = np.linspace(0.0, N*T, N)
+#y = np.sin(50.0 * 2.0*np.pi*x) + 0.5*np.sin(80.0 * 2.0*np.pi*x)
+yf1 = scipy.fftpack.fft(y_test)
+yf2 = scipy.fftpack.fft(y_pred)
+xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
+
+plt.figure()
+plt.plot(xf, 2.0/N * np.abs(yf2[:N//2]), label = 'Predicted data')
+plt.plot(xf, 2.0/N * np.abs(yf1[:N//2]), label = 'Real data')
+
+
+plt.title('FFT')
+plt.legend()
+plt.show()
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))

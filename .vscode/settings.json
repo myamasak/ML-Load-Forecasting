@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\marko\\Anaconda3\\envs\\venvAUTO\\python.exe",
+    "python.pythonPath": "C:\\Users\\z003t8hn\\AppData\\Local\\Continuum\\anaconda3\\envs\\venvAUTO\\python.exe",
     "remote.SSH.connectTimeout": 90,
     "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
     "terminal.integrated.automationShell.windows": "C:\\Program Files\\Git\\bin\\bash.exe"
