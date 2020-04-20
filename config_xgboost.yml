@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: ann_impl_auto
+experimentName: XGBoost_auto
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space.json
+searchSpacePath: search_space_xgboost.json
 #choice: true, false
 useAnnotation: false
 tuner:
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python ann_impl_nni.py
+  command: python XGBoost_impl_nni.py
   codeDir: .
   gpuNum: 0

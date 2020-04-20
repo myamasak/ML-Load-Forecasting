@@ -21,6 +21,18 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import datetime as dt
 import calendar
 import holidays
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV   #Perforing grid search
+
+
+
+
+# Print configs
+pd.options.display.max_columns = None
+pd.options.display.width=1000
+
+
 
 
 # Use seaborn style defaults and set the default figure size
@@ -100,9 +112,8 @@ X = dataset.iloc[:, :]
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
 X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
 
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP'], axis=1)
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','RT_LMP','RT_EC','RT_CC','RT_MLC'], axis=1)
 
+# Drop additional unused columns/features
 for columnNames in X.columns:
     if(columnNames.find("5min") != -1):
         X.drop([columnNames], axis=1, inplace=True)
@@ -126,56 +137,70 @@ if (dataset['DEMAND'].eq(0).sum() > 0
 
 
 # Decouple date and time from dataset
-# Then concat decoupled data
+# Then concat the decoupled date in different columns in X data
 #date = pd.DataFrame() 
 date = pd.to_datetime(dataset.Date)
 dataset['Date'] = pd.to_datetime(dataset.Date)
 
-#date.dt.year.head() 
 date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
 Hour = pd.DataFrame({'Hour':dataset.Hour})
 
+# Add weekday to X data
 Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
 
+# Add holidays to X data
 us_holidays = []
-
 for date2 in holidays.UnitedStates(years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]).items():
     us_holidays.append(str(date2[0]))
 
-
 Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in us_holidays else 0 for val in date]})
 
+
+
+
+# Define season given a timestamp
+#Y = 2000 # dummy leap year to allow input X-02-29 (leap day)
+#seasons_us = [('Winter', (dt.date(Y,  1,  1),  dt.date(Y,  3, 20))),
+#           ('Spring', (dt.date(Y,  3, 21),  dt.date(Y,  6, 20))),
+#           ('Summer', (dt.date(Y,  6, 21),  dt.date(Y,  9, 22))),
+#           ('Autumn', (dt.date(Y,  9, 23),  dt.date(Y, 12, 20))),
+#           ('Winter', (dt.date(Y, 12, 21),  dt.date(Y, 12, 31)))]
+#
+#def get_season(now):
+#    if isinstance(now, dt.datetime):
+#        now = now.date()
+#    now = now.replace(year=Y)
+#    return next(season for season, (start, end) in seasons_us
+#                if start <= now <= end)
+#
+##print(get_season(date.today()))
+#
+#dateList = []
+#for repDate in date:
+#    dateList.append(get_season(repDate))
+#
+#Season = pd.DataFrame({'Season':dateList})
+#
+#from sklearn.preprocessing import LabelEncoder
+## creating initial dataframe
+#season_types = ('Winter','Spring','Summer','Autumn')
+#season_df = pd.DataFrame(season_types, columns=['Season'])
+## creating instance of labelencoder
+#labelencoder = LabelEncoder()
+## Assigning numerical values and storing in another column
+#Season['Season'] = labelencoder.fit_transform(Season['Season'])
+
+
+# Concat all new features into X data
 concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
 X = pd.concat(concatlist,axis=1)
 
-
-######### DATASET CONVERTED to DATE + TIME
-#test = pd.to_datetime(dataset.Date)
-#i = 0
-#i2 = 0
-#for row in test:
-#    test[i] = test[i] + pd.DateOffset(hours=1+i2)  
-#    if (i2 == 23):
-#         i2 = 0
-#    else:
-#        i2 = i2 + 1
-#    i = i + 1
-#print(test.head())
-#df = pd.DataFrame(test)
-##concatlist = [X,df]
-##X = pd.concat(concatlist,axis=1)
-#
-#
-## Add weekday number to dataset
-#dataset.drop(['Date'],axis=1,inplace=True)
-#concatlist = [df,dataset]
-#dataset = pd.concat(concatlist,axis=1)
-
-
+# Set df to x axis to be plot
 df = dataset['Date']
+
 
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
@@ -185,7 +210,11 @@ set_random_seed(42)
 
 
 
+
+
 # Splitting the dataset into the Training set and Test set
+# Forecast 30 days - Calculate testSize in percentage
+#testSize = (30*24)/(y.shape[0])
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, shuffle = False)
 
 # Feature Scaling
@@ -201,6 +230,30 @@ plt.legend()
 plt.ion()
 plt.show()
 
+
+class BlockingTimeSeriesSplit():
+    def __init__(self, n_splits):
+        self.n_splits = n_splits
+    
+    def get_n_splits(self, X, y, groups):
+        return self.n_splits
+    
+    def split(self, X, y=None, groups=None):
+        n_samples = len(X)
+        k_fold_size = n_samples // self.n_splits
+        indices = np.arange(n_samples)
+
+        margin = 0
+        for i in range(self.n_splits):
+            start = i * k_fold_size
+            stop = start + k_fold_size
+            mid = int(0.8 * (stop - start)) + start
+            yield indices[start: mid], indices[mid + margin: stop]
+
+def mean_absolute_percentage_error(y_true, y_pred): 
+    """Calculates MAPE given y_true and y_pred"""
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 
 def seasonDecomposeCalc():
@@ -369,36 +422,43 @@ def randForestCalc():
 def xgboostCalc():
     start_time_xgboost = time.time()
     
-    global y_test, y_pred
+    global y_test, y_pred, y_train, X_test, X_testsc, X_train, X_trainsc
     
     # XGBoost
     import xgboost
-    from sklearn.model_selection import GridSearchCV   #Perforing grid search
     
-    #for tuning parameters
-    #parameters_for_testing = {
-    #    'colsample_bytree':[0.4,0.6,0.8],
-    #    'gamma':[0,0.03,0.1,0.3],
-    #    'min_child_weight':[1.5,6,10],
-    #    'learning_rate':[0.1,0.07],
-    #    'max_depth':[3,5],
-    #    'n_estimators':[10000],
-    #    'reg_alpha':[1e-5, 1e-2,  0.75],
-    #    'reg_lambda':[1e-5, 1e-2, 0.45],
-    #    'subsample':[0.6,0.95]  
-    #}
-    #
-    #                    
-    #xgb_model = xgboost.XGBRegressor(learning_rate =0.1, n_estimators=1000, max_depth=5,
-    #     min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.8, nthread=6, scale_pos_weight=1, seed=42)
-    #
-    #gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
-    #gsearch1.fit(X_trainsc,y_train)
-    #print (gsearch1.grid_scores_)
-    #print('best params')
-    #print (gsearch1.best_params_)
-    #print('best score')
-    #print (gsearch1.best_score_)
+#    for tuning parameters
+    parameters_for_testing = {
+        'colsample_bytree':[0.4,0.6,0.8],
+        'gamma':[0,0.03,0.1,0.3],
+        'min_child_weight':[1.5,6,10],
+        'learning_rate':[0.1,0.07],
+        'max_depth':[3,5],
+        'n_estimators':[1000],
+        'reg_alpha':[1e-5, 1e-2,  0.75],
+        'reg_lambda':[1e-5, 1e-2, 0.45],
+        'subsample':[0.6,0.95]  
+    }
+    
+                        
+    xgb_model = xgboost.XGBRegressor(learning_rate =0.1,
+                                     n_estimators=1000,
+                                     max_depth=5,
+                                     min_child_weight=1,
+                                     gamma=0,
+                                     subsample=0.8,
+                                     colsample_bytree=0.8,
+                                     nthread=6,
+                                     scale_pos_weight=1,
+                                     seed=42)
+    
+    gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
+    gsearch1.fit(X_trainsc,y_train)
+    print (gsearch1.grid_scores_)
+    print('best params')
+    print (gsearch1.best_params_)
+    print('best score')
+    print (gsearch1.best_score_)
     
     
     best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
@@ -443,6 +503,28 @@ def xgboostCalc():
     print("MAPE: %.2f%%" % (mape))
     
     
+    
+    tscv = TimeSeriesSplit(n_splits=5)
+#    for train_index, test_index in tscv.split(X):
+#        print("train_index = " + str(max(train_index)))
+#        print("test_index = " + str(max(test_index)))
+#        print("---")
+#        print("TRAIN:", train_index, "TEST:", test_index)
+#        X_train, X_test = X[train_index], X[test_index]
+#        y_train, y_test = y[train_index], y[test_index]
+        
+        
+    scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
+    with np.printoptions(precision=3, suppress=True):
+        print(scores)
+    print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+
+    btscv = BlockingTimeSeriesSplit(n_splits=5)
+    scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
+    with np.printoptions(precision=3, suppress=True):
+        print(scores)
+    print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+
     # Feature importance of XGBoost
     xgboost.plot_importance(best_xgb_model)
     #plt.rcParams['figure.figsize'] = [5, 5]
@@ -497,35 +579,38 @@ def xgboostCalc():
     
 
 
-    error_by_day = aux_test.groupby(['Year','Month','Day','Weekday','Hour', 'Holiday']) \
+    error_by_day = aux_test.groupby(['Year','Month','Day','Weekday', 'Holiday']) \
     .mean()[['DEMAND','PRED','error','abs_error']]
 
-#    Over forecasted days
-    print(error_by_day.sort_values(['error','Hour'], ascending=[False, True]).head(10))
+    print("\nOver forecasted days")
+    print(error_by_day.sort_values(['error'], ascending=[False]).head(10))
     
-    # Worst absolute predicted days
+    print("\nWorst absolute predicted days")
     print(error_by_day.sort_values('abs_error', ascending=False).head(10))
     
-    # Best predicted days
+    print("\nBest predicted days")
     print(error_by_day.sort_values('abs_error', ascending=True).head(10))
 
+    error_by_month = aux_test.groupby(['Year','Month']) \
+    .mean()[['DEMAND','PRED','error','abs_error']]
     
+    print("\nOver forecasted months")
+    print(error_by_month.sort_values(['error'], ascending=[False]).head(10))
     
+    print("\nWorst absolute predicted months")
+    print(error_by_month.sort_values('abs_error', ascending=False).head(10))
     
-def mean_absolute_percentage_error(y_true, y_pred): 
-    """Calculates MAPE given y_true and y_pred"""
-    y_true, y_pred = np.array(y_true), np.array(y_pred)
-    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    print("\nBest predicted months")
+    print(error_by_month.sort_values('abs_error', ascending=True).head(10))
+    
 
 seasonDecomposeCalc()
 featImportanceCalc()
-# decisionTreeCalc()
-# randForestCalc()
+#decisionTreeCalc()
+#randForestCalc()
 xgboostCalc()
 
-#matplotlib inline
-#import numpy as np
-#import matplotlib.pyplot as plt
+
 import scipy.fftpack
 
 # Number of samplepoints
@@ -541,7 +626,6 @@ xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
 plt.figure()
 plt.plot(xf, 2.0/N * np.abs(yf2[:N//2]), label = 'Predicted data')
 plt.plot(xf, 2.0/N * np.abs(yf1[:N//2]), label = 'Real data')
-
 
 plt.title('FFT')
 plt.legend()

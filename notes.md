@@ -60,4 +60,15 @@
 ### AdaBoost
 - >AdaBoost is best used to boost the performance of decision trees on binary classification problems.
 - https://machinelearningmastery.com/boosting-and-adaboost-for-machine-learning/
-- 
+
+
+### Python to Jupyter
+- ipynb-py-convert 0.4.5
+- https://pypi.org/project/ipynb-py-convert/#description
+
+### Time Series data visualization
+- https://machinelearningmastery.com/time-series-data-visualization-with-python/
+- https://www.dataquest.io/blog/tutorial-time-series-analysis-with-pandas/
+
+### Deep learning time series forecasting
+- https://github.com/Alro10/deep-learning-time-series
