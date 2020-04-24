@@ -150,8 +150,8 @@ df = dataset['Date']
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
-from tensorflow import set_random_seed
-set_random_seed(42)
+# from tensorflow import set_random_seed
+# set_random_seed(42)
 
 
 

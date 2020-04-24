@@ -205,8 +205,8 @@ df = dataset['Date']
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
-from tensorflow import set_random_seed
-set_random_seed(42)
+# from tensorflow import set_random_seed
+# set_random_seed(42)
 
 
 
@@ -428,37 +428,37 @@ def xgboostCalc():
     import xgboost
     
 #    for tuning parameters
-    parameters_for_testing = {
-        'colsample_bytree':[0.4,0.6,0.8],
-        'gamma':[0,0.03,0.1,0.3],
-        'min_child_weight':[1.5,6,10],
-        'learning_rate':[0.1,0.07],
-        'max_depth':[3,5],
-        'n_estimators':[1000],
-        'reg_alpha':[1e-5, 1e-2,  0.75],
-        'reg_lambda':[1e-5, 1e-2, 0.45],
-        'subsample':[0.6,0.95]  
-    }
-    
-                        
-    xgb_model = xgboost.XGBRegressor(learning_rate =0.1,
-                                     n_estimators=1000,
-                                     max_depth=5,
-                                     min_child_weight=1,
-                                     gamma=0,
-                                     subsample=0.8,
-                                     colsample_bytree=0.8,
-                                     nthread=6,
-                                     scale_pos_weight=1,
-                                     seed=42)
-    
-    gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
-    gsearch1.fit(X_trainsc,y_train)
-    print (gsearch1.grid_scores_)
-    print('best params')
-    print (gsearch1.best_params_)
-    print('best score')
-    print (gsearch1.best_score_)
+#    parameters_for_testing = {
+#        'colsample_bytree':[0.4,0.6,0.8],
+#        'gamma':[0,0.03,0.1,0.3],
+#        'min_child_weight':[1.5,6,10],
+#        'learning_rate':[0.1,0.07],
+#        'max_depth':[3,5],
+#        'n_estimators':[1000],
+#        'reg_alpha':[1e-5, 1e-2,  0.75],
+#        'reg_lambda':[1e-5, 1e-2, 0.45],
+#        'subsample':[0.6,0.95]  
+#    }
+#    
+#                        
+#    xgb_model = xgboost.XGBRegressor(learning_rate =0.1,
+#                                     n_estimators=1000,
+#                                     max_depth=5,
+#                                     min_child_weight=1,
+#                                     gamma=0,
+#                                     subsample=0.8,
+#                                     colsample_bytree=0.8,
+#                                     nthread=6,
+#                                     scale_pos_weight=1,
+#                                     seed=42)
+#    
+#    gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
+#    gsearch1.fit(X_trainsc,y_train)
+#    print (gsearch1.grid_scores_)
+#    print('best params')
+#    print (gsearch1.best_params_)
+#    print('best score')
+#    print (gsearch1.best_score_)
     
     
     best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
@@ -499,7 +499,7 @@ def xgboostCalc():
     mae = mean_absolute_error(y_test, y_pred)
     print("MAE: %f" % (mae))
     
-    mape = mean_absolute_percentage_error(y_test, y_pred)
+    mape = mean_absolute_percentage_error(y_test.reshape(y_test.shape[0]), y_pred.reshape(y_pred.shape[0]))
     print("MAPE: %.2f%%" % (mape))
     
     
