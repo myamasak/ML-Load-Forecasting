@@ -72,3 +72,7 @@
 
 ### Deep learning time series forecasting
 - https://github.com/Alro10/deep-learning-time-series
+
+### Dataset US
+- https://www.eia.gov/opendata/bulkfiles.php
+- https://www.eia.gov/realtime_grid/#/status?end=20200514T11
