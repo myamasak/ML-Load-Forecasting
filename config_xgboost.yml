@@ -2,7 +2,7 @@ authorName: Marcos Yamasaki
 experimentName: XGBoost_auto
 trialConcurrency: 1
 maxExecDuration: 999999h
-maxTrialNum: 864
+maxTrialNum: 867
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space_xgboost.json

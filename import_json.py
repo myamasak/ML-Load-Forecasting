@@ -33,7 +33,7 @@ import seaborn
 seaborn.pairplot(df, vars=['colsample_bytree', 'gamma', 'learning_rate'],
                  kind='reg')
 
-sortValues = df.sort_values('value', ascending=False).head(50)
+sortValues = df.sort_values('value', ascending=False).head(1)
 
 sortValues.hist()
 

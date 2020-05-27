@@ -2,7 +2,8 @@
 """
 Created on Mon Jul  1 19:04:58 2019
 
-@author: z003t8hn
+@author: Marcos Yamasaki
+
 """
 import time
 start_time = time.time()
@@ -25,7 +26,24 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV   #Perforing grid search
 
+import sys
+#try:
+#    sys.stdout = open('xgboost.log', 'r')
+#finally:
+#    sys.stdout = open('xgboost.log', 'w+')
+import logging
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+rootLogger = logging.getLogger()
 
+fileHandler = logging.FileHandler("xgboost.log")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+
+print("The program has been started...")
 
 
 # Print configs
@@ -134,6 +152,7 @@ if (dataset['DEMAND'].eq(0).sum() > 0
     imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
     imputer = imputer.fit(y_matrix)
     y =  imputer.transform(y_matrix)
+    y = y.reshape(y.shape[0])
 
 
 # Decouple date and time from dataset
@@ -229,6 +248,7 @@ plt.plot(df,y, color = 'gray', label = 'Real data')
 plt.legend()
 plt.ion()
 plt.show()
+plt.savefig('Actual_Data.png')
 
 
 class BlockingTimeSeriesSplit():
@@ -257,6 +277,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 
 def seasonDecomposeCalc():
+    print("Running Seasonal Decompose calculation...")
     start_time_seasonDecompose = time.time()
     
     #from plotly.plotly import plot_mpl
@@ -279,11 +300,14 @@ def seasonDecomposeCalc():
     result = seasonal_decompose(data, model='multiplicative')
 #    result = sm.tsa.seasonal_decompose(data)
     result.plot()
-    plt.show
+    plt.show()
+    plt.savefig('seasonal_decompose.png')
+
     
     print("\n--- \t{:0.3f} seconds --- Seasonal Decompose".format(time.time() - start_time_seasonDecompose))
 
 def featImportanceCalc():
+    print("Running Feature Importance (RF) calculation...")
     
     start_time_featImportance = time.time()
     
@@ -296,16 +320,8 @@ def featImportanceCalc():
     #clf = RandomForestClassifier(random_state=0, n_jobs=-1)
     clf = RandomForestRegressor(random_state=0, n_jobs=-1)
     
-    Xdata = dataset.iloc[:, :]
-    Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
-    concatlist = [Xdata,Year,Month,Day,Hour]
-    Xdata = pd.concat(concatlist,axis=1)
-    
-    # Replace NaN values by 0
-    Xdata.replace(np.nan, 0, inplace= True)
-        
     # Train model
-    model = clf.fit(Xdata, y)
+    model = clf.fit(X, y)
     
     # Calculate feature importances
     importances = model.feature_importances_
@@ -314,7 +330,7 @@ def featImportanceCalc():
     indices = np.argsort(importances)[::-1]
     
     # Rearrange feature names so they match the sorted feature importances
-    names = [Xdata.columns[i] for i in indices]
+    names = [X.columns[i] for i in indices]
     
     #plot_feature_importances(importances,Xdata.columns)
     
@@ -325,17 +341,19 @@ def featImportanceCalc():
     plt.title("Feature Importance")
     
     # Add bars
-    plt.bar(range(Xdata.shape[1]), importances[indices])
+    plt.bar(range(X.shape[1]), importances[indices])
     
     # Add feature names as x-axis labels
-    plt.xticks(range(Xdata.shape[1]), names, rotation=0)
+    plt.xticks(range(X.shape[1]), names, rotation=0)
     
     # Show plot
     plt.show()
+    plt.savefig('Feature_Importance_RF.png')
     
     print("\n--- \t{:0.3f} seconds --- Feature Importance".format(time.time() - start_time_featImportance))
 
 def decisionTreeCalc():
+    print("Running Decision Tree calculation...")
     start_time_decisionTree = time.time()
 
     # import the regressor 
@@ -361,6 +379,7 @@ def decisionTreeCalc():
     plt.title('Prediction - Decision Tree')
     plt.legend()
     plt.show()
+    plt.savefig('DecisionTree_pred.png')
     
     
     y_pred_train = model.predict(X_trainsc)
@@ -383,6 +402,7 @@ def decisionTreeCalc():
     #
 
 def randForestCalc():
+    print("Running Random Forest calculation...")
     start_time_randForest = time.time()
     # Fitting Random Forest Regression to the dataset 
     # import the regressor 
@@ -407,6 +427,7 @@ def randForestCalc():
     plt.title('Prediction - Random Forest')
     plt.legend()
     plt.show()
+    plt.savefig('RandomForest_pred.png')
     
     
     from sklearn.metrics import r2_score
@@ -420,6 +441,7 @@ def randForestCalc():
     print("\n--- \t{:0.3f} seconds --- Random Forest".format(time.time() - start_time_randForest))
 
 def xgboostCalc():
+    print("Running XGBoost calculation...")
     start_time_xgboost = time.time()
     
     global y_test, y_pred, y_train, X_test, X_testsc, X_train, X_trainsc
@@ -461,16 +483,17 @@ def xgboostCalc():
 #    print (gsearch1.best_score_)
     
     
-    best_xgb_model = xgboost.XGBRegressor(colsample_bytree=0.4,
-                     gamma=0,                 
-                     learning_rate=0.07,
-                     max_depth=3,
-                     min_child_weight=1.5,
-                     n_estimators=1000,                                                                    
-                     reg_alpha=0.75,
-                     reg_lambda=0.45,
-                     subsample=0.6,
-                     seed=42)
+    best_xgb_model = xgboost.XGBRegressor(        
+                        colsample_bytree=0.8,
+                        gamma=0.3,
+                        learning_rate=0.03,
+                        max_depth=7,
+                        min_child_weight=6.0,
+                        n_estimators=1000,
+                        reg_alpha=0.75,
+                        reg_lambda=0.01,
+                        subsample=0.95,
+                        seed=42)
     best_xgb_model.fit(X_trainsc,y_train)
     
     
@@ -487,6 +510,7 @@ def xgboostCalc():
     plt.title('Prediction - XGBoost')
     plt.legend()
     plt.show()
+    plt.savefig('XGBoost_pred.png')
     
     #from sklearn.metrics import r2_score
     y_pred_train = best_xgb_model.predict(X_trainsc)
@@ -503,6 +527,9 @@ def xgboostCalc():
     print("MAPE: %.2f%%" % (mape))
     
     
+    print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgboost))
+
+    start_time_xgboost2 = time.time()
     
     tscv = TimeSeriesSplit(n_splits=5)
 #    for train_index, test_index in tscv.split(X):
@@ -513,17 +540,20 @@ def xgboostCalc():
 #        X_train, X_test = X[train_index], X[test_index]
 #        y_train, y_test = y[train_index], y[test_index]
         
-        
+    print("Running XGBoost CrossValidation Time Series Split...")
     scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
-    with np.printoptions(precision=3, suppress=True):
+    with np.printoptions(precision=4, suppress=True):
         print(scores)
-    print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+    print("Loss: {0:.6f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
 
+    print("Running XGBoost CrossValidation Blocking Time Series Split...")
     btscv = BlockingTimeSeriesSplit(n_splits=5)
     scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
-    with np.printoptions(precision=3, suppress=True):
+    with np.printoptions(precision=4, suppress=True):
         print(scores)
-    print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+    print("Loss: {0:.6f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+
+    print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
 
     # Feature importance of XGBoost
     xgboost.plot_importance(best_xgb_model)
@@ -541,25 +571,26 @@ def xgboostCalc():
     plt.yticks(range(X.shape[1]), names, rotation=0)
     
     plt.show()
+    plt.savefig('feature_importance_xgboost.png')
     
     
-    print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgboost))
+    # print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgboost))
 
-    start_time_xgboost2 = time.time()
+    # start_time_xgboost2 = time.time()
 
-    # Optimized structured data
-    data_dmatrix = xgboost.DMatrix(data=X_trainsc,label=y_train)
+    # # Optimized structured data
+    # data_dmatrix = xgboost.DMatrix(data=X_trainsc,label=y_train)
     
-    params = {"objective":"reg:linear",'colsample_bytree': 0.3,'learning_rate': 0.1,
-                    'max_depth': 5, 'alpha': 10}
+    # params = {"objective":"reg:linear",'colsample_bytree': 0.3,'learning_rate': 0.1,
+    #                 'max_depth': 5, 'alpha': 10}
     
-    cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
-                        num_boost_round=100,early_stopping_rounds=50,metrics="rmse", as_pandas=True, seed=42)
+    # cv_results = xgboost.cv(dtrain=data_dmatrix, params=params, nfold=5,
+    #                     num_boost_round=100,early_stopping_rounds=50,metrics="rmse", as_pandas=True, seed=42)
     
-    print(cv_results.head())
-    print((cv_results["test-rmse-mean"]).tail(1))
+    # print(cv_results.head())
+    # print((cv_results["test-rmse-mean"]).tail(1))
     
-    print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
+    # print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
 
     
     aux_test = pd.DataFrame()    
@@ -606,35 +637,15 @@ def xgboostCalc():
 
 seasonDecomposeCalc()
 featImportanceCalc()
-#decisionTreeCalc()
-#randForestCalc()
+decisionTreeCalc()
+randForestCalc()
 xgboostCalc()
-
-
-import scipy.fftpack
-
-# Number of samplepoints
-N = y_test.shape[0]
-# sample spacing
-T = 1.0 / 24
-x = np.linspace(0.0, N*T, N)
-#y = np.sin(50.0 * 2.0*np.pi*x) + 0.5*np.sin(80.0 * 2.0*np.pi*x)
-yf1 = scipy.fftpack.fft(y_test)
-yf2 = scipy.fftpack.fft(y_pred)
-xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
-
-plt.figure()
-plt.plot(xf, 2.0/N * np.abs(yf2[:N//2]), label = 'Predicted data')
-plt.plot(xf, 2.0/N * np.abs(yf1[:N//2]), label = 'Real data')
-
-plt.title('FFT')
-plt.legend()
-plt.show()
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))
 
 
+#sys.stdout.close().
 
 # the next command is the last line of my script
 plt.ioff()

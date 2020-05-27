@@ -257,18 +257,19 @@ print("MAPE: %.2f%%" % (mape))
 
 
 # TimeSeries Split
-tscv = TimeSeriesSplit(n_splits=5)       
-scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
-with np.printoptions(precision=3, suppress=True):
-    print(scores)
-print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
-
-# Blocked TimeSeries Split
-# btscv = BlockingTimeSeriesSplit(n_splits=5)
-# scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
+# tscv = TimeSeriesSplit(n_splits=5)       
+# scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
 # with np.printoptions(precision=3, suppress=True):
 #     print(scores)
 # print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+
+# Blocked TimeSeries Split
+print("\nBlocked TimeSeries Split")
+btscv = BlockingTimeSeriesSplit(n_splits=5)
+scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
+with np.printoptions(precision=3, suppress=True):
+    print(scores)
+print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
 
 
 # r2score = r2_score(y_test, y_pred)

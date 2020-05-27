@@ -76,3 +76,15 @@
 ### Dataset US
 - https://www.eia.gov/opendata/bulkfiles.php
 - https://www.eia.gov/realtime_grid/#/status?end=20200514T11
+#
+
+## NNI - commands
+```
+nnictl experiment export [experiment_id] --filename [file_path] --type json
+nnictl experiment export s08bPjXQ --filename C:\Users\marko\code\ML-Load-Forecasting\results --type csv
+
+nnictl update trialnum --id s08bPjXQ --value 865
+
+nnictl experiment export s08bPjXQ --filename C:\Users\marko\code\ML-Load-Forecasting\results\trial_s08bPjXQ --type json
+
+```
