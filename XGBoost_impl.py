@@ -25,6 +25,7 @@ import holidays
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV   #Perforing grid search
+from sklearn.model_selection import learning_curve
 
 import sys
 #try:
@@ -633,6 +634,45 @@ def xgboostCalc():
     
     print("\nBest predicted months")
     print(error_by_month.sort_values('abs_error', ascending=True).head(10))
+    
+    
+    
+    print("Running XGBoost Learning Curve...")
+    start_time_xgboost3 = time.time()
+    # Create CV training and test scores for various training set sizes
+    train_sizes, train_scores, test_scores = learning_curve(best_xgb_model, 
+                                               X_trainsc,
+                                               y_train,
+                                               cv=5,
+                                               scoring='accuracy',
+                                               n_jobs=-1, 
+                                               # 50 different sizes of the training set
+                                               train_sizes=np.linspace(0.01, 1.0, 50))
+    # Create means and standard deviations of training set scores
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    
+    # Create means and standard deviations of test set scores
+    test_mean = np.mean(test_scores, axis=1)
+    test_std = np.std(test_scores, axis=1)
+    
+    # Draw lines
+    plt.subplots(figsize=(12,12))
+    plt.plot(train_sizes, train_mean, '--', color="#111111",  label="Training score")
+    plt.plot(train_sizes, test_mean, color="#111111", label="Cross-validation score")
+
+    # Draw bands
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color="#DDDDDD")
+    plt.fill_between(train_sizes, test_mean - test_std, test_mean + test_std, color="#DDDDDD")
+    
+    # Create plot
+    plt.title("Learning Curve")
+    plt.xlabel("Training Set Size"), plt.ylabel("Accuracy Score"), plt.legend(loc="best")
+    plt.tight_layout(); plt.show()
+        
+    print("\n--- \t{:0.3f} seconds --- XGBoost Learning curve".format(time.time() - start_time_xgboost3))
+    
+
     
 
 seasonDecomposeCalc()
