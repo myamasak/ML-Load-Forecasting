@@ -26,13 +26,10 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV   #Perforing grid search
 from sklearn.model_selection import learning_curve
-
 import sys
-#try:
-#    sys.stdout = open('xgboost.log', 'r')
-#finally:
-#    sys.stdout = open('xgboost.log', 'w+')
 import logging
+import BlockingTimeSeriesSplit as btss
+
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 rootLogger = logging.getLogger()
 
@@ -230,8 +227,6 @@ seed(42)
 
 
 
-
-
 # Splitting the dataset into the Training set and Test set
 # Forecast 30 days - Calculate testSize in percentage
 #testSize = (30*24)/(y.shape[0])
@@ -251,25 +246,6 @@ plt.ion()
 plt.show()
 plt.savefig('Actual_Data.png')
 
-
-class BlockingTimeSeriesSplit():
-    def __init__(self, n_splits):
-        self.n_splits = n_splits
-    
-    def get_n_splits(self, X, y, groups):
-        return self.n_splits
-    
-    def split(self, X, y=None, groups=None):
-        n_samples = len(X)
-        k_fold_size = n_samples // self.n_splits
-        indices = np.arange(n_samples)
-
-        margin = 0
-        for i in range(self.n_splits):
-            start = i * k_fold_size
-            stop = start + k_fold_size
-            mid = int(0.8 * (stop - start)) + start
-            yield indices[start: mid], indices[mid + margin: stop]
 
 def mean_absolute_percentage_error(y_true, y_pred): 
     """Calculates MAPE given y_true and y_pred"""
@@ -325,27 +301,35 @@ def featImportanceCalc():
     model = clf.fit(X, y)
     
     # Calculate feature importances
-    importances = model.feature_importances_
+    importances = model.feature_importances_    
     
     # Sort feature importances in descending order
-    indices = np.argsort(importances)[::-1]
-    
+    indices = np.argsort(importances)[::]    
     # Rearrange feature names so they match the sorted feature importances
     names = [X.columns[i] for i in indices]
     
-    #plot_feature_importances(importances,Xdata.columns)
-    
-    # Create plot
+    # make a plot with the feature importance
+    # plt.figure(figsize=(12,14), dpi= 80, facecolor='w', edgecolor='k')
     plt.figure()
+    # plt.grid()
+    plt.title('Feature Importances')
+    plt.barh(range(len(indices)), importances[indices], height=0.2, align='center')
+    # plt.axvline(x=0.03)
+    plt.yticks(range(len(indices)), list(names))
+    plt.xlabel('Relative Importance')   
+    plt.show()
+
+    # Create plot
+    # plt.figure()
     
     # Create plot title
-    plt.title("Feature Importance")
+    # plt.title("Feature Importance")
     
     # Add bars
-    plt.bar(range(X.shape[1]), importances[indices])
+    # plt.bar(range(X.shape[1]), importances[indices])
     
     # Add feature names as x-axis labels
-    plt.xticks(range(X.shape[1]), names, rotation=0)
+    # plt.xticks(range(X.shape[1]), names, rotation=0)
     
     # Show plot
     plt.show()
@@ -367,8 +351,7 @@ def decisionTreeCalc():
     #model.fit(X, y) 
     model.fit(X_trainsc, y_train)
     
-    y_pred = model.predict(X_testsc)
-    
+    y_pred = model.predict(X_testsc)    
     
     rows = X_test.index
     df2 = df.iloc[rows[0]:]
@@ -438,6 +421,35 @@ def randForestCalc():
     
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     print("RMSE: %f" % (rmse))
+
+    # Create CV training and test scores for various training set sizes
+    train_sizes, train_scores, test_scores = learning_curve(model,
+                                               X_trainsc, y_train, cv=5, scoring='r2', n_jobs=-1,
+                                               # 50 different sizes of the training set
+                                               train_sizes=np.linspace(0.01, 1.0, 50))
+
+    # Create means and standard deviations of training set scores
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+
+    # Create means and standard deviations of test set scores
+    test_mean = np.mean(test_scores, axis=1)
+    test_std = np.std(test_scores, axis=1)
+
+    # Draw lines
+    plt.subplots(1, figsize=(7,7))
+    plt.plot(train_sizes, train_mean, '--',  label="Training score")
+    plt.plot(train_sizes, test_mean, label="Cross-validation score")
+
+    # Draw bands
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color="#DDDDDD")
+    plt.fill_between(train_sizes, test_mean - test_std, test_mean + test_std, color="#DDDDDD")
+
+    # Create plot
+    plt.title("Random Forest - Learning Curve")
+    plt.xlabel("Training Set Size"), plt.ylabel("RMSE Score"), plt.legend(loc="best")
+    plt.tight_layout(); plt.show()
+    plt.savefig('RandomForest_learningcurve.png')
      
     print("\n--- \t{:0.3f} seconds --- Random Forest".format(time.time() - start_time_randForest))
 
@@ -450,41 +462,10 @@ def xgboostCalc():
     # XGBoost
     import xgboost
     
-#    for tuning parameters
-#    parameters_for_testing = {
-#        'colsample_bytree':[0.4,0.6,0.8],
-#        'gamma':[0,0.03,0.1,0.3],
-#        'min_child_weight':[1.5,6,10],
-#        'learning_rate':[0.1,0.07],
-#        'max_depth':[3,5],
-#        'n_estimators':[1000],
-#        'reg_alpha':[1e-5, 1e-2,  0.75],
-#        'reg_lambda':[1e-5, 1e-2, 0.45],
-#        'subsample':[0.6,0.95]  
-#    }
-#    
-#                        
-#    xgb_model = xgboost.XGBRegressor(learning_rate =0.1,
-#                                     n_estimators=1000,
-#                                     max_depth=5,
-#                                     min_child_weight=1,
-#                                     gamma=0,
-#                                     subsample=0.8,
-#                                     colsample_bytree=0.8,
-#                                     nthread=6,
-#                                     scale_pos_weight=1,
-#                                     seed=42)
-#    
-#    gsearch1 = GridSearchCV(estimator = xgb_model, param_grid = parameters_for_testing, n_jobs=6,iid=False, verbose=10,scoring='neg_mean_squared_error')
-#    gsearch1.fit(X_trainsc,y_train)
-#    print (gsearch1.grid_scores_)
-#    print('best params')
-#    print (gsearch1.best_params_)
-#    print('best score')
-#    print (gsearch1.best_score_)
     
-    
-    best_xgb_model = xgboost.XGBRegressor(        
+    eval_set = [(X_trainsc, y_train), (X_testsc, y_test)]
+
+    model = xgboost.XGBRegressor(        
                         colsample_bytree=0.8,
                         gamma=0.3,
                         learning_rate=0.03,
@@ -495,10 +476,10 @@ def xgboostCalc():
                         reg_lambda=0.01,
                         subsample=0.95,
                         seed=42)
-    best_xgb_model.fit(X_trainsc,y_train)
+    model.fit(X_trainsc,y_train,eval_metric=["rmse", "mae"],eval_set=eval_set, verbose=False)
     
     
-    y_pred = best_xgb_model.predict(X_testsc)
+    y_pred = model.predict(X_testsc)
     
     
     rows = X_test.index
@@ -514,7 +495,7 @@ def xgboostCalc():
     plt.savefig('XGBoost_pred.png')
     
     #from sklearn.metrics import r2_score
-    y_pred_train = best_xgb_model.predict(X_trainsc)
+    y_pred_train = model.predict(X_trainsc)
     print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
     print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
     
@@ -527,6 +508,33 @@ def xgboostCalc():
     mape = mean_absolute_percentage_error(y_test.reshape(y_test.shape[0]), y_pred.reshape(y_pred.shape[0]))
     print("MAPE: %.2f%%" % (mape))
     
+    
+    # retrieve performance metrics
+    results = model.evals_result()
+    epochs = len(results['validation_0']['rmse'])
+    x_axis = range(0, epochs)
+
+    # plot log loss
+    fig, ax = plt.subplots(figsize=(7,7))
+    ax.plot(x_axis, results['validation_0']['rmse'], label='Train')
+    ax.plot(x_axis, results['validation_1']['rmse'], label='Test')
+    ax.legend()
+    plt.ylabel('RMSE')
+    plt.xlabel('epochs')
+    plt.title('XGBoost RMSE')
+    plt.show()
+    plt.savefig('XGBoost_RMSE.png')
+
+    # plot classification error
+    fig, ax = plt.subplots(figsize=(7,7))
+    ax.plot(x_axis, results['validation_0']['mae'], label='Train')
+    ax.plot(x_axis, results['validation_1']['mae'], label='Test')
+    ax.legend()
+    plt.ylabel('MAE')
+    plt.xlabel('epochs')
+    plt.title('XGBoost MAE')
+    plt.show()
+    plt.savefig('XGBoost_MAE.png')
     
     print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgboost))
 
@@ -542,14 +550,14 @@ def xgboostCalc():
 #        y_train, y_test = y[train_index], y[test_index]
         
     print("Running XGBoost CrossValidation Time Series Split...")
-    scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
+    scores = cross_val_score(model, X_trainsc, y_train, cv=tscv, scoring='r2')
     with np.printoptions(precision=4, suppress=True):
         print(scores)
     print("Loss: {0:.6f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
 
     print("Running XGBoost CrossValidation Blocking Time Series Split...")
-    btscv = BlockingTimeSeriesSplit(n_splits=5)
-    scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
+    btscv = btss.BlockingTimeSeriesSplit(n_splits=5)
+    scores = cross_val_score(model, X_trainsc, y_train, cv=btscv, scoring='r2')    
     with np.printoptions(precision=4, suppress=True):
         print(scores)
     print("Loss: {0:.6f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
@@ -557,10 +565,10 @@ def xgboostCalc():
     print("\n--- \t{:0.3f} seconds --- XGBoost Cross-validation ".format(time.time() - start_time_xgboost2))
 
     # Feature importance of XGBoost
-    xgboost.plot_importance(best_xgb_model)
+    xgboost.plot_importance(model)
     #plt.rcParams['figure.figsize'] = [5, 5]
     # Calculate feature importances
-    importances = best_xgb_model.feature_importances_
+    importances = model.feature_importances_
     # Sort feature importances in descending order
     #indices = np.argsort(importances)[::-1]
     indices = np.argsort(importances)[::]
@@ -639,47 +647,48 @@ def xgboostCalc():
     
     print("Running XGBoost Learning Curve...")
     start_time_xgboost3 = time.time()
+    
     # Create CV training and test scores for various training set sizes
-    train_sizes, train_scores, test_scores = learning_curve(best_xgb_model, 
-                                               X_trainsc,
-                                               y_train,
-                                               cv=5,
-                                               scoring='accuracy',
-                                               n_jobs=-1, 
+    train_sizes, train_scores, test_scores = learning_curve(model,
+                                               X_trainsc, y_train, cv=5, scoring='r2', n_jobs=-1,
                                                # 50 different sizes of the training set
                                                train_sizes=np.linspace(0.01, 1.0, 50))
+
     # Create means and standard deviations of training set scores
     train_mean = np.mean(train_scores, axis=1)
     train_std = np.std(train_scores, axis=1)
-    
+
     # Create means and standard deviations of test set scores
     test_mean = np.mean(test_scores, axis=1)
     test_std = np.std(test_scores, axis=1)
-    
+
     # Draw lines
-    plt.subplots(figsize=(12,12))
-    plt.plot(train_sizes, train_mean, '--', color="#111111",  label="Training score")
-    plt.plot(train_sizes, test_mean, color="#111111", label="Cross-validation score")
+    plt.subplots(1, figsize=(7,7))
+    plt.plot(train_sizes, train_mean, '--',  label="Training score")
+    plt.plot(train_sizes, test_mean, label="Cross-validation score")
 
     # Draw bands
     plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color="#DDDDDD")
     plt.fill_between(train_sizes, test_mean - test_std, test_mean + test_std, color="#DDDDDD")
-    
+
     # Create plot
-    plt.title("Learning Curve")
-    plt.xlabel("Training Set Size"), plt.ylabel("Accuracy Score"), plt.legend(loc="best")
+    plt.title("XGBoost - Learning Curve")
+    plt.xlabel("Training Set Size"), plt.ylabel("RMSE Score"), plt.legend(loc="best")
     plt.tight_layout(); plt.show()
+    plt.savefig('XGBoost_learningcurve.png')
+
+
         
     print("\n--- \t{:0.3f} seconds --- XGBoost Learning curve".format(time.time() - start_time_xgboost3))
     
 
     
 
-seasonDecomposeCalc()
-featImportanceCalc()
+#seasonDecomposeCalc()
+#featImportanceCalc()
 decisionTreeCalc()
-randForestCalc()
-xgboostCalc()
+#randForestCalc()
+#xgboostCalc()
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))
