@@ -68,8 +68,8 @@ all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv') + \
 # Select datasets 
 #selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",
 #              "2014","2015","2015","2016","2017","2018","2019"]
-selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
-#selectDatasets = ["2015","2016","2017","2018","2019"]
+#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+selectDatasets = ["2017","2018","2019"]
 
 # Initialize dataset list
 datasetList = []
@@ -170,7 +170,7 @@ Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
 
 # Add holidays to X data
 us_holidays = []
-for date2 in holidays.UnitedStates(years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]).items():
+for date2 in holidays.UnitedStates(years=[2017,2018,2019]).items():
     us_holidays.append(str(date2[0]))
 
 Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in us_holidays else 0 for val in date]})
@@ -334,6 +334,12 @@ def featImportanceCalc():
     # Show plot
     plt.show()
     plt.savefig('Feature_Importance_RF.png')
+    
+    featImportance = pd.concat([pd.DataFrame({'Features':names}),
+                  pd.DataFrame({'Relative_Importance':importances[indices]})],
+                    axis=1, sort=False)
+    
+    print(featImportance)
     
     print("\n--- \t{:0.3f} seconds --- Feature Importance".format(time.time() - start_time_featImportance))
 
@@ -505,7 +511,7 @@ def xgboostCalc():
     mae = mean_absolute_error(y_test, y_pred)
     print("MAE: %f" % (mae))
     
-    mape = mean_absolute_percentage_error(y_test.reshape(y_test.shape[0]), y_pred.reshape(y_pred.shape[0]))
+    mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
     print("MAPE: %.2f%%" % (mape))
     
     
@@ -686,9 +692,9 @@ def xgboostCalc():
 
 #seasonDecomposeCalc()
 #featImportanceCalc()
-decisionTreeCalc()
+#decisionTreeCalc()
 #randForestCalc()
-#xgboostCalc()
+xgboostCalc()
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))

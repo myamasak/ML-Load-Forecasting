@@ -19,7 +19,7 @@ import glob
 import seaborn as sns
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import datetime as dt
-import calendar
+#import calendar
 import holidays
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
@@ -131,10 +131,10 @@ if (dataset['DEMAND'].eq(0).sum() > 0
     # Save y column (output)
     y = dataset.iloc[:, 3]
     # Replace NaN values by meaningful values
-    from sklearn.preprocessing import Imputer
-    y_matrix = y.as_matrix()
+    from sklearn.impute import SimpleImputer
+    y_matrix = y.to_numpy()
     y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
+    imputer = SimpleImputer(missing_values=np.nan, strategy="mean")
     imputer = imputer.fit(y_matrix)
     y =  imputer.transform(y_matrix)
     y = y.reshape(y.shape[0])
@@ -293,7 +293,7 @@ X_test_lmse = X_testsc.values.reshape(X_testsc.shape[0],X_testsc.shape[1],1)
 
 n_input = X_trainsc_lmse.shape[1]
 n_batch = 24
-n_epoch = 400
+n_epoch = 1
 n_neurons = X_trainsc_lmse.shape[1]
 # n_features = X_trainsc_lmse.shape[1]
 # n_features = 1
@@ -356,6 +356,19 @@ y_pred_train = np.float64(y_pred_train)
 
 print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
 print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE: %f" % (rmse))
+
+mae = mean_absolute_error(y_test, y_pred)
+print("MAE: %f" % (mae))
+
+mape = mean_absolute_percentage_error(y_test.reshape(y_test.shape[0]), y_pred.reshape(y_pred.shape[0]))
+print("MAPE: %.2f%%" % (mape))
+
+
+#print("Running LSTM Learning Curve...")
+#start_time_lstmLC = time.time()
 
 
 print("\n--- \t{:0.3f} seconds --- LSTM".format(time.time() - start_time_lstmCalc))
