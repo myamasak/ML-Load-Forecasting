@@ -184,9 +184,24 @@ from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
 #sc = MinMaxScaler()
 
-X_trainsc = sc.fit_transform(X_train)
-X_testsc = sc.fit_transform(X_test)
+# True = Scaler for all X features
+# False = Scaler only for Temperature features
+onlyTemperature = False
 
+# Standard Scaler only for DryBulb and DewPnt
+if (onlyTemperature):
+    X_trainsc = sc.fit_transform(X_train.drop(['Year','Month','Day','Weekday','Hour','Holiday'], axis=1))
+    X_trainsc = pd.concat([pd.DataFrame({'DryBulb':X_trainsc[:,0]}),
+                           pd.DataFrame({'DewPnt':X_trainsc[:,1]}),
+                           X_train.drop(['DewPnt','DryBulb'], axis=1)],
+                           axis=1)
+    X_testsc = sc.fit_transform(X_test.drop(['Year','Month','Day','Weekday','Hour','Holiday'], axis=1))
+    X_testsc = pd.concat([pd.DataFrame(X_testsc),
+                          X_test.drop(['DewPnt','DryBulb'], axis=1).reset_index(drop=True)],
+                          axis=1)
+else:
+    X_trainsc = sc.fit_transform(X_train)
+    X_testsc = sc.fit_transform(X_test)
 
 # Plot actual data
 #plt.figure(1)
@@ -264,6 +279,7 @@ X_testsc_lmse = X_testsc.reshape(X_testsc.shape[0],X_testsc.shape[1],1)
 n_batch = 24
 n_epoch = 40
 n_neurons = 128
+n_hidden_layers = 8
 
 # Define per-fold score containers 
 acc_per_fold = []
@@ -300,7 +316,7 @@ for train, test in tscv.split(inputs, targets):
     #                stateful=True   )             
             )
     # Adding the hidden layers
-    for i in range(8):
+    for i in range(n_hidden_layers):
         model.add(Dense(units = 32))
     #    LReLU = LeakyReLU(alpha=0.05)
     #    model.add(LReLU)
@@ -380,6 +396,45 @@ for train, test in tscv.split(inputs, targets):
     rmse_per_fold.append(rmse)
     mae_per_fold.append(mae)
     mape_per_fold.append(mape)
+    
+    # Some analysis over predictions made
+    aux_test = pd.DataFrame()    
+    y_pred = np.float64(y_pred)
+    y_pred = y_pred.reshape(y_pred.shape[0])
+    y_test = targets[test].reshape(targets[test].shape[0])
+    aux_test['error'] = y_test - y_pred
+    aux_test['abs_error'] = aux_test['error'].apply(np.abs)
+    aux_test['DEMAND'] = y_test
+    aux_test['PRED'] = y_pred
+    aux_test['Year'] = X.iloc[test,2].reset_index(drop=True)
+    aux_test['Month'] = X.iloc[test,3].reset_index(drop=True)
+    aux_test['Day'] = X.iloc[test,4].reset_index(drop=True)
+    aux_test['Weekday'] = date.iloc[X.iloc[test,5].shape[0]:].dt.day_name().reset_index(drop=True)
+    aux_test['Hour'] = X.iloc[test,6].reset_index(drop=True)
+    aux_test['Holiday'] = X.iloc[test,7].reset_index(drop=True)
+
+    error_by_day = aux_test.groupby(['Year','Month','Day','Weekday', 'Holiday']) \
+    .mean()[['DEMAND','PRED','error','abs_error']]
+    print("\nOver forecasted days")
+    print(error_by_day.sort_values(['error'], ascending=[False]).head(10))
+
+    print("\nWorst absolute predicted days")
+    print(error_by_day.sort_values('abs_error', ascending=False).head(10))
+
+    print("\nBest predicted days")
+    print(error_by_day.sort_values('abs_error', ascending=True).head(10))
+
+    error_by_month = aux_test.groupby(['Year','Month']) \
+    .mean()[['DEMAND','PRED','error','abs_error']]
+
+    print("\nOver forecasted months")
+    print(error_by_month.sort_values(['error'], ascending=[False]).head(10))
+
+    print("\nWorst absolute predicted months")
+    print(error_by_month.sort_values('abs_error', ascending=False).head(10))
+
+    print("\nBest predicted months")
+    print(error_by_month.sort_values('abs_error', ascending=True).head(10))
 
     # Increase fold number
     fold_no = fold_no + 1
@@ -389,20 +444,20 @@ print('------------------------------------------------------------------------'
 print('Score per fold')
 for i in range(0, len(loss_per_fold)):
     print('------------------------------------------------------------------------')
-    print(f'> Fold {i+1} - Loss: {loss_per_fold[i]}')
-    print(f'> Fold {i+1} - r2_score_train: {r2train_per_fold[i]}')
-    print(f'> Fold {i+1} - r2_score_test: {r2test_per_fold[i]}')
-    print(f'> Fold {i+1} - rmse: {rmse_per_fold[i]}')
-    print(f'> Fold {i+1} - mae: {mae_per_fold[i]}')
-    print(f'> Fold {i+1} - mape: {mape_per_fold[i]}')
+    print(f'> Fold {i+1} - Loss: {loss_per_fold[i]:.5f}')
+    print(f'> Fold {i+1} - r2_score_train: {r2train_per_fold[i]:.5f}')
+    print(f'> Fold {i+1} - r2_score_test: {r2test_per_fold[i]:.5f}')
+    print(f'> Fold {i+1} - rmse: {rmse_per_fold[i]:.5f}')
+    print(f'> Fold {i+1} - mae: {mae_per_fold[i]:.5f}')
+    print(f'> Fold {i+1} - mape: {mape_per_fold[i]:.5f}')
 print('------------------------------------------------------------------------')
 print('Average scores for all folds:')
-print(f'> Loss: {np.mean(loss_per_fold)}')
-print(f'> r2_score_train: {np.mean(r2train_per_fold)} (+- {np.std(r2train_per_fold)})')
-print(f'> r2_score_test: {np.mean(r2test_per_fold)} (+- {np.std(r2test_per_fold)})')
-print(f'> rmse: {np.mean(rmse_per_fold)} (+- {np.std(rmse_per_fold)})')
-print(f'> mae: {np.mean(mae_per_fold)} (+- {np.std(mae_per_fold)})')
-print(f'> mape: {np.mean(mape_per_fold)} (+- {np.std(mape_per_fold)})')
+print(f'> Loss: {np.mean(loss_per_fold):.5f}')
+print(f'> r2_score_train: {np.mean(r2train_per_fold):.5f} (+- {np.std(r2train_per_fold):.5f})')
+print(f'> r2_score_test: {np.mean(r2test_per_fold):.5f} (+- {np.std(r2test_per_fold):.5f})')
+print(f'> rmse: {np.mean(rmse_per_fold):.5f} (+- {np.std(rmse_per_fold):.5f})')
+print(f'> mae: {np.mean(mae_per_fold):.5f} (+- {np.std(mae_per_fold):.5f})')
+print(f'> mape: {np.mean(mape_per_fold):.5f} (+- {np.std(mape_per_fold):.5f})')
 print('------------------------------------------------------------------------')
 
 
@@ -419,6 +474,7 @@ print("\nLSTM has been executed.")
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))
+
 
 
 
