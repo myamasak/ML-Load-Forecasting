@@ -29,7 +29,7 @@ filename = filename[0].replace('\\','/')
 dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
 
 # Selection of year
-selectDatasets = ["2012","2013","2014","2015","2016","2017","2018"]
+selectDatasets = ["2011","2012","2013","2014","2015","2016","2017","2018"]
 
 # Select only selected data
 datasetList = []
@@ -187,74 +187,91 @@ Xs = pd.DataFrame(Xs)
 Ndays = 120
 testSize = (Ndays*24)/(ys.shape[0])
 #testSize = 0.1
-X_train, X_test, y_train, y_test = train_test_split(Xs, ys, test_size = testSize, random_state = 0, shuffle = False)
+X_train, X_test, y_train, y_test = train_test_split(Xs, yall, test_size = testSize, random_state = 0, shuffle = False)
 
+y_ = pd.concat([y_train, y_test])
+X_ = pd.concat([X_train, X_test])
 
 def outlinerDetection():
-    from sklearn.ensemble import IsolationForest
-    clf = IsolationForest(n_estimators=100, warm_start=True, max_samples='auto', random_state=42)
-    clf.fit(X_train, y_train)
-    y_pred_train = clf.predict(X_train)
-    y_pred_test = clf.predict(X_test)
+    global yall, X_train, X_test, y_train, y_test, y_, X_
     
-#    y_pred_test = pd.DataFrame(y_pred_test).set_index(X_test.index)
-    
-    outliers_train = ys.loc[y_pred_train == -1]
-#    outliers_test = ys.loc[y_pred_test == -1]
-
-    print("Outliers: " + str(len(outliers_train)) +" of "+ str(len(Xs)) + " values.", end="\n")
-    
-#    
-#    from sklearn.decomposition import PCA
-#    from sklearn.preprocessing import StandardScaler
-#    from mpl_toolkits.mplot3d import Axes3D
-#    pca = PCA(n_components=3)  # Reduce to k=3 dimensions
-#    sc = StandardScaler()
-    #normalize the metrics
-#    ys_trainsc = sc.fit_transform(pd.DataFrame(y_train))
-#    X_reduced = pca.fit_transform(ys_trainsc)
-#    fig = plt.figure()
-#    ax = fig.add_subplot(111, projection='3d')
-#    ax.set_zlabel("x_composite_3")
-#    # Plot the compressed data points
-#    ax.scatter(X_reduced[:, 0], X_reduced[:, 1], zs=X_reduced[:, 2], s=4, lw=1, label="inliers",c="green")
-#    # Plot x's for the ground truth outliers
-#    ax.scatter(X_reduced[outliers_train.index.values,0],X_reduced[outliers_train.index.values,1], X_reduced[outliers_train.index.values,2],
-#               lw=2, s=60, marker="x", c="red", label="outliers")
-#    ax.legend()
-#    plt.show()
-
-#    pca = PCA(n_components=1)
-#    pca.fit(pd.DataFrame(y_train))
-#    res=pd.DataFrame(pca.transform(pd.DataFrame(y_train)))
-#    Z = np.array(res)
-    plt.figure()
-    plt.title("IsolationForest")
-#    plt.contourf( Z, cmap=plt.cm.Blues_r)
-#    b1 = plt.scatter(res[0], res[1], c='green',
-#                    s=1,label="normal points")
-    b1 = plt.plot(y_train,label="normal points")
-#    b1 = plt.scatter(res.iloc[outliers_train.index.values,0],res.iloc[outliers_train.index.values,1], c='red',s=1,  label="predicted outliers")
-#    outliers_train.reindex(list(range(outliers_train.index.min(),outliers_train.index.max()+1)),fill_value=0)
-    outliers_train = outliers_train.reindex(list(range(outliers_train.index.min(),outliers_train.index.max()+1)),fill_value=0)
-#    outliers_trainsc = sc.fit_transform(pd.DataFrame(outliers_train))
-    b1 = plt.scatter(outliers_train.index.values,outliers_train, c='red',s=10,  label="predicted outliers")
-    plt.legend(loc="upper right")
-    plt.show()
-    
-    
-    
-    ####
     import plotly.io as pio
-    import plotly
     import plotly.graph_objects as go
+    import plotly
     pio.renderers.default = 'browser'
     
+    from sklearn.neighbors import LocalOutlierFactor
+    clf = LocalOutlierFactor(n_neighbors=20)
+    
+    
+    y_pred = clf.fit_predict(pd.DataFrame(y_))
+#    outliers_train = y_train.loc[y_pred_train == -1]
+    
+    negativeOutlierFactor = clf.negative_outlier_factor_
+    outliers = y_train.loc[negativeOutlierFactor < (negativeOutlierFactor.mean() - negativeOutlierFactor.std()-1)]
+    
+#    outliers.reindex(list(range(outliers.index.min(),outliers.index.max()+1)),fill_value=0)
+    
+
+    outliers_reindex = outliers.reindex(list(range(df.index.min(),df.index.max()+1)))
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df,
+                             y=y_,
+                             name='Demand (y_train)',
+                             mode='lines'))                         
+    fig.add_trace(go.Scatter(x=df,
+                             y=outliers_reindex,
+                             name='Predicted Outliers',
+                             mode='markers',
+                             marker_size=10))
+    # Edit the layout
+    fig.update_layout(title='Outliers',
+                      xaxis_title='Date',
+                      yaxis_title='Demand'
+                      )
+#                      width=1000,
+#                      height=500)
+
+    fig.show()
+    fig.write_image("ONS_outliers.png")
+    
+    # Fix outliers by removing them
+    
+    yall = pd.DataFrame(yall).replace([outliers],np.nan)
+    
+#    yall.loc[outliers.index.values]
+    
+    
+    X_train, X_test, y_train, y_test = train_test_split(Xs, yall.squeeze(), test_size = testSize, random_state = 0, shuffle = False)
+
+    y_ = pd.concat([y_train, y_test])
+    X_ = pd.concat([X_train, X_test])
+    
+#    y_ = np.array(y_)
+#    y_ = y_.reshape(y_.shape[0])
     
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df, y=ys, name='South Demand', mode='markers'))                         
-    fig.show()
+    fig.add_trace(go.Scatter(x=df,
+                             y=y_,
+                             name='Demand (y_train)',
+                             mode='lines'))                         
+#    fig.add_trace(go.Scatter(x=df,
+#                             y=outliers_reindex,
+#                             name='Predicted Outliers',
+#                             mode='markers',
+#                             marker_size=10))
+    # Edit the layout
+    fig.update_layout(title='Outliers',
+                      xaxis_title='Date',
+                      yaxis_title='Demand'
+                      )
+#                      width=1000,
+#                      height=500)
 
+    fig.show()
+    fig.write_image("ONS_outliers.png")
+    
    
 
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -271,7 +288,7 @@ def seasonDecomposeCalc(autoCorrelation):
     from statsmodels.tsa.seasonal import seasonal_decompose
     #import statsmodels.api as sm
     data = pd.DataFrame(data=df)
-    concatlist = [data,pd.DataFrame(ys)]
+    concatlist = [data,pd.DataFrame(y_)]
     data = pd.concat(concatlist,axis=1)
     
     data.reset_index(drop=True,inplace=True)
@@ -295,7 +312,7 @@ def seasonDecomposeCalc(autoCorrelation):
 #    plt.title('Trend')
 #    plt.show()
     
-    detrended = ys - result.trend['Demanda'].reset_index(drop=True)
+    detrended = y_ - result.trend['Demanda'].reset_index(drop=True)
     plt.figure()
     plt.plot(detrended)
     plt.title('Detrended')
@@ -306,7 +323,7 @@ def seasonDecomposeCalc(autoCorrelation):
 #    plt.title('Seasonal')
 #    plt.show()
     
-    deseasonalized = ys - result.seasonal['Demanda'].reset_index(drop=True)
+    deseasonalized = y_ - result.seasonal['Demanda'].reset_index(drop=True)
     plt.figure()
     plt.plot(deseasonalized)
     plt.title('Deseasonalized')
@@ -317,21 +334,21 @@ def seasonDecomposeCalc(autoCorrelation):
         
         # Draw Plot
         plt.figure()
-        autocorrelation_plot(ys)
+        autocorrelation_plot(y_)
         plt.show()
         
     #    from statsmodels.tsa.stattools import acf, pacf
         from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
         
-    #    plot_acf(ys)
-    #    plot_pacf(ys, lags=50)
+    #    plot_acf(y_)
+    #    plot_pacf(y_, lags=50)
         
         # PACF plot of 1st differenced series
     #    plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
         fig, axes = plt.subplots(1, 2, sharex=True)
-        axes[0].plot(pd.DataFrame(ys).diff()); axes[0].set_title('1st Differencing')
+        axes[0].plot(pd.DataFrame(y_).diff()); axes[0].set_title('1st Differencing')
     #    axes[1].set(ylim=(0,5))
-        plot_acf(pd.DataFrame(ys).diff().dropna(), ax=axes[1])
+        plot_acf(pd.DataFrame(y_).diff().dropna(), ax=axes[1])
         plt.show()
     
 
@@ -353,7 +370,7 @@ def featImportanceCalc():
     clf = RandomForestRegressor(random_state=0, n_jobs=-1)
     
     # Train model
-    model = clf.fit(Xs, ys)
+    model = clf.fit(Xs, y_)
     
     # Calculate feature importances
     importances = model.feature_importances_    
@@ -409,7 +426,7 @@ def decisionTreeCalc():
     
     plt.figure()
     #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-    plt.plot(df,ys, label = 'Real data')
+    plt.plot(df,y_, label = 'Real data')
     plt.plot(df2,y_pred, label = 'Predicted data')
     plt.title('Prediction - Decision Tree')
     plt.legend()
@@ -459,7 +476,7 @@ def randForestCalc(enableLearningCurve):
     
     plt.figure()
     #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-    plt.plot(df,ys, label = 'Real data')
+    plt.plot(df,y_, label = 'Real data')
     plt.plot(df2,y_pred, label = 'Predicted data')
     plt.title('Prediction - Random Forest')
     plt.legend()
@@ -548,7 +565,7 @@ def xgboostCalc(enableCV, enableLearningCurve):
     
     plt.figure()
     #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-    plt.plot(df,ys, label = 'Real data')
+    plt.plot(df,y_, label = 'Real data')
     plt.plot(df2,y_pred, label = 'Predicted data')
     plt.title('Prediction - XGBoost')
     plt.legend()
