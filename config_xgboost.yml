@@ -2,7 +2,7 @@ authorName: Marcos Yamasaki
 experimentName: XGBoost_auto
 trialConcurrency: 1
 maxExecDuration: 999999h
-maxTrialNum: 867
+maxTrialNum: 9999
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space_xgboost.json
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: C:\Users\marko\Anaconda3\envs\venvAUTO\python.exe XGBoost_impl_nni.py
+  command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe XGBoost_impl_nni.py
   codeDir: .
   gpuNum: 0

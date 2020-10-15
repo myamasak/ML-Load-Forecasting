@@ -1,4 +1,6 @@
 import time
+
+from sklearn.base import is_outlier_detector
 start_time = time.time()
 import pandas as pd
 import numpy as np
@@ -148,6 +150,8 @@ yne = y[y['Subsistema'].str.find("Nordeste") != -1]['Demanda'].reset_index(drop=
 yse = y[y['Subsistema'].str.find("Sudeste/Centro-Oeste") != -1]['Demanda'].reset_index(drop=True)
 yall = y[y['Subsistema'].str.find("Todos") != -1]['Demanda'].reset_index(drop=True)
 
+y = pd.concat([ys, yn, yne, yse, yall], axis=1)
+y.columns = ['South','North','NorthEast','SouthEast','All Regions']
 
 # Save in Date format
 df = X[X['Subsistema'].str.find("Sul") != -1]['Data'].reset_index(drop=True)
@@ -160,17 +164,19 @@ plt.plot(df,ys,df,yn,df,yne,df,yse,df,yall)
 #plt.scatter(Xne,yne)
 #plt.scatter(Xse,yse)
 #plt.scatter(Xall,yall)
-plt.legend(['South','North','NorthEast','SouthEast','All'])
+plt.title('Demand')
+plt.legend(['South','North','NorthEast','SouthEast','All Regions'])
 plt.tight_layout()
 plt.show()
 plt.savefig('ONS_all_Regions_Demand_plot')
 
 # Plot south data only
 plt.figure()
-plt.plot(ys)
+plt.plot(df,yall)
+plt.title('Demand of all regions')
 plt.tight_layout()
 plt.show()
-plt.savefig('ONS_South_Demand_plot')
+plt.savefig('ONS_All_Demand_plot')
 
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
@@ -192,23 +198,24 @@ X_train, X_test, y_train, y_test = train_test_split(Xs, yall, test_size = testSi
 y_ = pd.concat([y_train, y_test])
 X_ = pd.concat([X_train, X_test])
 
-def outlinerDetection():
-    global yall, X_train, X_test, y_train, y_test, y_, X_
+def outlierDetection(y_, columnName):
+    # global X_train, X_test, y_train, y_test, X_
     
     import plotly.io as pio
     import plotly.graph_objects as go
-    import plotly
+    # import plotly
     pio.renderers.default = 'browser'
+    pio.kaleido.scope.default_width = 1200
+    pio.kaleido.scope.default_height = 750
     
     from sklearn.neighbors import LocalOutlierFactor
     clf = LocalOutlierFactor(n_neighbors=20)
-    
-    
+
     y_pred = clf.fit_predict(pd.DataFrame(y_))
 #    outliers_train = y_train.loc[y_pred_train == -1]
     
     negativeOutlierFactor = clf.negative_outlier_factor_
-    outliers = y_train.loc[negativeOutlierFactor < (negativeOutlierFactor.mean() - negativeOutlierFactor.std()-1)]
+    outliers = y_.loc[negativeOutlierFactor < (negativeOutlierFactor.mean() - negativeOutlierFactor.std()-1)]
     
 #    outliers.reindex(list(range(outliers.index.min(),outliers.index.max()+1)),fill_value=0)
     
@@ -217,62 +224,83 @@ def outlinerDetection():
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df,
-                             y=y_,
-                             name='Demand (y_train)',
-                             mode='lines'))                         
+                            y=y_,
+                            name=columnName,
+                            showlegend=False,
+                            mode='lines'))                         
     fig.add_trace(go.Scatter(x=df,
-                             y=outliers_reindex,
-                             name='Predicted Outliers',
-                             mode='markers',
-                             marker_size=10))
+                            y=outliers_reindex,
+                            name='Outliers',
+                            mode='markers',
+                            marker_size=10))
     # Edit the layout
-    fig.update_layout(title='Outliers',
-                      xaxis_title='Date',
-                      yaxis_title='Demand'
-                      )
+    fig.update_layout(title=columnName+' Demand outliers',
+                    xaxis_title='Date',
+                    yaxis_title='Demand',
+                    font=dict(size=26),
+                    yaxis = dict(
+                            scaleanchor = "x",
+                            scaleratio = 1),
+                    xaxis = dict(
+                        range=(df[0], df[len(df)-1]),
+                        constrain='domain'),
+                    legend=dict(
+                        yanchor="top",
+                        y=0.99,
+                        xanchor="left",
+                        x=0.01)
+                    )
 #                      width=1000,
 #                      height=500)
 
     fig.show()
-    fig.write_image("ONS_outliers.png")
+    fig.write_image("ONS_outliers_"+columnName+".svg")
     
-    # Fix outliers by removing them
+    # Fix outliers by removing and replacing with interpolation
+    y_ = pd.DataFrame(y_).replace([outliers],np.nan)    
+    y_ = y_.interpolate(method='linear', axis=0).ffill().bfill()
     
-    yall = pd.DataFrame(yall).replace([outliers],np.nan)
+    print('Outliers fixed: ', end='\n')
+    print(y_.loc[outliers.index.values], end='\n')
     
-#    yall.loc[outliers.index.values]
-    
-    
-    X_train, X_test, y_train, y_test = train_test_split(Xs, yall.squeeze(), test_size = testSize, random_state = 0, shuffle = False)
-
-    y_ = pd.concat([y_train, y_test])
-    X_ = pd.concat([X_train, X_test])
-    
-#    y_ = np.array(y_)
-#    y_ = y_.reshape(y_.shape[0])
+    # Transform to numpy arrays    
+    y_ = np.array(y_)
+    y_ = y_.reshape(y_.shape[0])
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df,
-                             y=y_,
-                             name='Demand (y_train)',
-                             mode='lines'))                         
+                            y=y_,
+                            name=columnName,
+                            mode='lines'))                         
 #    fig.add_trace(go.Scatter(x=df,
 #                             y=outliers_reindex,
 #                             name='Predicted Outliers',
 #                             mode='markers',
 #                             marker_size=10))
     # Edit the layout
-    fig.update_layout(title='Outliers',
-                      xaxis_title='Date',
-                      yaxis_title='Demand'
-                      )
+    fig.update_layout(title=columnName+' Demand outliers fixed',
+                    xaxis_title='Date',
+                    yaxis_title='Demand',
+                    font=dict(size=26),
+                    yaxis = dict(
+                        scaleanchor = "x",
+                        scaleratio = 1),
+                    xaxis = dict(
+                        range=(df[0], df[len(df)-1]),
+                        constrain='domain'),
+                    legend=dict(
+                        yanchor="top",
+                        y=0.99,
+                        xanchor="left",
+                        x=0.01)
+                    )
 #                      width=1000,
 #                      height=500)
 
     fig.show()
-    fig.write_image("ONS_outliers.png")
+    fig.write_image("ONS_outliers_fixed_"+columnName+".svg")
     
-   
+    return y_
 
 def mean_absolute_percentage_error(y_true, y_pred): 
     """Calculates MAPE given y_true and y_pred"""
@@ -763,7 +791,17 @@ def xgboostCalc(enableCV, enableLearningCurve):
         
     print("\n--- \t{:0.3f} seconds --- XGBoost Learning curve".format(time.time() - start_time_xgboost3))
 
-#seasonDecomposeCalc()
-#decisionTreeCalc()
-#randForestCalc(enableLearningCurve=True)
-xgboostCalc(enableCV=True, enableLearningCurve=True)
+################
+# MAIN PROGRAM
+################
+    
+# loop over all demand regions / y[columns]
+for column in y:
+    y[column] = outlierDetection(y_ = y[column], columnName = column)
+    # X_train, X_test, y_train, y_test = train_test_split(Xs, yall, test_size = testSize, random_state = 0, shuffle = False)
+    y_train, y_test = train_test_split(y[column], test_size = testSize, random_state = 0, shuffle = False)
+
+    seasonDecomposeCalc()
+    decisionTreeCalc()
+    randForestCalc(enableLearningCurve=True)
+    xgboostCalc(enableCV=True, enableLearningCurve=True)

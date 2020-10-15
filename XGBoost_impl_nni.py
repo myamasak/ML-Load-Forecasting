@@ -46,8 +46,7 @@ path = r'%s' % os.getcwd().replace('\\','/')
 #path = path + '/code/ML-Load-Forecasting'
 
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv') + \
-            glob.glob(path + r'/datasets/ISONewEngland/holidays/*.csv')
+all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
 
 # Select datasets 
 #selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",
@@ -102,17 +101,19 @@ y = dataset.iloc[:, 3]
 # Taking care of missing data
 if (dataset['DEMAND'].eq(0).sum() > 0
     or dataset['DEMAND'].isnull().any()):    
+    print(dataset[dataset['DEMAND'].isnull()])
     # Replace zero values by NaN
     dataset['DEMAND'].replace(0, np.nan, inplace= True)
-    # Save y column (output)
-    y = dataset.iloc[:, 3]
-    # Replace NaN values by meaningful values
-    from sklearn.preprocessing import Imputer
-    y_matrix = y.as_matrix()
-    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
-    imputer = imputer.fit(y_matrix)
-    y =  imputer.transform(y_matrix)
+    # Save the NaN indexes
+    nanIndex = dataset[dataset['DEMAND'].isnull()].index.values
+    # Convert to float
+    y = dataset['DEMAND'].astype(float)
+    # Replace by interpolating zero values
+    y = y.interpolate(method='linear', axis=0).ffill().bfill()
+    print(y.iloc[nanIndex])
+    print("Is there any null values now?\n" + str(y.isnull().any()))
+
+    
 
 
 # Decouple date and time from dataset
@@ -132,7 +133,7 @@ Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
 
 # Add holidays to X data
 us_holidays = []
-for date2 in holidays.UnitedStates(years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]).items():
+for date2 in holidays.UnitedStates(years=list(map(int,selectDatasets))).items():
     us_holidays.append(str(date2[0]))
 
 Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in us_holidays else 0 for val in date]})
@@ -146,13 +147,11 @@ X = pd.concat(concatlist,axis=1)
 # Set df to x axis to be plot
 df = dataset['Date']
 
-
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
 # from tensorflow import set_random_seed
 # set_random_seed(42)
-
 
 
 # Splitting the dataset into the Training set and Test set
@@ -161,10 +160,12 @@ seed(42)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0, shuffle = False)
 
 # Feature Scaling
-from sklearn.preprocessing import StandardScaler
-sc = StandardScaler()
-X_trainsc = sc.fit_transform(X_train)
-X_testsc = sc.transform(X_test)
+# from sklearn.preprocessing import MinMaxScaler
+# sc = MinMaxScaler()
+# X_trainsc = sc.fit_transform(X)
+
+# X_trainsc = sc.fit_transform(X_train)
+# X_testsc = sc.transform(X_test)
 
 # Plot actual data
 # plt.figure(1)
@@ -174,24 +175,24 @@ X_testsc = sc.transform(X_test)
 # plt.show()
 
 
-class BlockingTimeSeriesSplit():
-    def __init__(self, n_splits):
-        self.n_splits = n_splits
+# class BlockingTimeSeriesSplit():
+#     def __init__(self, n_splits):
+#         self.n_splits = n_splits
     
-    def get_n_splits(self, X, y, groups):
-        return self.n_splits
+#     def get_n_splits(self, X, y, groups):
+#         return self.n_splits
     
-    def split(self, X, y=None, groups=None):
-        n_samples = len(X)
-        k_fold_size = n_samples // self.n_splits
-        indices = np.arange(n_samples)
+#     def split(self, X, y=None, groups=None):
+#         n_samples = len(X)
+#         k_fold_size = n_samples // self.n_splits
+#         indices = np.arange(n_samples)
 
-        margin = 0
-        for i in range(self.n_splits):
-            start = i * k_fold_size
-            stop = start + k_fold_size
-            mid = int(0.8 * (stop - start)) + start
-            yield indices[start: mid], indices[mid + margin: stop]
+#         margin = 0
+#         for i in range(self.n_splits):
+#             start = i * k_fold_size
+#             stop = start + k_fold_size
+#             mid = int(0.8 * (stop - start)) + start
+#             yield indices[start: mid], indices[mid + margin: stop]
 
 def mean_absolute_percentage_error(y_true, y_pred): 
     """Calculates MAPE given y_true and y_pred"""
@@ -210,9 +211,7 @@ start_time_xgboost = time.time()
 # XGBoost
 import xgboost
 
-
-
-best_xgb_model = xgboost.XGBRegressor(
+model = xgboost.XGBRegressor(
                 colsample_bytree=params['colsample_bytree'],
                 gamma=params['gamma'],                 
                 learning_rate=params['learning_rate'],
@@ -223,53 +222,24 @@ best_xgb_model = xgboost.XGBRegressor(
                 reg_lambda=params['reg_lambda'],
                 subsample=params['subsample'],
                 seed=42)
-best_xgb_model.fit(X_trainsc,y_train)
-
-
-y_pred = best_xgb_model.predict(X_testsc)
-
-
-#  rows = X_test.index
-#  df2 = df.iloc[rows[0]:]
-
-# plt.figure()
-# #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-# plt.plot(df,y, label = 'Real data')
-# plt.plot(df2,y_pred, label = 'Predicted data')
-# plt.title('Prediction - XGBoost')
-# plt.legend()
-# plt.show()
-# plt.savefig(plt.title,bbox_inches='tight')
-
-#from sklearn.metrics import r2_score
-y_pred_train = best_xgb_model.predict(X_trainsc)
-print("The R2 score on the Train set is:\t{:0.3f}".format(r2_score(y_train, y_pred_train)))
-print("The R2 score on the Test set is:\t{:0.3f}".format(r2_score(y_test, y_pred)))
-
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print("RMSE: %f" % (rmse))
-
-mae = mean_absolute_error(y_test, y_pred)
-print("MAE: %f" % (mae))
-
-mape = mean_absolute_percentage_error(y_test.reshape(y_test.shape[0]), y_pred.reshape(y_pred.shape[0]))
-print("MAPE: %.2f%%" % (mape))
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
 
 
 # TimeSeries Split
-# tscv = TimeSeriesSplit(n_splits=5)       
-# scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=tscv, scoring='r2')
-# with np.printoptions(precision=3, suppress=True):
-#     print(scores)
-# print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
-
-# Blocked TimeSeries Split
-print("\nBlocked TimeSeries Split")
-btscv = BlockingTimeSeriesSplit(n_splits=5)
-scores = cross_val_score(best_xgb_model, X_trainsc, y_train, cv=btscv, scoring='r2')    
+tscv = TimeSeriesSplit(n_splits=5)       
+scores = cross_val_score(model, X_train, y_train, cv=tscv, scoring='r2')
 with np.printoptions(precision=3, suppress=True):
     print(scores)
 print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
+
+# Blocking TimeSeries Split
+# print("\nBlocking TimeSeries Split")
+# btscv = BlockingTimeSeriesSplit(n_splits=5)
+# scores = cross_val_score(model, X_train, y_train, cv=btscv, scoring='r2')    
+# with np.printoptions(precision=3, suppress=True):
+#     print(scores)
+# print("Loss: {0:.3f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
 
 
 # r2score = r2_score(y_test, y_pred)
@@ -286,7 +256,7 @@ print("\n--- \t{:0.3f} seconds --- XGBoost".format(time.time() - start_time_xgbo
 aux_test = pd.DataFrame()    
 y_pred = np.float64(y_pred)
 y_pred = y_pred.reshape(y_pred.shape[0])
-y_test = y_test.reshape(y_test.shape[0])
+# y_test = y_test.reshape(y_test.shape[0])
 aux_test['error'] = y_test - y_pred
 aux_test['abs_error'] = aux_test['error'].apply(np.abs)
 aux_test['DEMAND'] = y_test
@@ -320,29 +290,6 @@ print(error_by_month.sort_values('abs_error', ascending=False).head(10))
 print("\nBest predicted months")
 print(error_by_month.sort_values('abs_error', ascending=True).head(10))
     
-
-
-
-#
-#import scipy.fftpack
-#
-## Number of samplepoints
-#N = y_test.shape[0]
-## sample spacing
-#T = 1.0 / 24
-#x = np.linspace(0.0, N*T, N)
-##y = np.sin(50.0 * 2.0*np.pi*x) + 0.5*np.sin(80.0 * 2.0*np.pi*x)
-#yf1 = scipy.fftpack.fft(y_test)
-#yf2 = scipy.fftpack.fft(y_pred)
-#xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
-#
-#plt.figure()
-#plt.plot(xf, 2.0/N * np.abs(yf2[:N//2]), label = 'Predicted data')
-#plt.plot(xf, 2.0/N * np.abs(yf1[:N//2]), label = 'Real data')
-#
-#plt.title('FFT')
-#plt.legend()
-#plt.show()
 
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))

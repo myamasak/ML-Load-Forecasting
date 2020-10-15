@@ -20,6 +20,8 @@ Created on Mon Jul  1 19:04:58 2019
 import numpy as np
 import pandas as pd
 import os
+
+from pandas._libs.tslibs import vectorized
 from keras.layers import Dense, Activation
 from keras.models import Sequential
 from sklearn.model_selection import train_test_split
