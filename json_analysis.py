@@ -9,7 +9,7 @@
 import json
 import pandas as pd
 
-path = "C:\\Users\\z003t8hn\\code\\ML\\ML-Load-Forecasting\\results\\ANN\\experiment.json"
+path = "C:\\Users\\z003t8hn\\code\\ML\\ML-Load-Forecasting\\results\\xgboost\\experiment.json"
 path = path.replace('\\','/')
 with open(path, "r") as read_file:
     data = json.load(read_file)
