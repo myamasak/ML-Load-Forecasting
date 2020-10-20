@@ -8,8 +8,10 @@
 
 import json
 import pandas as pd
-
-path = "C:\\Users\\z003t8hn\\code\\ML\\ML-Load-Forecasting\\results\\xgboost\\experiment.json"
+import os
+path2csv = r".\results\xgboost"
+path = r".\results\xgboost\experiment.json"
+path2csv = path2csv.replace('\\','/')
 path = path.replace('\\','/')
 with open(path, "r") as read_file:
     data = json.load(read_file)
@@ -56,8 +58,8 @@ print(dataset.sort_values(by=['r2score'],ascending=False).head(50))
 
 
 print('Export dataframe to csv in this path: ')
-print('./results/results.csv')
-dataset.to_csv('./results/results.csv', index=None, header=True)
+print(path2csv)
+dataset.to_csv(path2csv+'/results.csv', index=None, header=True)
 
 
 
