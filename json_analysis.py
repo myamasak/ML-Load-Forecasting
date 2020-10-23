@@ -8,16 +8,14 @@
 
 import json
 import pandas as pd
-import os
-path2csv = r".\results\xgboost"
-path = r".\results\xgboost\experiment.json"
+path2csv = r".\results\ANN"
+path = r".\results\ANN\experiment.json"
 path2csv = path2csv.replace('\\','/')
 path = path.replace('\\','/')
 with open(path, "r") as read_file:
     data = json.load(read_file)
     jtopy = json.dumps(data) #json.dumps take a dictionary as input and returns a string as output.
     dict_json = json.loads(jtopy) # json.loads take a string as input and returns a dictionary as output.
-    dict_json['experimentParameters']['execDuration']
     
     for params in dict_json['experimentParameters']['params']['searchSpace']:
         print(params)    
