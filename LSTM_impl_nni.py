@@ -170,55 +170,6 @@ def mean_absolute_percentage_error(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
-def featImportanceCalc():
-    print("Running Feature Importance (RF) calculation...")
-    
-    start_time_featImportance = time.time()
-    
-    ## Feature importance
-    # Import random forest
-    #from sklearn.ensemble import RandomForestClassifier
-    from sklearn.ensemble import RandomForestRegressor  
-    
-    # Create decision tree classifer object
-    #clf = RandomForestClassifier(random_state=0, n_jobs=-1)
-    clf = RandomForestRegressor(random_state=0, n_jobs=-1)
-    
-    # Train model
-    model = clf.fit(X, y)
-    
-    # Calculate feature importances
-    importances = model.feature_importances_    
-    
-    # Sort feature importances in descending order
-    indices = np.argsort(importances)[::]    
-    # Rearrange feature names so they match the sorted feature importances
-    names = [X.columns[i] for i in indices]
-    
-    # make a plot with the feature importance
-    # plt.figure(figsize=(12,14), dpi= 80, facecolor='w', edgecolor='k')
-    plt.figure()
-    # plt.grid()
-    plt.title('Feature Importances')
-    plt.barh(range(len(indices)), importances[indices], height=0.2, align='center')
-    # plt.axvline(x=0.03)
-    plt.yticks(range(len(indices)), list(names))
-    plt.xlabel('Relative Importance')   
-    plt.show()
-    
-    # Show plot
-    plt.show()
-    plt.savefig('Feature_Importance_RF.png')
-    
-    featImportance = pd.concat([pd.DataFrame({'Features':names}),
-                  pd.DataFrame({'Relative_Importance':importances[indices]})],
-                    axis=1, sort=False)
-    
-    print(featImportance)
-    
-    print("\n--- \t{:0.3f} seconds --- Feature Importance".format(time.time() - start_time_featImportance))
-
-
 # def lstmCalc():    
 start_time_lstmCalc = time.time()
 # global y_test, y_pred, y_train, X_test, X_testsc, X_train, X_trainsc
@@ -237,14 +188,25 @@ params = nni.get_next_parameter()
 from tensorflow.keras.callbacks import EarlyStopping
 
 
-_batch = 24
-_epochs = 50
-_neurons = 128
-_hidden_layers = 4
-_optimizer = 'Adam'
-_dropout = False
-_dropoutVal = 0.2
-_activation = LeakyReLU(alpha=0.2)
+_batch = params['batch_size']
+_epoch = 150
+_neurons = params['neurons_width']
+_hidden_layers = params['hidden_layers']
+_optimizer = params['optimizer']
+_activation = params['activation']
+
+_kernel = 'he_normal'
+if params['activation'].find("LeakyReLU_0.01") > -1:  
+    _activation = LeakyReLU(alpha=0.01)
+elif params['activation'].find("LeakyReLU_0.05") > -1:
+    _activation = LeakyReLU(alpha=0.05)
+elif params['activation'].find("LeakyReLU_0.1") > -1:
+    _activation = LeakyReLU(alpha=0.1)
+elif params['activation'] == "selu":
+    _kernel = 'lecun_normal'
+
+
+
 # n_features = 1
 
 # Define per-fold score containers
@@ -277,16 +239,15 @@ mape_per_fold = []
 
 # Merge inputs and targets
 #inputs = np.concatenate((X_trainsc_lmse, X_testsc_lmse), axis=0)
-inputs = np.concatenate((X_train, X_test), axis=0)
+inputs = np.concatenate((X_trainsc, X_testsc), axis=0)
 targets = np.concatenate((y_train, y_test), axis=0)
 
 
 
 # Time Series Split function
-tscv = TimeSeriesSplit(n_splits=5)
+# tscv = TimeSeriesSplit(n_splits=5)
 
 kfold = 5
-
 inputs = inputs.reshape(inputs.shape[0],1,inputs.shape[1])
 #targets = targets.reshape(targets.shape[0])
 
@@ -294,8 +255,11 @@ inputs = inputs.reshape(inputs.shape[0],1,inputs.shape[1])
 # Cross Validation model evaluation fold-5
 fold_no = 1
 # for train, test in tscv.split(inputs, targets):
+#    newInputs = inputs[0][train].reshape(1,inputs[0][train].shape[0],inputs[0][train].shape[1])
+#    newTargets = y_train.reshape(1,y_train.shape[0],1)
 
-Ndays=30
+    # print(len(train))
+Ndays=90
 test_size = Ndays*24
 train_size = round((len(inputs)/kfold) - test_size)
 
@@ -318,37 +282,29 @@ for i in range(0, kfold):
 
 
 
-
-#    print(len(train))
     # Generate a print
     print('------------------------------------------------------------------------')
     print(f'Training for fold {fold_no} ...')
     # LSTM Implementation
     model = Sequential()
-    model.add(LSTM(units=_neurons,                 
-                   activation=_activation,
-#                   batch_input_shape=(_batch, 1, X_train.shape[2]),
-#                    input_shape=(X_train.shape[1],X_train.shape[2]))
-                   input_shape=[None,X_train.shape[2]],
-    #                 activation='relu',
-                   kernel_initializer="he_normal")
-                    # return_sequences=False,
-    #                stateful=True   )             
-            )
-        
-    if _dropout:
-            model.add(Dropout(_dropoutVal))
+    model.add(LSTM( units=_neurons,
+                    activation=_activation,
+                    input_shape=[None,X_train.shape[2]],
+                    kernel_initializer=_kernel))
+    
+    if params['dropout'] == "True":
+        model.add(Dropout(0.2))
+    
     # Adding the hidden layers
     for i in range(_hidden_layers):
-#        model.add(LSTM(units=_neurons, activation=_activation, kernel_initializer="he_normal"))               
-        model.add(Dense(_neurons, activation=_activation, kernel_initializer="he_normal"))
-        if _dropout:
-            model.add(Dropout(_dropoutVal))
-    
-    
+        # model.add(LSTM(units=_neurons, activation=_activation, return_sequences=True))
+        model.add(Dense(_neurons, activation=_activation, kernel_initializer=_kernel))
+    if params['dropout'] == "True":
+        model.add(Dropout(0.2))
+
 #    model.add(Flatten())
     # Adding the output layer
-#    model.add(TimeDistributed(Dense(test_size)))
+    # model.add(TimeDistributed(Dense(1)))
     model.add(Dense(1))
     # Include loss and optimizer functions
     model.compile(loss='mse', optimizer=_optimizer)
@@ -357,12 +313,14 @@ for i in range(0, kfold):
 
 
     print(model.summary())
+    #history_lstm_model = model.fit(X_trainsc_lmse, y_train, epochs=_epoch, batch_size=_batch, verbose=1, shuffle=False, callbacks = [early_stop])
 
-    early_stop = EarlyStopping(monitor='loss', mode='min', patience=2, verbose=1)
+    # history_lstm_model = model.fit(X_trainsc_lmse, y_train,
+    early_stop = EarlyStopping(monitor='loss', mode='min', patience=4, verbose=1)
     history_lstm_model = model.fit(X_train, y_train,
-                                    epochs=_epochs,        
+                                    epochs=_epoch,        
                                     batch_size=_batch,
-                                    verbose=1,
+                                    verbose=0,
                                     shuffle=False,
                                     callbacks = [early_stop])
 
@@ -373,7 +331,7 @@ for i in range(0, kfold):
     y_pred = model.predict(X_test, batch_size=_batch)
     # Prepare the plot data
     rows = test_index
-#    rows = test
+    # rows = test
     df2 = df.iloc[rows[0]:rows[-1]+1]
 #    df2.reset_index(drop=True,inplace=True)
     df = pd.to_datetime(df)
@@ -381,30 +339,17 @@ for i in range(0, kfold):
 
     y_pred = np.float64(y_pred)
     
-#    if y_pred.shape[0] == y_test.shape[0]:
-#        y_pred = y_pred.reshape(y_pred.shape[0],1)
-#        
-#    y_pred = y_pred[0].T
+    # if y_pred.shape[0] == y_test.shape[0]:
+    #     y_pred = y_pred.reshape(y_pred.shape[0],1)
 
-    # Plot the result
-    plt.figure()
-    #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-    plt.plot(df,y, label = 'Real data')
-    plt.plot(df2,y_pred, label = 'Predicted data')
-    plt.title('Prediction - LSTM')
-    plt.legend()
-    # Show and save the plot
-    plt.show()
-    plt.savefig('LSTM_pred_fold_'+ str(fold_no) +'.png')
+
 
     y_pred_train = model.predict(X_train,batch_size=_batch)
     y_pred_train = np.float64(y_pred_train)
-#    y_pred_train = y_pred_train[0].T
-#    if y_pred_train.shape[0] == y_train.shape[0]:
-#        y_pred_train = y_pred_train.reshape(y_pred_train.shape[0],1)
+    # if y_pred_train.shape[0] == y_train.shape[0]:
+    #     y_pred_train = y_pred_train.reshape(y_pred_train.shape[0],1)
     r2train = r2_score(y_train, y_pred_train)
     r2test = r2_score(y_test, y_pred)
-    
     print("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
     print("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
 
@@ -473,7 +418,7 @@ for i in range(0, kfold):
 
     # Increase fold number
     fold_no = fold_no + 1
-    
+
     # Increase indexes
     train_index = np.concatenate((train_index, test_index, (train_index + train_size + test_size)), axis=0)
     test_index = test_index + train_size + test_size
@@ -507,3 +452,8 @@ print("\nLSTM has been executed.")
 
 print("\n--- \t{:0.3f} seconds --- general processing".format(time.time() - start_time))
 
+r2scoreAvg = np.mean(r2test_per_fold)
+if r2scoreAvg > 0:
+    nni.report_final_result(r2scoreAvg)
+else:
+    nni.report_final_result(0)

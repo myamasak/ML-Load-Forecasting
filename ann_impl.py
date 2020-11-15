@@ -155,7 +155,8 @@ early_stop = EarlyStopping(monitor='loss', patience=4, verbose=1)
 
 # Fitting the ANN to the Training set
 #model.fit(X_trainsc, y_train, batch_size = 20, epochs = 20)
-model.fit(X_trainsc, y_train, validation_data=(X_testsc, y_test), batch_size = 10, epochs = 20, callbacks = [early_stop])
+model.fit(X_trainsc, y_train, validation_data=(X_testsc, y_test),
+          batch_size = 10, epochs = 20, callbacks = [early_stop])
 
 
 rows = X_test.index

@@ -1,0 +1,8 @@
+{
+    "optimizer":{"_type":"choice","_value":["Adam","RMSProp","Adagrad","Adadelta"]},
+    "neurons_width":{"_type":"choice","_value":[16,32,64,128]},
+    "hidden_layers":{"_type":"choice","_value":[2,4,8,16]},    
+    "activation":{"_type":"choice","_value":["selu","elu","relu","LeakyReLU_0.01","LeakyReLU_0.05","LeakyReLU_0.1"]},
+    "batch_size": {"_type":"choice", "_value": [12,24,48,72]},
+    "dropout": {"_type":"choice", "_value": ["True","False"]}
+}

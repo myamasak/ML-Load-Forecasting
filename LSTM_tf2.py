@@ -66,8 +66,7 @@ all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
 #selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",
 #              "2014","2015","2015","2016","2017","2018","2019"]
 #selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
-selectDatasets = ["2012","2013","2014","2015","2016","2017","2018"]
-
+selectDatasets = ["2011","2012","2013","2014","2015","2016","2017","2018","2019"]
 
 # Initialize dataset list
 datasetList = []
@@ -79,7 +78,6 @@ for filename in all_files:
             if (filename.find(data) != -1):
                 df = pd.read_csv(filename,index_col=None, header=0)
                 datasetList.append(df)
-
 
 # Concat
 dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
