@@ -31,7 +31,7 @@ filename = filename[0].replace('\\','/')
 dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
 
 # Selection of year
-selectDatasets = ["2011","2012","2013","2014","2015","2016","2017","2018"]
+selectDatasets = ["2012","2013","2014","2015","2016","2017"]
 
 # Select only selected data
 datasetList = []
@@ -58,6 +58,9 @@ print(dataset.eq(0).sum())
 print("How many zero values in y (Demanda)?")
 print(dataset['Demanda'].eq(0).sum())
 
+# Set y
+y = dataset['Demanda'].astype(float)
+
 # Taking care of missing data
 if (dataset['Demanda'].eq(0).sum() > 0
     or dataset['Demanda'].isnull().any()):    
@@ -66,19 +69,7 @@ if (dataset['Demanda'].eq(0).sum() > 0
     nanIndex = dataset[dataset['Demanda'].isnull()].index.values
     # Replace zero values by NaN
     dataset['Demanda'].replace(0, np.nan, inplace=True)
-    # Save y column (output)
-#    col = dataset.columns.get_loc('Demanda')
-#    y = dataset.iloc[:, col]
-    # Replace NaN values by meaningful values
-#    from sklearn.impute import SimpleImputer
-#    y_matrix = y.to_numpy()
-#    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-#    # imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
-#    imputer = SimpleImputer(missing_values=np.nan, strategy="mean")
-#    imputer = imputer.fit(y_matrix)
-#    y = imputer.transform(y_matrix)
-#    y = y.reshape(y.shape[0])
-    
+
     #convert to float
     y = dataset['Demanda'].astype(float)
     
@@ -801,7 +792,7 @@ for column in y:
     # X_train, X_test, y_train, y_test = train_test_split(Xs, yall, test_size = testSize, random_state = 0, shuffle = False)
     y_train, y_test = train_test_split(y[column], test_size = testSize, random_state = 0, shuffle = False)
 
-    seasonDecomposeCalc()
-    decisionTreeCalc()
-    randForestCalc(enableLearningCurve=True)
-    xgboostCalc(enableCV=True, enableLearningCurve=True)
+    # seasonDecomposeCalc()
+    # decisionTreeCalc()
+    # randForestCalc(enableLearningCurve=True)
+    # xgboostCalc(enableCV=True, enableLearningCurve=True)
