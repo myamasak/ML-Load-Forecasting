@@ -1,8 +1,0 @@
-{
-    "python.pythonPath": "C:\\Users\\marko\\Anaconda3\\envs\\venvAUTO_CPU\\python.exe",
-    "remote.SSH.connectTimeout": 90,
-    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
-    "terminal.integrated.automationShell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
-    "jupyter.sendSelectionToInteractiveWindow": true
-
-}
