@@ -1,24 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 30 06:15:54 2020
-
-@author: marko
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jul  1 19:04:58 2019
-
-@author: z003t8hn
-"""
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jul  1 20:02:14 2019
-
-@author: z003t8hn
-"""
-
-# -*- coding: utf-8 -*-
 """
 Created on Mon Jul  1 19:04:58 2019
 
