@@ -21,6 +21,8 @@ import xgboost
 import math
 from statsmodels.tsa.seasonal import seasonal_decompose
 
+import sys
+sys.path.append('../')
 ### Constants
 # Set True to plot curves 
 plot : bool = True
@@ -31,10 +33,16 @@ logname : str = '/TimeSeriesDecompose.log'
 ###
 # Default render
 pio.renderers.default = 'browser'
+# Default size for plotly export figures
+pio.kaleido.scope.default_width = 1280
+pio.kaleido.scope.default_height = 720
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
 # Set path to import dataset and export figures
-path = r'%s' % os.getcwd().replace('\\','/')
+try:
+    path = r'%s' % os.getcwd().replace('\\src','').replace('\\','/')
+except:
+    path = r'%s' % os.getcwd().replace('\\','/')
 # Selection of year
 selectDatasets = ["2012","2013","2014","2015","2016"]
 # Seed Random Numbers with the TensorFlow Backend
@@ -63,12 +71,12 @@ def datasetImport(selectDatasets):
     # Select only selected data
     datasetList = []
     for year in selectDatasets:
-        datasetList.append(dataset[dataset['Data'].str.find(year) != -1])
+        datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
         
     dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
     
     # replace comma to dot
-    dataset['Demanda'] = dataset['Demanda'].str.replace(',','.')
+    dataset['DEMAND'] = dataset['DEMAND'].str.replace(',','.')
 
     return dataset
 
@@ -76,7 +84,7 @@ def dataCleaning(dataset):
     log('Data cleaning function has been started')
     # Select X data
     X = dataset.iloc[:, :]
-    X = X.drop(['Demanda'], axis=1)
+    X = X.drop(['DEMAND'], axis=1)
 
     ## Pre-processing input data 
     # Verify zero values in dataset (X,y)
@@ -86,31 +94,31 @@ def dataCleaning(dataset):
     log(dataset.isnull().sum())
     log("How many zero values?")
     log(dataset.eq(0).sum())
-    log("How many zero values in y (Demanda)?")
-    log(dataset['Demanda'].eq(0).sum())
+    log("How many zero values in y (DEMAND)?")
+    log(dataset['DEMAND'].eq(0).sum())
 
     # Set y
-    y = dataset['Demanda'].astype(float)
+    y = dataset['DEMAND'].astype(float)
 
     # Taking care of missing data
     log('Taking care of missing data')
-    if (dataset['Demanda'].eq(0).sum() > 0
-        or dataset['Demanda'].isnull().any()):    
-        log(dataset[dataset['Demanda'].isnull()])
+    if (dataset['DEMAND'].eq(0).sum() > 0
+        or dataset['DEMAND'].isnull().any()):    
+        log(dataset[dataset['DEMAND'].isnull()])
         # Save the NaN indexes
-        nanIndex = dataset[dataset['Demanda'].isnull()].index.values
+        nanIndex = dataset[dataset['DEMAND'].isnull()].index.values
         # Replace zero values by NaN
-        dataset['Demanda'].replace(0, np.nan, inplace=True)
+        dataset['DEMAND'].replace(0, np.nan, inplace=True)
 
         #convert to float
-        y = dataset['Demanda'].astype(float)
+        y = dataset['DEMAND'].astype(float)
         
         y = y.interpolate(method='linear', axis=0).ffill().bfill()
         log(y.iloc[nanIndex])
 
 
     # Select Y data
-    y = pd.concat([pd.DataFrame({'Demanda':y}), dataset['Subsistema']], axis=1, sort=False)
+    y = pd.concat([pd.DataFrame({'DEMAND':y}), dataset['SUBSYSTEM']], axis=1, sort=False)
 
     return X, y
 
@@ -119,10 +127,12 @@ def featureEngineering(dataset, X, selectDatasets):
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
 
-    # Transform to date type
-    X['Data'] = pd.to_datetime(dataset.Data, format="%d/%m/%Y %H:%M")
 
-    date = X['Data']
+    log("Adding date components (year, month, day, holidays and weekdays) to input data")
+    # Transform to date type
+    X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
+
+    date = X['DATE']
     Year = pd.DataFrame({'Year':date.dt.year})
     Month = pd.DataFrame({'Month':date.dt.month})
     Day = pd.DataFrame({'Day':date.dt.day})
@@ -136,36 +146,65 @@ def featureEngineering(dataset, X, selectDatasets):
     for date2 in holidays.Brazil(years=list(map(int,selectDatasets))).items():
         br_holidays.append(str(date2[0]))
 
+    # Set 1 or 0 for Holiday, when compared between date and br_holidays
     Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in br_holidays else 0 for val in date]})
 
-    # Testing output of holidays
-    # for s in br_holidays:
-    #     if selectDatasets[0] in str(s):
-    #         log(s)
-
-    log("Adding holidays and weekdays to input data")
     # Concat all new features into X data
     concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
     X = pd.concat(concatlist,axis=1)
 
     # Split X data to different subsystems/regions
-    Xs = X[X['Subsistema'].str.find("Sul") != -1].reset_index(drop=True)
-    Xs = Xs.drop(['Subsistema','Data'],axis=1)
+    # Xs = X[X['SUBSYSTEM'].str.find("South") != -1].reset_index(drop=True)
+    # Xs = Xs.drop(['SUBSYSTEM','DATE'],axis=1)
 
     # Save in Date format
     global df  # set a global variable for easier plot
-    df = X[X['Subsistema'].str.find("Sul") != -1]['Data'].reset_index(drop=True)
+    df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
+
     
+    
+    log("Adding bridge days (Mondays / Fridays) to the Holiday column")
+    # Holidays on Tuesdays and Thursday may have a bridge day (long weekend)
+    # X_tmp = X_all[0][(X_all[0]['Holiday'] > 0).values].drop_duplicates(subset=['Day','Month','Year'])
+    X_tmp = X[(X['Holiday'] > 0).values]
+    # Filter holidays set on Tuesdays and add bridge day on Mondays
+    # 0 = Monday; 1 = Tuesday; ...; 6 = Sunday
+    # Start with Tuesdays
+    X_tuesdays = X_tmp[X_tmp['Weekday'] == 1]
+    bridgeDayList = []
+    for tuesday in X_tuesdays['DATE']:
+        # Go back one day (monday)
+        bridge_day = tuesday - pd.DateOffset(days=1)
+        bridgeDayList.append(bridge_day)
+
+    # Do the same for Thursday
+    X_thursdays = X_tmp[X_tmp['Weekday'] == 3]
+    for thursday in X_thursdays['DATE']:
+        # Go back one day (Friday)
+        bridge_day = thursday + pd.DateOffset(days=1)
+        bridgeDayList.append(bridge_day)
+    
+         
+    Holiday_bridge = pd.DataFrame({'Holiday_bridge':[1 if val in bridgeDayList else 0 for val in date]})
+
+
+    concatlist = [X,Holiday_bridge]
+    X = pd.concat(concatlist,axis=1)
+
+    # Sum the two holidays columns to merge them into one and remove unnecessary columns
+    X['Holiday_&_bridge']=X.loc[:,['Holiday','Holiday_bridge']].sum(axis=1)
+    X = X.drop(['Holiday','Holiday_bridge'], axis=1)
+
 
     # Store regions in a list of dataframes
     log('Organize and split input data by different regions')
-    unique = X['Subsistema'].unique()
+    unique = X['SUBSYSTEM'].unique()
     X_all = []
     y_all = []
     for region in unique:
-        X_temp = X[X['Subsistema']==region].reset_index(drop=True)
+        X_temp = X[X['SUBSYSTEM']==region].reset_index(drop=True)
         X_all.append(X_temp)
-        y_temp = y[y['Subsistema']==region].reset_index(drop=True)
+        y_temp = y[y['SUBSYSTEM']==region].reset_index(drop=True)
         y_all.append(y_temp)
 
     return X_all, y_all
@@ -191,8 +230,8 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
     if plot:
         fig = go.Figure()
 
-    X = X_.drop(['Subsistema', 'Data'], axis=1)
-    y = y_.drop(['Subsistema'], axis=1)
+    X = X_.drop(['SUBSYSTEM', 'DATE'], axis=1)
+    y = y_.drop(['SUBSYSTEM'], axis=1)
     
     # Define test size by converting days to percentage
     # testSize = 0.05
@@ -201,14 +240,14 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
     if decompose:
         log('Seasonal decomposition has been started')
         data = pd.DataFrame(data=df)
-        concatlist = [data,pd.DataFrame(y_.drop(['Subsistema'], axis=1))]
+        concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
         data = pd.concat(concatlist,axis=1)
 
         data.reset_index(inplace=True)
-        data['Data'] = pd.to_datetime(data['Data'])
-        data = data.set_index('Data')
+        data['DATE'] = pd.to_datetime(data['DATE'])
+        data = data.set_index('DATE')
         data = data.drop(['index'], axis=1)
-        data.columns = ['Demanda']
+        data.columns = ['DEMAND']
         result = seasonal_decompose(data, freq=24, model='additive', extrapolate_trend='freq')
         result.trend.reset_index(drop=True, inplace=True)
         result.seasonal.reset_index(drop=True, inplace=True)
@@ -238,7 +277,8 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         
         # Forecast X days
         uniqueYears = X['Year'].unique()
-        test_size = round((X.shape[0]/uniqueYears.size)/12/2)
+        # test_size = round((X.shape[0]/uniqueYears.size)/12/2)
+        test_size = round(forecastDays*24)
         train_size = round((len(inputs)/kfold) - test_size)
         
         # Offset on Forecast window        
@@ -246,7 +286,8 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         
         if offset > 0:
             log(f'Offset has been set by {offset/24} days')
-            test_size = round((X.shape[0]-offset)/uniqueYears.size/12/2)
+            # test_size = round((X.shape[0]-offset)/uniqueYears.size/12/2)
+            test_size = round(forecastDays*24)
             train_size = round(((len(inputs)-offset)/kfold) - test_size)
         
 
@@ -260,7 +301,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                         name=f'Electricity Demand [MW] - {y.columns[0]}',
                                         mode='lines'))
             # Edit the layout
-            fig.update_layout(title='Load Forecasting',
+            fig.update_layout(title=f'ONS dataset Load Forecasting - Cross-Validation of {kfold}-fold',
                                 xaxis_title='Date',
                                 yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
                                 )
@@ -341,23 +382,23 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             
             log("MAPE: %.2f%%" % (mape))
             
-#            if plot:
-#                fig2 = go.Figure()
-#                fig2.add_shape(dict(
-#                                type="line",
-#                                x0=math.floor(min(np.array(y_test))),
-#                                y0=math.floor(min(np.array(y_test))),
-#                                x1=math.ceil(max(np.array(y_test))),
-#                                y1=math.ceil(max(np.array(y_test)))))
-#                fig2.update_shapes(dict(xref='x', yref='y'))
-#                fig2.add_trace(go.Scatter(x=y_test.reshape(y_test.shape[0]),
-#                                        y=y_pred,
-#                                        name='Real price VS Predicted Price (fold='+str(i+1)+")",
-#                                        mode='markers'))
-#                fig2.update_layout(title='Real vs Predicted price',
-#                                xaxis_title=f'Real Demand - {y.columns[0]}',
-#                                yaxis_title=f'Predicted Load - {y.columns[0]}')
-#                fig2.show()
+        #    if plot:
+        #        fig2 = go.Figure()
+        #        fig2.add_shape(dict(
+        #                        type="line",
+        #                        x0=math.floor(min(np.array(y_test))),
+        #                        y0=math.floor(min(np.array(y_test))),
+        #                        x1=math.ceil(max(np.array(y_test))),
+        #                        y1=math.ceil(max(np.array(y_test)))))
+        #        fig2.update_shapes(dict(xref='x', yref='y'))
+        #        fig2.add_trace(go.Scatter(x=y_test.reshape(y_test.shape[0]),
+        #                                y=y_pred,
+        #                                name='Real price VS Predicted Price (fold='+str(i+1)+")",
+        #                                mode='markers'))
+        #        fig2.update_layout(title='Real vs Predicted price',
+        #                        xaxis_title=f'Real Demand - {y.columns[0]}',
+        #                        yaxis_title=f'Predicted Load - {y.columns[0]}')
+        #        fig2.show()
             
             
             # Generate generalization metrics
@@ -385,7 +426,18 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             decomposePred.append(kfoldPred)
 
         if plot:
+            fig.update_layout(
+                font=dict(size=12),
+                legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                font=dict(
+                size=12)
+            ))
             fig.show()
+            fig.write_image(file=path+'/results/xgboost_k-fold_crossvalidation.svg', width=921, height=618)
         
         
         # == Provide average scores ==
@@ -475,7 +527,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         if plot:
             ax = xgboost.plot_importance(model)
             ax.figure.set_size_inches(11,15)
-            ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['Subsistema'].unique()[0]}.png")
+            ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
             ax.figure.show()
         log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
 
@@ -547,7 +599,7 @@ i = 0 # index for y_all
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
-    xgboostCalc(X_=inputs, y_=y_all[i], CrossValidation=True , kfold=25, offset=0, forecastDays=14, decompose=True, seasonal_component=COMPONENT)
+    xgboostCalc(X_=inputs, y_=y_all[i], CrossValidation=True , kfold=4, offset=365*24, forecastDays=365, decompose=False, seasonal_component=COMPONENT)
     i+=1
     break
 
