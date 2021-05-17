@@ -23,7 +23,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 
 import sys
 sys.path.append('../')
-### Constants
+### Constants ###
 # Set True to plot curves 
 plot : bool = True
 # Seasonal component to be analyzed
@@ -122,7 +122,7 @@ def dataCleaning(dataset):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets):
+def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -195,17 +195,19 @@ def featureEngineering(dataset, X, selectDatasets):
     X['Holiday_&_bridge']=X.loc[:,['Holiday','Holiday_bridge']].sum(axis=1)
     X = X.drop(['Holiday','Holiday_bridge'], axis=1)
 
-
-    # Store regions in a list of dataframes
-    log('Organize and split input data by different regions')
-    unique = X['SUBSYSTEM'].unique()
+    
     X_all = []
     y_all = []
-    for region in unique:
-        X_temp = X[X['SUBSYSTEM']==region].reset_index(drop=True)
-        X_all.append(X_temp)
-        y_temp = y[y['SUBSYSTEM']==region].reset_index(drop=True)
-        y_all.append(y_temp)
+    if dataset_name == "ONS":        
+        # Store regions in a list of dataframes
+        log('Organize and split input data by different regions')
+        unique = X['SUBSYSTEM'].unique()
+
+        for region in unique:
+            X_temp = X[X['SUBSYSTEM']==region].reset_index(drop=True)
+            X_all.append(X_temp)
+            y_temp = y[y['SUBSYSTEM']==region].reset_index(drop=True)
+            y_all.append(y_temp)
 
     return X_all, y_all
 
@@ -216,7 +218,39 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 
-def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=30, decompose=False, seasonal_component='Trend'):
+def decomposeSeasonal(y_):
+    log('Seasonal decomposition has been started')
+    data = pd.DataFrame(data=df)
+    concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+    data = pd.concat(concatlist,axis=1)
+
+    data.reset_index(inplace=True)
+    data['DATE'] = pd.to_datetime(data['DATE'])
+    data = data.set_index('DATE')
+    data = data.drop(['index'], axis=1)
+    data.columns = ['DEMAND']
+    result = seasonal_decompose(data, freq=24, model='additive', extrapolate_trend='freq')
+    result.trend.reset_index(drop=True, inplace=True)
+    result.seasonal.reset_index(drop=True, inplace=True)
+    result.resid.reset_index(drop=True, inplace=True)
+    result.observed.reset_index(drop=True, inplace=True)
+    result.trend.columns = ['Trend']
+    result.seasonal.columns = ['Seasonal']
+    result.resid.columns = ['Residual']
+    result.observed.columns = ['Observed']
+    decomposeList = [result.trend, result.seasonal, result.resid, result.observed]
+
+    # Select one component for seasonal decompose
+    # REMOVE FOR NOW
+    # log(f'Seasonal component choosen: {seasonal_component}')
+    # for component in decomposeList:
+    #     if (seasonal_component == component.columns[0]):
+    #         y = component
+    #         break
+
+    return decomposeList
+
+def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=30):
     log("XGBoost algorithm has been started")
     start_time_xgboost = time.time()
     
@@ -229,42 +263,19 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
     # Plot 
     if plot:
         fig = go.Figure()
-
+    
+    # Drop subsystem and date columns
     X = X_.drop(['SUBSYSTEM', 'DATE'], axis=1)
-    y = y_.drop(['SUBSYSTEM'], axis=1)
+    if y_.columns.str.find("SUBSYSTEM") != -1:    
+        y = y_.drop(['SUBSYSTEM'], axis=1)
+    else:
+        y = y_
     
     # Define test size by converting days to percentage
     # testSize = 0.05
     testSize = forecastDays*24/X.shape[0]
 
-    if decompose:
-        log('Seasonal decomposition has been started')
-        data = pd.DataFrame(data=df)
-        concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
-        data = pd.concat(concatlist,axis=1)
 
-        data.reset_index(inplace=True)
-        data['DATE'] = pd.to_datetime(data['DATE'])
-        data = data.set_index('DATE')
-        data = data.drop(['index'], axis=1)
-        data.columns = ['DEMAND']
-        result = seasonal_decompose(data, freq=24, model='additive', extrapolate_trend='freq')
-        result.trend.reset_index(drop=True, inplace=True)
-        result.seasonal.reset_index(drop=True, inplace=True)
-        result.resid.reset_index(drop=True, inplace=True)
-        result.observed.reset_index(drop=True, inplace=True)
-        result.trend.columns = ['Trend']
-        result.seasonal.columns = ['Seasonal']
-        result.resid.columns = ['Residual']
-        result.observed.columns = ['Observed']
-        decomposeList = [result.trend, result.seasonal, result.resid, result.observed]
-
-        # Select one component for seasonal decompose
-        log(f'Seasonal component choosen: {seasonal_component}')
-        for component in decomposeList:
-            if (seasonal_component == component.columns[0]):
-                y = component
-                break
 
     if CrossValidation:
         log('CrossValidation has been started')
@@ -481,10 +492,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         
-        # Save prediction for later sum
-        decomposePred.append(y_pred)
-
-            
+        # Prepare for plotting
         rows = X_test.index
         df2 = df.iloc[rows[0]:]
         
@@ -531,44 +539,52 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             ax.figure.show()
         log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
 
-    if decompose and len(decomposePred) > 2 and not CrossValidation:
 
-        finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
-    
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = testSize, random_state = 0, shuffle = False)    
-        rows = X_test.index
-        df2 = df.iloc[rows[0]:]
-        
-        if plot:
-            plt.figure()
-            #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-            plt.plot(df,y, label = f'Real data - finalPred')
-            plt.plot(df2,finalPred, label = f'Predicted data - finalPred')
-            plt.title('Prediction - XGBoost')
-            plt.legend()
-            plt.savefig(path+'/results/pred_vs_real_finalPred.png')
-            plt.show()    
-        
-        r2test = r2_score(y_test, finalPred)
-        log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
-        n = len(X_test)
-        p = X_test.shape[1]
-        adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
-        log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
-        
-        rmse = np.sqrt(mean_squared_error(y_test, finalPred))
-        log("RMSE: %f" % (rmse))
-        
-        mae = mean_absolute_error(y_test, finalPred)
-        log("MAE: %f" % (mae))
-        
-        mape = mean_absolute_percentage_error(y_test.to_numpy(), finalPred)
-        log("MAPE: %.2f%%" % (mape))
-
-
-
+    return y_pred, testSize
     log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
     
+
+def composeSeasonal(decomposePred, model='additive'):
+    if model == 'additive':
+        finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
+    elif model == 'multiplicative':
+        finalPred = decomposePred[0] * decomposePred[1] * decomposePred[2]
+    return finalPred
+
+
+def plotResults(X_, y_, y_pred, testSize):
+    y_ = y_.drop(["SUBSYSTEM"], axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
+    # Prepare for plotting
+    rows = X_test.index
+    df2 = df.iloc[rows[0]:]
+    
+    if plot:
+        plt.figure()
+        #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+        plt.plot(df,y_, label = f'Real data - {y.columns[0]}')
+        plt.plot(df2,y_pred, label = f'Predicted data - {y.columns[0]}')
+        plt.title('Prediction - XGBoost')
+        plt.legend()
+        plt.savefig(path+'/results/pred_vs_real.png')
+        plt.show()
+    
+    r2test = r2_score(y_test, y_pred)
+    log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+    n = len(X_test)
+    p = X_test.shape[1]
+    adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
+    log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+    
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    log("RMSE: %f" % (rmse))
+    
+    mae = mean_absolute_error(y_test, y_pred)
+    log("MAE: %f" % (mae))
+    
+    mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
+    log("MAPE: %.2f%%" % (mape))
+
 
 ################
 # MAIN PROGRAM
@@ -599,9 +615,18 @@ i = 0 # index for y_all
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
-    xgboostCalc(X_=inputs, y_=y_all[i], CrossValidation=True , kfold=4, offset=365*24, forecastDays=365, decompose=False, seasonal_component=COMPONENT)
-    i+=1
-    break
+    y_decomposed_list = decomposeSeasonal(y_all[i])
+    for y_decomposed in y_decomposed_list:
+        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=False , kfold=4, offset=365*24, forecastDays=90)
+        decomposePred.append(y_out)
+    
+    # Join all decomposed y predictions
+    y_composed = composeSeasonal(decomposePred)
+    # Print and plot the results
+    plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
+    i+=1    
+    break # only south region
+
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 
