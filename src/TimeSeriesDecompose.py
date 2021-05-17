@@ -161,7 +161,8 @@ def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
     global df  # set a global variable for easier plot
     df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
 
-    
+    X_all = []
+    y_all = []
     
     log("Adding bridge days (Mondays / Fridays) to the Holiday column")
     # Holidays on Tuesdays and Thursday may have a bridge day (long weekend)
@@ -195,9 +196,6 @@ def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
     X['Holiday_&_bridge']=X.loc[:,['Holiday','Holiday_bridge']].sum(axis=1)
     X = X.drop(['Holiday','Holiday_bridge'], axis=1)
 
-    
-    X_all = []
-    y_all = []
     if dataset_name == "ONS":        
         # Store regions in a list of dataframes
         log('Organize and split input data by different regions')
@@ -477,6 +475,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 
     else:
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
+        log(f'Prediction on decomposed part: {y.columns[0]}')
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = testSize, random_state = 0, shuffle = False)
         model = xgboost.XGBRegressor(
                                     colsample_bytree=0.8,
