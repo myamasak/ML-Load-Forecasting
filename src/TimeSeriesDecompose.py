@@ -18,14 +18,16 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.io as pio
 import xgboost
-import math
 from statsmodels.tsa.seasonal import seasonal_decompose
+from scipy import stats, special
 
 import sys
 sys.path.append('../')
 ### Constants ###
+# Enable nni for AutoML
+enable_nni = False
 # Set True to plot curves 
-plot : bool = True
+plot : bool = False
 # Seasonal component to be analyzed
 COMPONENT : str = 'Residual'
 # log file
@@ -39,10 +41,13 @@ pio.kaleido.scope.default_height = 720
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
 # Set path to import dataset and export figures
-try:
-    path = r'%s' % os.getcwd().replace('\\src','').replace('\\','/')
-except:
-    path = r'%s' % os.getcwd().replace('\\','/')
+path = os.path.realpath(__file__)
+path = r'%s' % path.replace(f'\\{os.path.basename(__file__)}','').replace('\\','/')
+if path.find('autoML') != -1:
+    path = r'%s' % path.replace('/autoML','')
+elif path.find('src') != -1:
+    path = r'%s' % path.replace('/src','')
+
 # Selection of year
 selectDatasets = ["2012","2013","2014","2015","2016"]
 # Seed Random Numbers with the TensorFlow Backend
@@ -432,8 +437,6 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                 
             test_index = test_index + train_size + test_size
 
-            decomposePred.append(kfoldPred)
-
         if plot:
             fig.update_layout(
                 font=dict(size=12),
@@ -469,28 +472,49 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         log(f'> mae: {np.mean(mae_per_fold):.5f} (+- {np.std(mae_per_fold):.5f})')
         log(f'> mape: {np.mean(mape_per_fold):.5f} (+- {np.std(mape_per_fold):.5f})')
         log('------------------------------------------------------------------------')
-        
-        listOfDecomposePred.append(decomposePred)
-
+    
 
     else:
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
         log(f'Prediction on decomposed part: {y.columns[0]}')
+        # transform training data & save lambda value
+        # y_boxcox, lambda_boxcox = stats.boxcox(y)
+        
+
+
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = testSize, random_state = 0, shuffle = False)
-        model = xgboost.XGBRegressor(
-                                    colsample_bytree=0.8,
-                                    gamma=0.3,
-                                    learning_rate=0.03,
-                                    max_depth=7,
-                                    min_child_weight=6.0,
-                                    n_estimators=1000,
-                                    reg_alpha=0.75,
-                                    reg_lambda=0.01,
-                                    subsample=0.95,
-                                    seed=42)
+
+        if not enable_nni:
+            model = xgboost.XGBRegressor(
+                                        colsample_bytree=0.8,
+                                        gamma=0.3,
+                                        learning_rate=0.03,
+                                        max_depth=7,
+                                        min_child_weight=6.0,
+                                        n_estimators=1000,
+                                        reg_alpha=0.75,
+                                        reg_lambda=0.01,
+                                        subsample=0.95,
+                                        seed=42)
+
+   
+        else:
+            print(params['colsample_bytree'])
+            model = xgboost.XGBRegressor(
+                                        colsample_bytree=params['colsample_bytree'],
+                                        gamma=params['gamma'],                 
+                                        learning_rate=params['learning_rate'],
+                                        max_depth=params['max_depth'],
+                                        min_child_weight=params['min_child_weight'],
+                                        n_estimators=params['n_estimators'],                                                                    
+                                        reg_alpha=params['reg_alpha'],
+                                        reg_lambda=params['reg_lambda'],
+                                        subsample=params['subsample'],
+                                        seed=42)
+        
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
-        
+        # y_pred = special.inv_boxcox(y_pred, lambda_boxcox)
         # Prepare for plotting
         rows = X_test.index
         df2 = df.iloc[rows[0]:]
@@ -521,7 +545,10 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         mae = mean_absolute_error(y_test, y_pred)
         log("MAE: %f" % (mae))
         
-        mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
+        try:
+            mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
+        except AttributeError:
+            mape = mean_absolute_percentage_error(y_test, y_pred)
         log("MAPE: %.2f%%" % (mape))
 
         # tscv = TimeSeriesSplit(n_splits=5)
@@ -588,6 +615,12 @@ def plotResults(X_, y_, y_pred, testSize):
 ################
 # MAIN PROGRAM
 ################
+# Verify arguments for program execution
+for args in sys.argv:
+    if args == '-nni':
+        enable_nni = True
+import nni
+params = nni.get_next_parameter()     
 # Initial message
 log("Time Series Regression - Load forecasting using xgboost algorithm")
 # Dataset import 
@@ -626,6 +659,13 @@ for inputs in X_all:
     i+=1    
     break # only south region
 
+
+
+r2scoreAvg = np.mean(r2test_per_fold)
+if r2scoreAvg > 0:
+    nni.report_final_result(r2scoreAvg)
+else:
+    nni.report_final_result(0)
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 
