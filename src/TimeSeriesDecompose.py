@@ -27,9 +27,14 @@ sys.path.append('../')
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves 
-plot : bool = False
+plot = True
+# Configuration for Forecasting
+CrossValidation = True
+kfold = 4
+offset = 365*24
+forecastDays = 90
 # Seasonal component to be analyzed
-COMPONENT : str = 'Residual'
+COMPONENT : str = 'Trend'
 # log file
 logname : str = '/TimeSeriesDecompose.log'
 ###
@@ -281,7 +286,10 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 
 
     if CrossValidation:
-        log('CrossValidation has been started')
+        log('CrossValidation has been started')    
+        log(f'Predict {kfold}-folds each by {testSize*X.shape[0]/24} days')
+        log(f'Prediction on decomposed part: {y.columns[0]}')
+
         # Change variable name because of lazyness
         inputs = np.array(X)
         targets = np.array(y)
@@ -303,7 +311,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             # test_size = round((X.shape[0]-offset)/uniqueYears.size/12/2)
             test_size = round(forecastDays*24)
             train_size = round(((len(inputs)-offset)/kfold) - test_size)
-        
+    
 
         train_index = np.arange(0,train_size+offset)
         test_index = np.arange(train_size+offset, train_size+test_size+offset)
@@ -320,17 +328,32 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                 yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
                                 )
         
-        model = xgboost.XGBRegressor(
-                        colsample_bytree=0.8,
-                        gamma=0.3,
-                        learning_rate=0.03,
-                        max_depth=7,
-                        min_child_weight=6.0,
-                        n_estimators=1000,
-                        reg_alpha=0.75,
-                        reg_lambda=0.01,
-                        subsample=0.95,
-                        seed=42)
+        if not enable_nni:
+            model = xgboost.XGBRegressor(
+                                        colsample_bytree=0.8,
+                                        gamma=0.3,
+                                        learning_rate=0.03,
+                                        max_depth=7,
+                                        min_child_weight=6.0,
+                                        n_estimators=1000,
+                                        reg_alpha=0.75,
+                                        reg_lambda=0.01,
+                                        subsample=0.95,
+                                        seed=42)
+
+   
+        else:
+            model = xgboost.XGBRegressor(
+                                        colsample_bytree=params['colsample_bytree'],
+                                        gamma=params['gamma'],                 
+                                        learning_rate=params['learning_rate'],
+                                        max_depth=params['max_depth'],
+                                        min_child_weight=params['min_child_weight'],
+                                        n_estimators=params['n_estimators'],                                                                    
+                                        reg_alpha=params['reg_alpha'],
+                                        reg_lambda=params['reg_lambda'],
+                                        subsample=params['subsample'],
+                                        seed=42)
 
         i=0
         kfoldPred = []
@@ -499,7 +522,6 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 
    
         else:
-            print(params['colsample_bytree'])
             model = xgboost.XGBRegressor(
                                         colsample_bytree=params['colsample_bytree'],
                                         gamma=params['gamma'],                 
@@ -619,6 +641,7 @@ def plotResults(X_, y_, y_pred, testSize):
 for args in sys.argv:
     if args == '-nni':
         enable_nni = True
+        plot = False
 import nni
 params = nni.get_next_parameter()     
 # Initial message
@@ -649,14 +672,17 @@ listOfDecomposePred = []
 for inputs in X_all:
     y_decomposed_list = decomposeSeasonal(y_all[i])
     for y_decomposed in y_decomposed_list:
-        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=False , kfold=4, offset=365*24, forecastDays=90)
+        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CrossValidation, kfold=kfold, offset=offset, forecastDays=forecastDays)
         decomposePred.append(y_out)
+        if enable_nni:
+            break
     
-    # Join all decomposed y predictions
-    y_composed = composeSeasonal(decomposePred)
-    # Print and plot the results
-    plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
-    i+=1    
+    if not enable_nni:
+        # Join all decomposed y predictions
+        y_composed = composeSeasonal(decomposePred)
+        # Print and plot the results
+        plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
+        i+=1    
     break # only south region
 
 
