@@ -4,7 +4,8 @@ Author: Marcos Yamasaki
 04/03/2021
 """
 import time
-
+import logging
+from log import log
 start_time = time.time()
 import pandas as pd
 import numpy as np
@@ -20,7 +21,7 @@ import plotly.io as pio
 import xgboost
 from statsmodels.tsa.seasonal import seasonal_decompose
 from scipy import stats, special
-
+from Results import Results
 import sys
 sys.path.append('../')
 ### Constants ###
@@ -35,8 +36,7 @@ offset = 365*24
 forecastDays = 90
 # Seasonal component to be analyzed
 COMPONENT : str = 'Trend'
-# log file
-logname : str = '/TimeSeriesDecompose.log'
+
 ###
 # Default render
 pio.renderers.default = 'browser'
@@ -54,22 +54,13 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
 # Selection of year
-selectDatasets = ["2012","2013","2014","2015","2016"]
+selectDatasets = ["2014","2015","2016"]
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
 from tensorflow import set_random_seed
 set_random_seed(42)
-import logging
-logging.basicConfig(filename=path+logname,
-                            format='%(asctime)s %(message)s',
-                            datefmt='[%m/%d/%Y %H:%M:%S]',
-                            filemode='a',
-                            level=logging.INFO)
 
-def log(message):
-    logging.info(message)
-    print(message)
 
 def datasetImport(selectDatasets):
     log('Dataset import has been started')
@@ -225,6 +216,8 @@ def mean_absolute_percentage_error(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
+def symmetric_mape(y_true, y_pred):
+    return 100/len(y_true) * np.sum(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
 
 def decomposeSeasonal(y_):
     log('Seasonal decomposition has been started')
@@ -415,9 +408,11 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             mae = mean_absolute_error(y_test, y_pred)
             log("MAE: %f" % (mae))
 
-            mape = mean_absolute_percentage_error(y_test, y_pred.reshape(y_pred.shape[0]))
-            
+            mape = mean_absolute_percentage_error(y_test, y_pred.reshape(y_pred.shape[0]))            
             log("MAPE: %.2f%%" % (mape))
+
+            smape = symmetric_mape(y_test, y_pred.reshape(y_pred.shape[0]))            
+            log("sMAPE: %.2f%%" % (smape))
             
         #    if plot:
         #        fig2 = go.Figure()
@@ -441,15 +436,12 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             # Generate generalization metrics
             # scores = model.evaluate(X_test, y_test, verbose=0)
             
-            # log(f'Score for fold {fold_no}: {model.metrics_names[0]} of {scores}')
-            # acc_per_fold.append(scores * 100)
-            # loss_per_fold.append(scores)
-            r2train_per_fold.append(r2train)
-            r2test_per_fold.append(r2test)
-            rmse_per_fold.append(rmse)
-            mae_per_fold.append(mae)
-            mape_per_fold.append(mape)
-
+            results[r].r2train_per_fold.append(r2train)
+            results[r].r2test_per_fold.append(r2test)
+            results[r].rmse_per_fold.append(rmse)
+            results[r].mae_per_fold.append(mae)
+            results[r].mape_per_fold.append(mape)
+            results[r].smape_per_fold.append(smape)
 
             # Increase fold number
             fold_no = fold_no + 1
@@ -473,29 +465,9 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             ))
             fig.show()
             fig.write_image(file=path+'/results/xgboost_k-fold_crossvalidation.svg', width=921, height=618)
-        
-        
-        # == Provide average scores ==
-        log('------------------------------------------------------------------------')
-        log('Score per fold')
-        for i in range(0, len(r2test_per_fold)):
-            log('------------------------------------------------------------------------')
-            # log(f'> Fold {i+1} - Loss: {loss_per_fold[i]:.5f}')
-            log(f'> Fold {i+1} - r2_score_train: {r2train_per_fold[i]:.5f}')
-            log(f'> Fold {i+1} - r2_score_test: {r2test_per_fold[i]:.5f}')
-            log(f'> Fold {i+1} - rmse: {rmse_per_fold[i]:.5f}')
-            log(f'> Fold {i+1} - mae: {mae_per_fold[i]:.5f}')
-            log(f'> Fold {i+1} - mape: {mape_per_fold[i]:.5f}')
-        log('------------------------------------------------------------------------')
-        log('Average scores for all folds:')
-        # log(f'> Loss: {np.mean(loss_per_fold):.5f}')
-        log(f'> r2_score_train: {np.mean(r2train_per_fold):.5f} (+- {np.std(r2train_per_fold):.5f})')
-        log(f'> r2_score_test: {np.mean(r2test_per_fold):.5f} (+- {np.std(r2test_per_fold):.5f})')
-        log(f'> rmse: {np.mean(rmse_per_fold):.5f} (+- {np.std(rmse_per_fold):.5f})')
-        log(f'> mae: {np.mean(mae_per_fold):.5f} (+- {np.std(mae_per_fold):.5f})')
-        log(f'> mape: {np.mean(mape_per_fold):.5f} (+- {np.std(mape_per_fold):.5f})')
-        log('------------------------------------------------------------------------')
-    
+
+            # Print the results: average per fold
+            results[r].printResults()
 
     else:
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
@@ -568,10 +540,13 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         log("MAE: %f" % (mae))
         
         try:
-            mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
+            mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)            
         except AttributeError:
             mape = mean_absolute_percentage_error(y_test, y_pred)
         log("MAPE: %.2f%%" % (mape))
+        
+        smape = symmetric_mape(y_test, y_pred)
+        log("sMAPE: %.2f%%" % (smape))
 
         # tscv = TimeSeriesSplit(n_splits=5)
         # scores = cross_val_score(model, X_, y_, cv=tscv, scoring='r2')
@@ -633,6 +608,9 @@ def plotResults(X_, y_, y_pred, testSize):
     mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
     log("MAPE: %.2f%%" % (mape))
 
+    smape = symmetric_mape(y_test.to_numpy(), y_pred)
+    log("sMAPE: %.2f%%" % (smape))
+
 
 ################
 # MAIN PROGRAM
@@ -653,14 +631,9 @@ X, y = dataCleaning(dataset)
 # Include new data 
 X_all, y_all = featureEngineering(dataset, X, selectDatasets)
 
-# Define per-fold score containers
-acc_per_fold = []
-loss_per_fold = []
-r2train_per_fold = []
-r2test_per_fold = []
-rmse_per_fold = []
-mae_per_fold = []
-mape_per_fold = []
+# List of results
+results = []
+r = 0 # index
 
 # Initialize fig
 fig = go.Figure()
@@ -672,26 +645,33 @@ listOfDecomposePred = []
 for inputs in X_all:
     y_decomposed_list = decomposeSeasonal(y_all[i])
     for y_decomposed in y_decomposed_list:
-        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CrossValidation, kfold=kfold, offset=offset, forecastDays=forecastDays)
+        results.append(Results()) # Start new Results instance every loop step
+        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CrossValidation, kfold=kfold, offset=offset, forecastDays=forecastDays)        
         decomposePred.append(y_out)
+        r+=1
         if enable_nni:
-            break
+            break # stop on trend component
     
     if not enable_nni:
-        # Join all decomposed y predictions
-        y_composed = composeSeasonal(decomposePred)
-        # Print and plot the results
-        plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
-        i+=1    
+        if not CrossValidation:
+            # Join all decomposed y predictions
+            y_composed = composeSeasonal(decomposePred)
+            # Print and plot the results
+            plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
+        i+=1
     break # only south region
 
-
-
-r2scoreAvg = np.mean(r2test_per_fold)
-if r2scoreAvg > 0:
-    nni.report_final_result(r2scoreAvg)
-else:
-    nni.report_final_result(0)
+# Publish the results on AutoML nni
+if enable_nni:
+    if COMPONENT.find('Trend') != -1:
+        r2testResults = results[0].r2test_per_fold # Only for one seasonal component - Trend
+    else:
+        r2testResults = results[3].r2test_per_fold # Observed component
+    r2scoreAvg = np.mean(r2testResults)
+    if r2scoreAvg > 0:
+        nni.report_final_result(r2scoreAvg)
+    else:
+        nni.report_final_result(0)
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 

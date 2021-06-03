@@ -5,6 +5,7 @@ Created on Mon Jul  1 19:04:58 2019
 """
 import numpy as np
 import pandas as pd
+import glob
 
 #from keras.layers import Dense, Activation
 #from keras.models import Sequential
@@ -16,52 +17,66 @@ import seaborn as sns
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
 
-#os.environ["MODIN_ENGINE"] = "dask"  # Modin will use Dask
 
-#try: 
-#    import modin.pandas as pd
-#except IOError:
-#    print('An error occured trying to read the file.')
-#    
-#except ValueError:
-#    print('Non-numeric data found in the file.')
-#
-#except ImportError:
-#    print ("NO module found")
-#    
-#except EOFError:
-#    print('Why did you do an EOF on me?')
-#
-#except KeyboardInterrupt:
-#    print('You cancelled the operation.')
-#
-#except:
-#    print('An error occured.')
-    
+# Set path to import dataset and export figures
+try:
+    path = os.path.realpath(__file__)
+    path = r'%s' % path.replace(f'\\{os.path.basename(__file__)}','').replace('\\','/')
+    if path.find('autoML') != -1:
+        path = r'%s' % path.replace('/autoML','')
+    elif path.find('src') != -1:
+        path = r'%s' % path.replace('/src','')
+except NameError:
+    path = os.getcwd()
+    path = path.replace('\\','/').replace('src','')
+# Save all files in the folder
+all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv') + \
+            glob.glob(path + r'/datasets/ISONewEngland/holidays/*.csv')
 
-# Importing the dataset
-path = r'%s' % os.getcwd().replace('\\','/')
-#path = path + '/code/ML/ML-Load-Forecasting'
-#dataset19 = pd.read_csv(path + r'/datasets/2019_smd_hourly_ISONE CA.csv')
-#dataset18 = pd.read_csv(path + r'/datasets/2018_smd_hourly_ISONE CA.csv')
-#dataset17 = pd.read_csv(path + r'/datasets/2017_smd_hourly_ISONE CA.csv')
-dataset16 = pd.read_csv(path + r'/datasets/2016_smd_hourly_ISONE CA.csv')
-dataset15 = pd.read_csv(path + r'/datasets/2015_smd_hourly_ISONE CA.csv')
-dataset14 = pd.read_csv(path + r'/datasets/2014_smd_hourly_ISONE CA.csv')
-dataset13 = pd.read_csv(path + r'/datasets/2013_smd_hourly_ISONE CA.csv')
-#dataset12 = pd.read_csv(path + r'/datasets/2012_smd_hourly_ISONE CA.csv')
-#dataset11 = pd.read_csv(path + r'/datasets/2011_smd_hourly_ISONE CA.csv')
-#dataset10 = pd.read_csv(path + r'/datasets/2010_smd_hourly_ISONE CA.csv')
-#dataset09 = pd.read_csv(path + r'/datasets/2009_smd_hourly_ISONE CA.csv')
+# Select datasets 
+#selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",
+#              "2014","2015","2015","2016","2017","2018","2019"]
+#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+selectDatasets = ["2017","2018","2019"]
+
+# Initialize dataset list
+datasetList = []
+#holidayList = []
 
 
-#dataset17 = pd.read_csv(r'C:/Users/z003t8hn/code/ML/ML-Load-Forecasting/datasets/2017_smd_hourly_ISONE CA.csv')
+# Read all csv files and concat them
+for filename in all_files:
+    if (filename.find("ISONE") != -1):
+        for data in selectDatasets:
+            if (filename.find(data) != -1):
+                df = pd.read_csv(filename,index_col=None, header=0)
+                datasetList.append(df)
+#    if (filename.find("holidays") != -1):
+#        for data in selectDatasets:
+#            if (filename.find(data) != -1):
+#                df = pd.read_csv(filename,index_col=None, header=0, sep=';', error_bad_lines=False)
+#                holidayList.append(df)
+
+# Concat
+dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
+#holidays = pd.concat(holidayList, axis=0, sort=False, ignore_index=True)
+
+# Pre-processing holidays data
+#calendar.day_name[datetime.datetime.today().weekday()]
+#The day of the week with Monday=0, Sunday=6.
+#days = dict(zip(calendar.day_name, range(7)))
+#weekdayList = []
+#for weekday in holidays['Weekday']:
+#     weekdayList.append(days[weekday])
+
+# Add weekday number
+#holidays['Weekday_number'] = weekdayList
+
+# Drop duplicated holiday dates
+#holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
+#holidays.reset_index(drop=True,inplace=True)
 
 
-#concatlist = [dataset09,dataset10,dataset11,dataset12,dataset13,dataset14,dataset15,dataset16,dataset17]
-concatlist = [dataset13,dataset14,dataset15,dataset16]
-#concatlist = [dataset16]
-dataset = pd.concat(concatlist,axis=0,sort=False,ignore_index=True)
 
 ## Pre-processing input data 
 # Verify zero values in dataset (X,y)
@@ -111,23 +126,7 @@ Hour = pd.DataFrame({'Hour':dataset.Hour})
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
 
-test = pd.to_datetime(dataset.Date)
-i = 0
-i2 = 0
-for row in test:
-    test[i] = test[i] + pd.DateOffset(hours=1+i2)  
-#     print(test[i])
-    if (i2 == 23):
-         i2 = 0
-    else:
-        i2 = i2 + 1
-    i = i + 1
-print(test.head())
-df = pd.DataFrame(test)
-#concatlist = [X,df]
-#X = pd.concat(concatlist,axis=1)
-
-
+df = date
 
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
@@ -148,7 +147,7 @@ X_testsc = sc.transform(X_test)
 
 
 
-plt.figure(1)
+plt.figure()
 plt.plot(df,y, color = 'gray', label = 'Real data')
 plt.legend()
 plt.show()
@@ -371,13 +370,13 @@ import pmdarima as pm
 from sklearn.ensemble import RandomForestRegressor  
 
 
-    # Replace NaN values by meaningful values
-    from sklearn.preprocessing import Imputer
-    y_matrix = Xdata['RegSP'].as_matrix()
-    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
-    imputer = imputer.fit(y_matrix)
-    Xdata['RegSP'] =  imputer.transform(y_matrix)
+# Replace NaN values by meaningful values
+from sklearn.preprocessing import Imputer
+y_matrix = Xdata['RegSP'].as_matrix()
+y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
+imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
+imputer = imputer.fit(y_matrix)
+Xdata['RegSP'] =  imputer.transform(y_matrix)
 
 
 
