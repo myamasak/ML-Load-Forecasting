@@ -105,7 +105,7 @@ dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
 #holidays['Weekday_number'] = weekdayList
 
 # Drop duplicated holiday dates
-#holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
+#holidays.drop_duplicates(subset=['DATE'], keep=False, inplace=True)
 #holidays.reset_index(drop=True,inplace=True)
 
 
@@ -125,8 +125,8 @@ print(dataset['DEMAND'].eq(0).sum())
 
 # Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
-X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DRYBULB','DEWPNT'], axis=1)
+X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
 
 
 # Drop additional unused columns/features
@@ -157,13 +157,13 @@ if (dataset['DEMAND'].eq(0).sum() > 0
 # Then concat the decoupled date in different columns in X data
 #date = pd.DataFrame() 
 date = pd.to_datetime(dataset.Date)
-dataset['Date'] = pd.to_datetime(dataset.Date)
+dataset['DATE'] = pd.to_datetime(dataset.Date)
 
 date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.Hour})
 
 # Add weekday to X data
 Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
@@ -216,7 +216,7 @@ concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
 X = pd.concat(concatlist,axis=1)
 
 # Set df to x axis to be plot
-df = dataset['Date']
+df = dataset['DATE']
 
 
 # Seed Random Numbers with the TensorFlow Backend
@@ -265,8 +265,8 @@ def seasonDecomposeCalc():
     data = pd.concat(concatlist,axis=1)
     
     data.reset_index(drop=True,inplace=True)
-    data['Date'] = pd.to_datetime(data['Date'])
-    data = data.set_index('Date')
+    data['DATE'] = pd.to_datetime(data['DATE'])
+    data = data.set_index('DATE')
     
     # data.sort_values('DEMAND', ascending=False).head(10)
     
@@ -620,7 +620,7 @@ def xgboostCalc():
     aux_test['Month'] = X_test['Month'].reset_index(drop=True)
     aux_test['Day'] = X_test['Day'].reset_index(drop=True)
     aux_test['Weekday'] = date.iloc[X_train.shape[0]:].dt.day_name().reset_index(drop=True)
-    aux_test['Hour'] = X_test['Hour'].reset_index(drop=True)
+    aux_test['HOUR'] = X_test['HOUR'].reset_index(drop=True)
     aux_test['Holiday'] = X_test['Holiday'].reset_index(drop=True)
     
 

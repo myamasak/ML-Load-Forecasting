@@ -82,7 +82,7 @@ date = X['Data']
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':date.dt.hour})
+Hour = pd.DataFrame({'HOUR':date.dt.hour})
 
 
 # Add weekday to X data
@@ -186,7 +186,7 @@ def outlierDetection(y_):
     #                         marker_size=10))
     # Edit the layout
     # fig.update_layout(title=columnName+' Demand outliers',
-    #                 xaxis_title='Date',
+    #                 xaxis_title='DATE',
     #                 yaxis_title='Demand',
     #                 font=dict(size=26),
     #                 yaxis = dict(
@@ -230,7 +230,7 @@ def outlierDetection(y_):
 #                             marker_size=10))
 #     Edit the layout
 #     fig.update_layout(title=columnName+' Demand outliers fixed',
-#                     xaxis_title='Date',
+#                     xaxis_title='DATE',
 #                     yaxis_title='Demand',
 #                     font=dict(size=26),
 #                     yaxis = dict(

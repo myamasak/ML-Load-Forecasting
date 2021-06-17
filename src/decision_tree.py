@@ -68,9 +68,9 @@ print(dataset['DEMAND'].eq(0).sum())
 
 # Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
-X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DRYBULB','DEWPNT'], axis=1)
+X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP'], axis=1)
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','RT_LMP','RT_EC','RT_CC','RT_MLC'], axis=1)
 
 
@@ -99,7 +99,7 @@ date.dt.year.head()
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.Hour})
 
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
@@ -158,8 +158,8 @@ def seasonDecomposeCalc():
     data = pd.concat(concatlist,axis=1)
     
     data.reset_index(inplace=True)
-    data['Date'] = pd.to_datetime(data['Date'])
-    data = data.set_index('Date')
+    data['DATE'] = pd.to_datetime(data['DATE'])
+    data = data.set_index('DATE')
     data = data.drop(['index'], axis=1)
     result = seasonal_decompose(data, model='multiplicative')
     #result = sm.tsa.seasonal_decompose(data)
@@ -182,7 +182,7 @@ def featImportanceCalc():
     clf = RandomForestRegressor(random_state=0, n_jobs=-1)
     
     Xdata = dataset.iloc[:, :]
-    Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
+    Xdata = Xdata.drop(['DATE','HOUR','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
     concatlist = [Xdata,Year,Month,Day,Hour]
     Xdata = pd.concat(concatlist,axis=1)
     

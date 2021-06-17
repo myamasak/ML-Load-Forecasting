@@ -100,8 +100,8 @@ print(dataset['DEMAND'].eq(0).sum())
 
 # Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
-X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP','RegSP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DRYBULB','DEWPNT'], axis=1)
+X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegCP','RegSP'], axis=1)
 
 
 # Drop additional unused columns/features
@@ -134,13 +134,13 @@ if (dataset['DEMAND'].eq(0).sum() > 0
 # Then concat the decoupled date in different columns in X data
 date = pd.DataFrame() 
 date = pd.to_datetime(dataset.Date)
-# dataset['Date'] = pd.to_datetime(dataset.Date)
+# dataset['DATE'] = pd.to_datetime(dataset.Date)
 
 # date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.Hour})
 
 # Add weekday to X data
 Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
@@ -161,7 +161,7 @@ concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
 X = pd.concat(concatlist,axis=1)
 
 # Set df to x axis to be plot
-df = dataset['Date']
+df = dataset['DATE']
 
 
 # Seed Random Numbers with the TensorFlow Backend
@@ -188,16 +188,16 @@ sc = StandardScaler()
 # False = Scaler only for Temperature features
 onlyTemperature = False
 
-# Standard Scaler only for DryBulb and DewPnt
+# Standard Scaler only for DRYBULB and DEWPNT
 if (onlyTemperature):
-    X_trainsc = sc.fit_transform(X_train.drop(['Year','Month','Day','Weekday','Hour','Holiday'], axis=1))
-    X_trainsc = pd.concat([pd.DataFrame({'DryBulb':X_trainsc[:,0]}),
-                           pd.DataFrame({'DewPnt':X_trainsc[:,1]}),
-                           X_train.drop(['DewPnt','DryBulb'], axis=1)],
+    X_trainsc = sc.fit_transform(X_train.drop(['Year','Month','Day','Weekday','HOUR','Holiday'], axis=1))
+    X_trainsc = pd.concat([pd.DataFrame({'DRYBULB':X_trainsc[:,0]}),
+                           pd.DataFrame({'DEWPNT':X_trainsc[:,1]}),
+                           X_train.drop(['DEWPNT','DRYBULB'], axis=1)],
                            axis=1)
-    X_testsc = sc.fit_transform(X_test.drop(['Year','Month','Day','Weekday','Hour','Holiday'], axis=1))
+    X_testsc = sc.fit_transform(X_test.drop(['Year','Month','Day','Weekday','HOUR','Holiday'], axis=1))
     X_testsc = pd.concat([pd.DataFrame(X_testsc),
-                          X_test.drop(['DewPnt','DryBulb'], axis=1).reset_index(drop=True)],
+                          X_test.drop(['DEWPNT','DRYBULB'], axis=1).reset_index(drop=True)],
                           axis=1)
 else:
     X_trainsc = sc.fit_transform(X_train)
@@ -410,7 +410,7 @@ for train, test in tscv.split(inputs, targets):
     aux_test['Month'] = X.iloc[test,3].reset_index(drop=True)
     aux_test['Day'] = X.iloc[test,4].reset_index(drop=True)
     aux_test['Weekday'] = date.iloc[X.iloc[test,5].shape[0]:].dt.day_name().reset_index(drop=True)
-    aux_test['Hour'] = X.iloc[test,6].reset_index(drop=True)
+    aux_test['HOUR'] = X.iloc[test,6].reset_index(drop=True)
     aux_test['Holiday'] = X.iloc[test,7].reset_index(drop=True)
 
     error_by_day = aux_test.groupby(['Year','Month','Day','Weekday', 'Holiday']) \

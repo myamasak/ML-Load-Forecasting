@@ -91,7 +91,7 @@ date = X['Data']
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':date.dt.hour})
+Hour = pd.DataFrame({'HOUR':date.dt.hour})
 
 
 # Add weekday to X data
@@ -226,7 +226,7 @@ def outlierDetection(y_, columnName):
                             marker_size=10))
     # Edit the layout
     fig.update_layout(title=columnName+' Demand outliers',
-                    xaxis_title='Date',
+                    xaxis_title='DATE',
                     yaxis_title='Demand',
                     font=dict(size=26),
                     yaxis = dict(
@@ -270,7 +270,7 @@ def outlierDetection(y_, columnName):
 #                             marker_size=10))
     # Edit the layout
     fig.update_layout(title=columnName+' Demand outliers fixed',
-                    xaxis_title='Date',
+                    xaxis_title='DATE',
                     yaxis_title='Demand',
                     font=dict(size=26),
                     yaxis = dict(
@@ -715,7 +715,7 @@ def xgboostCalc(enableCV, enableLearningCurve):
         aux_test['Month'] = X_test['Month'].reset_index(drop=True)
         aux_test['Day'] = X_test['Day'].reset_index(drop=True)
         aux_test['Weekday'] = df.iloc[X_test.index.values].dt.day_name().reset_index(drop=True)
-        aux_test['Hour'] = X_test['Hour'].reset_index(drop=True)
+        aux_test['HOUR'] = X_test['HOUR'].reset_index(drop=True)
         aux_test['Holiday'] = X_test['Holiday'].reset_index(drop=True)
         
 

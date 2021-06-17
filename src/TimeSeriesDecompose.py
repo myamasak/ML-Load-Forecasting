@@ -25,18 +25,19 @@ from Results import Results
 import sys
 sys.path.append('../')
 ### Constants ###
+# Dataset chosen
+DATASET_NAME = 'ISONewEngland'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves 
 plot = True
 # Configuration for Forecasting
-CrossValidation = True
-kfold = 4
-offset = 365*24
-forecastDays = 90
+CROSSVALIDATION = True
+KFOLD = 4
+OFFSET = 365*24
+FORECASTDAYS = 90
 # Seasonal component to be analyzed
 COMPONENT : str = 'Trend'
-
 ###
 # Default render
 pio.renderers.default = 'browser'
@@ -62,31 +63,49 @@ from tensorflow import set_random_seed
 set_random_seed(42)
 
 
-def datasetImport(selectDatasets):
+def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
     # Save all files in the folder
-    filename = glob.glob(path + r'/datasets/ONS/*.csv')
-    filename = filename[0].replace('\\','/')
-    dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
-
-    # Select only selected data
-    datasetList = []
-    for year in selectDatasets:
-        datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
-        
+    if dataset_name.find('ONS') != -1:
+        filename = glob.glob(path + r'/datasets/ONS/*.csv')
+        filename = filename[0].replace('\\','/')
+        dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
+        # Select only selected data
+        datasetList = []
+        for year in selectDatasets:
+            datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
+    elif dataset_name.find('ISONewEngland') != -1:
+        all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+        # Initialize dataset list
+        datasetList = []
+        # Read all csv files and concat them
+        for filename in all_files:
+            if (filename.find("ISONE") != -1):
+                for data in selectDatasets:
+                    if (filename.find(data) != -1):
+                        df = pd.read_csv(filename,index_col=None, header=0)
+                        datasetList.append(df)
+    # Concat them all
     dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
     
-    # replace comma to dot
-    dataset['DEMAND'] = dataset['DEMAND'].str.replace(',','.')
+    if dataset_name.find('ONS') != -1:
+        # replace comma to dot
+        dataset['DEMAND'] = dataset['DEMAND'].str.replace(',','.')
 
     return dataset
 
-def dataCleaning(dataset):
+def dataCleaning(dataset, dataset_name='ONS'):
     log('Data cleaning function has been started')
     # Select X data
     X = dataset.iloc[:, :]
-    X = X.drop(['DEMAND'], axis=1)
-
+    if dataset_name.find('ONS') != -1:
+        X = X.drop(['DEMAND'], axis=1)
+    elif dataset_name.find('ISONewEngland') != -1:
+        X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+        # Drop additional unused columns/features
+        for columnNames in X.columns:
+            if(columnNames.find("5min") != -1):
+                X.drop([columnNames], axis=1, inplace=True)
     ## Pre-processing input data 
     # Verify zero values in dataset (X,y)
     log("Any null value in dataset?")
@@ -110,20 +129,18 @@ def dataCleaning(dataset):
         nanIndex = dataset[dataset['DEMAND'].isnull()].index.values
         # Replace zero values by NaN
         dataset['DEMAND'].replace(0, np.nan, inplace=True)
-
         #convert to float
         y = dataset['DEMAND'].astype(float)
-        
         y = y.interpolate(method='linear', axis=0).ffill().bfill()
         log(y.iloc[nanIndex])
 
-
     # Select Y data
-    y = pd.concat([pd.DataFrame({'DEMAND':y}), dataset['SUBSYSTEM']], axis=1, sort=False)
+    if dataset_name.find('ONS') != -1:
+        y = pd.concat([pd.DataFrame({'DEMAND':y}), dataset['SUBSYSTEM']], axis=1, sort=False)
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
+def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -131,13 +148,14 @@ def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
 
     log("Adding date components (year, month, day, holidays and weekdays) to input data")
     # Transform to date type
-    X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
+    X['DATE'] = pd.to_datetime(dataset.DATE)
+#    X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
 
     date = X['DATE']
     Year = pd.DataFrame({'Year':date.dt.year})
     Month = pd.DataFrame({'Month':date.dt.month})
     Day = pd.DataFrame({'Day':date.dt.day})
-    Hour = pd.DataFrame({'Hour':date.dt.hour})
+    Hour = pd.DataFrame({'HOUR':date.dt.hour})
 
     # Add weekday to X data
     Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
@@ -160,44 +178,49 @@ def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
 
     # Save in Date format
     global df  # set a global variable for easier plot
-    df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
+    if dataset_name.find('ONS') != -1:
+        df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
+    elif dataset_name.find('ISONewEngland') != -1:
+        df = X['DATE'].reset_index(drop=True)
+
 
     X_all = []
     y_all = []
     
-    log("Adding bridge days (Mondays / Fridays) to the Holiday column")
-    # Holidays on Tuesdays and Thursday may have a bridge day (long weekend)
-    # X_tmp = X_all[0][(X_all[0]['Holiday'] > 0).values].drop_duplicates(subset=['Day','Month','Year'])
-    X_tmp = X[(X['Holiday'] > 0).values]
-    # Filter holidays set on Tuesdays and add bridge day on Mondays
-    # 0 = Monday; 1 = Tuesday; ...; 6 = Sunday
-    # Start with Tuesdays
-    X_tuesdays = X_tmp[X_tmp['Weekday'] == 1]
-    bridgeDayList = []
-    for tuesday in X_tuesdays['DATE']:
-        # Go back one day (monday)
-        bridge_day = tuesday - pd.DateOffset(days=1)
-        bridgeDayList.append(bridge_day)
+    if holiday_bridge:
+        log("Adding bridge days (Mondays / Fridays) to the Holiday column")
+        # Holidays on Tuesdays and Thursday may have a bridge day (long weekend)
+        # X_tmp = X_all[0][(X_all[0]['Holiday'] > 0).values].drop_duplicates(subset=['Day','Month','Year'])
+        X_tmp = X[(X['Holiday'] > 0).values]
+        # Filter holidays set on Tuesdays and add bridge day on Mondays
+        # 0 = Monday; 1 = Tuesday; ...; 6 = Sunday
+        # Start with Tuesdays
+        X_tuesdays = X_tmp[X_tmp['Weekday'] == 1]
+        bridgeDayList = []
+        for tuesday in X_tuesdays['DATE']:
+            # Go back one day (monday)
+            bridge_day = tuesday - pd.DateOffset(days=1)
+            bridgeDayList.append(bridge_day)
 
-    # Do the same for Thursday
-    X_thursdays = X_tmp[X_tmp['Weekday'] == 3]
-    for thursday in X_thursdays['DATE']:
-        # Go back one day (Friday)
-        bridge_day = thursday + pd.DateOffset(days=1)
-        bridgeDayList.append(bridge_day)
-    
-         
-    Holiday_bridge = pd.DataFrame({'Holiday_bridge':[1 if val in bridgeDayList else 0 for val in date]})
+        # Do the same for Thursday
+        X_thursdays = X_tmp[X_tmp['Weekday'] == 3]
+        for thursday in X_thursdays['DATE']:
+            # Go back one day (Friday)
+            bridge_day = thursday + pd.DateOffset(days=1)
+            bridgeDayList.append(bridge_day)
+        
+            
+        Holiday_bridge = pd.DataFrame({'Holiday_bridge':[1 if val in bridgeDayList else 0 for val in date]})
 
 
-    concatlist = [X,Holiday_bridge]
-    X = pd.concat(concatlist,axis=1)
+        concatlist = [X,Holiday_bridge]
+        X = pd.concat(concatlist,axis=1)
 
-    # Sum the two holidays columns to merge them into one and remove unnecessary columns
-    X['Holiday_&_bridge']=X.loc[:,['Holiday','Holiday_bridge']].sum(axis=1)
-    X = X.drop(['Holiday','Holiday_bridge'], axis=1)
+        # Sum the two holidays columns to merge them into one and remove unnecessary columns
+        X['Holiday_&_bridge']=X.loc[:,['Holiday','Holiday_bridge']].sum(axis=1)
+        X = X.drop(['Holiday','Holiday_bridge'], axis=1)
 
-    if dataset_name == "ONS":        
+    if dataset_name.find('ONS') != -1:       
         # Store regions in a list of dataframes
         log('Organize and split input data by different regions')
         unique = X['SUBSYSTEM'].unique()
@@ -207,6 +230,10 @@ def featureEngineering(dataset, X, selectDatasets, dataset_name = 'ONS'):
             X_all.append(X_temp)
             y_temp = y[y['SUBSYSTEM']==region].reset_index(drop=True)
             y_all.append(y_temp)
+    
+    elif dataset_name.find('ISONewEngland') != -1:
+        X_all.append(X)
+        y_all.append(y)
 
     return X_all, y_all
 
@@ -217,12 +244,16 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 def symmetric_mape(y_true, y_pred):
-    return 100/len(y_true) * np.sum(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
+    return 100 * np.mean(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
 
-def decomposeSeasonal(y_):
+def decomposeSeasonal(y_, dataset_name='ONS'):
     log('Seasonal decomposition has been started')
     data = pd.DataFrame(data=df)
-    concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+
+    if dataset_name.find('ONS') != -1:
+        concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+    elif dataset_name.find('ISONewEngland') != -1:
+        concatlist = [data,pd.DataFrame(y_)]
     data = pd.concat(concatlist,axis=1)
 
     data.reset_index(inplace=True)
@@ -251,7 +282,7 @@ def decomposeSeasonal(y_):
 
     return decomposeList
 
-def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=30):
+def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=30, dataset_name='ONS'):
     log("XGBoost algorithm has been started")
     start_time_xgboost = time.time()
     
@@ -266,8 +297,17 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         fig = go.Figure()
     
     # Drop subsystem and date columns
-    X = X_.drop(['SUBSYSTEM', 'DATE'], axis=1)
-    if y_.columns.str.find("SUBSYSTEM") != -1:    
+    if dataset_name.find('ONS') != -1:
+        try:
+            X = X_.drop(['SUBSYSTEM', 'DATE'], axis=1)
+        except KeyError:
+            pass 
+    elif dataset_name.find('ISONewEngland') != -1:
+        try:
+            X = X_.drop(['DATE'], axis=1)
+        except KeyError:
+            pass # ignore it
+    if y_.columns.str.find("SUBSYSTEM") != -1:
         y = y_.drop(['SUBSYSTEM'], axis=1)
     else:
         y = y_
@@ -315,9 +355,9 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                         y=y.squeeze(),
                                         name=f'Electricity Demand [MW] - {y.columns[0]}',
                                         mode='lines'))
-            # Edit the layout
-            fig.update_layout(title=f'ONS dataset Load Forecasting - Cross-Validation of {kfold}-fold',
-                                xaxis_title='Date',
+            # Edit the layout            
+            fig.update_layout(title=f'{dataset_name} dataset Load Forecasting - Cross-Validation of {kfold}-fold',
+                                xaxis_title='DATE',
                                 yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
                                 )
         
@@ -442,6 +482,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             results[r].mae_per_fold.append(mae)
             results[r].mape_per_fold.append(mape)
             results[r].smape_per_fold.append(smape)
+            results[r].name.append(y.columns[0])
 
             # Increase fold number
             fold_no = fold_no + 1
@@ -558,7 +599,10 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         if plot:
             ax = xgboost.plot_importance(model)
             ax.figure.set_size_inches(11,15)
-            ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
+            if dataset_name.find('ONS') != -1:
+                ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
+            else:
+                ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
             ax.figure.show()
         log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
 
@@ -575,8 +619,9 @@ def composeSeasonal(decomposePred, model='additive'):
     return finalPred
 
 
-def plotResults(X_, y_, y_pred, testSize):
-    y_ = y_.drop(["SUBSYSTEM"], axis=1)
+def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
+    if dataset_name.find('ONS') != -1:
+        y_ = y_.drop(["SUBSYSTEM"], axis=1)
     X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
     # Prepare for plotting
     rows = X_test.index
@@ -625,11 +670,11 @@ params = nni.get_next_parameter()
 # Initial message
 log("Time Series Regression - Load forecasting using xgboost algorithm")
 # Dataset import 
-dataset = datasetImport(selectDatasets)
+dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 # Data cleaning and set the input and reference data
-X, y = dataCleaning(dataset)
+X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data 
-X_all, y_all = featureEngineering(dataset, X, selectDatasets)
+X_all, y_all = featureEngineering(dataset, X, selectDatasets, dataset_name=DATASET_NAME)
 
 # List of results
 results = []
@@ -643,21 +688,21 @@ i = 0 # index for y_all
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
-    y_decomposed_list = decomposeSeasonal(y_all[i])
+    y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)
     for y_decomposed in y_decomposed_list:
         results.append(Results()) # Start new Results instance every loop step
-        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CrossValidation, kfold=kfold, offset=offset, forecastDays=forecastDays)        
+        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
         decomposePred.append(y_out)
         r+=1
         if enable_nni:
             break # stop on trend component
     
     if not enable_nni:
-        if not CrossValidation:
+        if not CROSSVALIDATION:
             # Join all decomposed y predictions
             y_composed = composeSeasonal(decomposePred)
             # Print and plot the results
-            plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize)
+            plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
         i+=1
     break # only south region
 

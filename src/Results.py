@@ -8,12 +8,13 @@ class Results:
         self.mae_per_fold = []
         self.mape_per_fold = []
         self.smape_per_fold = []
+        self.name = []
 
         
     def printResults(self):
         # == Provide average scores ==
         log('------------------------------------------------------------------------')
-        log('Score per fold')
+        log(f'Score per fold - {self.name[0]}')
         for i in range(0, len(self.r2test_per_fold)):
             log('------------------------------------------------------------------------')
             log(f'> Fold {i+1} - r2_score_train: {self.r2train_per_fold[i]:.5f}')
@@ -29,4 +30,5 @@ class Results:
         log(f'> rmse: {np.mean(self.rmse_per_fold):.5f} (+- {np.std(self.rmse_per_fold):.5f})')
         log(f'> mae: {np.mean(self.mae_per_fold):.5f} (+- {np.std(self.mae_per_fold):.5f})')
         log(f'> mape: {np.mean(self.mape_per_fold):.5f} (+- {np.std(self.mape_per_fold):.5f})')
+        log(f'> smape: {np.mean(self.smape_per_fold):.5f} (+- {np.std(self.smape_per_fold):.5f})')
         log('------------------------------------------------------------------------')

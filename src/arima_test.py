@@ -73,7 +73,7 @@ dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
 #holidays['Weekday_number'] = weekdayList
 
 # Drop duplicated holiday dates
-#holidays.drop_duplicates(subset=['Date'], keep=False, inplace=True)
+#holidays.drop_duplicates(subset=['DATE'], keep=False, inplace=True)
 #holidays.reset_index(drop=True,inplace=True)
 
 
@@ -92,8 +92,8 @@ display(dataset['DEMAND'].eq(0).sum())
 
 # Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
-X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DRYBULB','DEWPNT'], axis=1)
+X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
 #X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','RT_LMP','RT_EC','RT_CC','RT_MLC'], axis=1)
 
 
@@ -121,7 +121,7 @@ date.dt.year.head()
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.Hour})
 
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
@@ -161,10 +161,10 @@ concatlist = [data,pd.DataFrame(y)]
 data = pd.concat(concatlist,axis=1)
 
 data.reset_index(inplace=True)
-data['Date'] = pd.to_datetime(data['Date'])
-data = data.set_index('Date')
+data['DATE'] = pd.to_datetime(data['DATE'])
+data = data.set_index('DATE')
 data = data.drop(['index'], axis=1)
-#data.columns = ['Date','DEMAND']
+#data.columns = ['DATE','DEMAND']
 data.columns = ['DEMAND']
 result = seasonal_decompose(data, model='multiplicative')
 #result = sm.tsa.seasonal_decompose(data)
@@ -192,17 +192,27 @@ plt.title('Rolling Mean & Rolling Standard Deviation')
 plt.show()
 
 
-result2 = adfuller(data.iloc[:,0].values)
+result2 = adfuller(data.iloc[:,0].values, regression='ct')
 print('ADF Statistic: {}'.format(result2[0]))
 print('p-value: {}'.format(result2[1]))
+pvalue = result2[1]
 print('Critical Values:')
 for key, value in result2[4].items():
     print('\t{}: {}'.format(key, value))
+print(f'Used lags: {result2[2]}')
+print(f'Number of observations: {result2[3]}')
 
-pvalue = result2[1]
-
-
+if pvalue < 0.05:
+    print(f'p-value < 0.05, so the series is stationary.')
+else:
+    print(f'p-value > 0.05, so the series is non-stationary.')
+    
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+
+
+from scipy import stats
+seasonal_test = stats.kruskal(data.iloc[:,0].values)
+
 
 # PACF plot of 1st differenced series
 plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
@@ -297,8 +307,8 @@ plt.plot(data,linewidth=1)
 #data.reset_index(drop=True,inplace=True)
 Month.reset_index(inplace=True)
 #data.reset_index(inplace=True)
-Month['Date'] = pd.to_datetime(data.index)
-Month = Month.set_index('Date')
+Month['DATE'] = pd.to_datetime(data.index)
+Month = Month.set_index('DATE')
 Month = Month.drop(['index'], axis=1)
 concatlist = [data,Month]
 newData = pd.concat(concatlist,axis=1,sort=False)
@@ -313,7 +323,7 @@ plt.ylabel('DEMAND')
 
 
 from statsmodels.tsa.arima_model import ARIMA
-import pmdarima as pm
+#import pmdarima as pm
 
 #
 #model = pm.auto_arima(train, start_p=1, start_q=1,
@@ -385,7 +395,7 @@ Xdata['RegSP'] =  imputer.transform(y_matrix)
 clf = RandomForestRegressor(random_state=0, n_jobs=-1)
 
 Xdata = dataset.iloc[:, :]
-Xdata = Xdata.drop(['Date','Hour','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
+Xdata = Xdata.drop(['DATE','HOUR','DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','SYSLoad'], axis=1)
 
 # Train model
 model = clf.fit(Xdata, y)

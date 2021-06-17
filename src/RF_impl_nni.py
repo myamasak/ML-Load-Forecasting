@@ -62,8 +62,8 @@ print(dataset['DEMAND'].eq(0).sum())
 
 # Drop unnecessary columns in X dataframe (features)
 X = dataset.iloc[:, :]
-#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DryBulb','DewPnt'], axis=1)
-X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','Date','Hour','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+#X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP','DRYBULB','DEWPNT'], axis=1)
+X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
 
 
 # Drop additional unused columns/features
@@ -93,13 +93,13 @@ if (dataset['DEMAND'].eq(0).sum() > 0
 # Then concat the decoupled date in different columns in X data
 #date = pd.DataFrame() 
 date = pd.to_datetime(dataset.Date)
-dataset['Date'] = pd.to_datetime(dataset.Date)
+dataset['DATE'] = pd.to_datetime(dataset.Date)
 
 date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'Hour':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.Hour})
 
 # Add weekday to X data
 Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
@@ -116,7 +116,7 @@ concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
 X = pd.concat(concatlist,axis=1)
 
 # Set df to x axis to be plot
-df = dataset['Date']
+df = dataset['DATE']
 
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed

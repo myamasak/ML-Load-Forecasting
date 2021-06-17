@@ -80,7 +80,7 @@ def normalizeDatetime():
     
     
     # Normalize hour
-    dataset['Hour'] = dataset['Hour'] - 1
+    dataset['HOUR'] = dataset['HOUR'] - 1
     
     # Decouple date and time from dataset
     # Then concat decoupled data
@@ -90,7 +90,7 @@ def normalizeDatetime():
     Year = pd.DataFrame({'Year':date.dt.year})
     Month = pd.DataFrame({'Month':date.dt.month})
     Day = pd.DataFrame({'Day':date.dt.day})
-    Hour = pd.DataFrame({'Hour':dataset.Hour})
+    Hour = pd.DataFrame({'HOUR':dataset.Hour})
     
     #concatlist = [X,Year,Month,Day,Hour]
     #X = pd.concat(concatlist,axis=1)
@@ -113,12 +113,12 @@ def normalizeDatetime():
     #X = pd.concat(concatlist,axis=1)
    
     # Add weekday number to dataset
-    dataset.drop(['Date'],axis=1,inplace=True)
+    dataset.drop(['DATE'],axis=1,inplace=True)
     concatlist = [df,dataset]
     dataset = pd.concat(concatlist,axis=1)
     
-#    include = dataset['Date'].loc['2009-01-01 00:00:00':'2009-12-31 23:00:00']    
-#    include = include.sort_values('Date', ascending=True)
+#    include = dataset['DATE'].loc['2009-01-01 00:00:00':'2009-12-31 23:00:00']    
+#    include = include.sort_values('DATE', ascending=True)
 
 
 # Read all csv files and concat them
