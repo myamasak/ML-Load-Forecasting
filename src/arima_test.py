@@ -81,13 +81,13 @@ dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
 ## Pre-processing input data 
 # Verify zero values in dataset (X,y)
 print("Any null value in dataset?")
-display(dataset.isnull().any())
+print(dataset.isnull().any())
 print("How many are they?")
-display(dataset.isnull().sum())
+print(dataset.isnull().sum())
 print("How many zero values?")
-display(dataset.eq(0).sum())
+print(dataset.eq(0).sum())
 print("How many zero values in y (DEMAND)?")
-display(dataset['DEMAND'].eq(0).sum())
+print(dataset['DEMAND'].eq(0).sum())
 
 
 # Drop unnecessary columns in X dataframe (features)
@@ -116,12 +116,12 @@ if (dataset['DEMAND'].eq(0).sum() > 0):
 
 
 date = pd.DataFrame() 
-date = pd.to_datetime(dataset.Date)
+date = pd.to_datetime(dataset.DATE)
 date.dt.year.head() 
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'HOUR':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.HOUR})
 
 concatlist = [X,Year,Month,Day,Hour]
 X = pd.concat(concatlist,axis=1)
@@ -192,7 +192,7 @@ plt.title('Rolling Mean & Rolling Standard Deviation')
 plt.show()
 
 
-result2 = adfuller(data.iloc[:,0].values, regression='ct')
+result2 = adfuller(data.iloc[:,0].values, regression='ct', maxlag=360)
 print('ADF Statistic: {}'.format(result2[0]))
 print('p-value: {}'.format(result2[1]))
 pvalue = result2[1]
@@ -210,29 +210,41 @@ else:
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
-from scipy import stats
-seasonal_test = stats.kruskal(data.iloc[:,0].values)
+# from scipy import stats
+# seasonal_test = stats.kruskal(data.iloc[:,0].values)
 
 
-# PACF plot of 1st differenced series
+print("ACF plot of demand series")
 plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
 
-fig, axes = plt.subplots(1, 2, sharex=True)
-axes[0].plot(pd.DataFrame(y).diff()); axes[0].set_title('1st Differencing')
-axes[1].set(ylim=(0,5))
-plot_acf(pd.DataFrame(y).diff().dropna(), ax=axes[1])
+fig, axes = plt.subplots(2, 1, sharex=True)
+axes[0].plot(pd.DataFrame(y)); axes[0].set_title('Demand')
+axes[1].set(ylim=(-0.5,1.2))
+#axes[1].set(xlim=(-10,100))
+plot_acf(pd.DataFrame(y).dropna(), ax=axes[1])
+plt.show()
 
+# ACF plot of 1st differenced series
+print("ACF plot of 1st differenced series")
+plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
+
+fig, axes = plt.subplots(2, 1, sharex=True)
+axes[0].plot(pd.DataFrame(y).diff()); axes[0].set_title('1st Differencing')
+axes[1].set(ylim=(-0.5,1.2))
+#axes[1].set(xlim=(-10,100))
+plot_acf(pd.DataFrame(y).diff().dropna(), ax=axes[1])
 plt.show()
 
 
 
-
+print("ACF plot of 2nd differenced series")
 plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
 
-fig, axes = plt.subplots(1, 2, sharex=True)
-axes[0].plot(pd.DataFrame(y).diff()); axes[0].set_title('1st Differencing')
-axes[1].set(ylim=(0,1.2))
-plot_acf(pd.DataFrame(y).diff().dropna(), ax=axes[1])
+fig, axes = plt.subplots(2, 1, sharex=True)
+axes[0].plot(pd.DataFrame(y).diff().diff()); axes[0].set_title('2nd Differencing')
+axes[1].set(ylim=(-0.5,1.2))
+axes[1].set(xlim=(-10,100))
+plot_acf(pd.DataFrame(y).diff().diff().dropna(), ax=axes[1], lags=100)
 
 plt.show()
 

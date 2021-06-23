@@ -23,6 +23,9 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from scipy import stats, special
 from Results import Results
 import sys
+from PyEMD import EMD, EEMD
+from vmdpy import VMD
+import ewtpy
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
@@ -36,6 +39,7 @@ CROSSVALIDATION = True
 KFOLD = 4
 OFFSET = 365*24
 FORECASTDAYS = 90
+NMODES = 8
 # Seasonal component to be analyzed
 COMPONENT : str = 'Trend'
 ###
@@ -149,7 +153,7 @@ def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_
     log("Adding date components (year, month, day, holidays and weekdays) to input data")
     # Transform to date type
     X['DATE'] = pd.to_datetime(dataset.DATE)
-#    X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
+    # X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
 
     date = X['DATE']
     Year = pd.DataFrame({'Year':date.dt.year})
@@ -307,11 +311,13 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             X = X_.drop(['DATE'], axis=1)
         except KeyError:
             pass # ignore it
-    if y_.columns.str.find("SUBSYSTEM") != -1:
-        y = y_.drop(['SUBSYSTEM'], axis=1)
-    else:
+    try:
+        if y_.columns.str.find("SUBSYSTEM") != -1:
+            y = y_.drop(['SUBSYSTEM'], axis=1)
+        else:
+            y = y_
+    except AttributeError:
         y = y_
-    
     # Define test size by converting days to percentage
     # testSize = 0.05
     testSize = forecastDays*24/X.shape[0]
@@ -656,7 +662,87 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
     smape = symmetric_mape(y_test.to_numpy(), y_pred)
     log("sMAPE: %.2f%%" % (smape))
 
+def test_stationarity(data):
+    from statsmodels.tsa.stattools import adfuller
+    test_result = adfuller(data.iloc[:,0].values, regression='ct')
+    log('ADF Statistic: {}'.format(test_result[0]))
+    log('p-value: {}'.format(test_result[1]))
+    pvalue = test_result[1]
+    log('Critical Values:')
+    for key, value in test_result[4].items():
+        log('\t{}: {}'.format(key, value))
+    log(f'Used lags: {test_result[2]}')
+    log(f'Number of observations: {test_result[3]}')
 
+    if pvalue < 0.05:
+        log(f'p-value < 0.05, so the series is stationary.')
+    else:
+        log(f'p-value > 0.05, so the series is non-stationary.')
+        
+def fast_fourier_transform(y_):
+    from scipy.fft import fft, fftfreq
+    if DATASET_NAME.find("ONS") != -1:
+        for inputs in y_:
+            xseries = inputs.drop(['SUBSYSTEM'], axis=1).values
+            if xseries.shape[1] == 1:
+                xseries = xseries.reshape(xseries.shape[0])
+            # Number of sample points
+            N = len(xseries)
+            # sample spacing
+            T = 1.0 / N
+            yf = fft(xseries)
+            xf = fftfreq(N, T)[:N//2]
+            plt.figure()
+            plt.plot(xf, 2.0/N * np.abs(yf[0:N//2]))
+            plt.ylim(0,max(2.0/N * np.abs(yf[0:N//2])))
+            plt.show()
+    else:    
+        xseries = np.array(y_)
+        if xseries.shape[1] == 1:
+            xseries = xseries.reshape(xseries.shape[0])
+        # Number of sample points
+        N = len(np.array(xseries))
+        # sample spacing
+        T = 1.0 / N
+        yf = fft(np.array(xseries))
+        xf = fftfreq(N, T)[:N//2]
+        plt.figure()
+        plt.plot(xf, 2.0/N * np.abs(yf[0:N//2]))
+        plt.ylim(0,max(2.0/N * np.abs(yf[0:N//2])))
+        plt.show()
+
+
+def emd_decompose(y_, Nmodes=5, dataset_name='ONS'):
+    log("Empirical Mode Decomposition (EMD) has been started")
+    def do_emd():
+        #% EMD features
+        tic = time.time()
+        emd = EMD()
+        emd.MAX_ITERATION = 2000
+        IMFs = emd.emd(y_series, max_imf=Nmodes)
+        toc = time.time()        
+        return IMFs
+
+    if DATASET_NAME.find("ONS") != -1:
+        y_series = np.array(y_)
+        if y_series.shape[1] == 1:
+            y_series = y_series.reshape(y_series.shape[0])
+        elif y_series.shape[0] == 1:
+            y_series = y_series.reshape(y_series.shape[1])
+            IMFs = do_emd()
+    else:
+        y_series = np.array(y_)
+        if y_series.shape[0] == 1:
+            y_series = y_series.reshape(y_series.shape[1])
+        elif y_series.shape[1] == 1:
+            y_series = y_series.reshape(y_series.shape[0])
+        IMFs = do_emd()
+
+    series_IMFs = []
+    for i in range(len(IMFs)):
+        series_IMFs.append(pd.DataFrame({f"mode_{i}":IMFs[i]}))
+    return series_IMFs
+    
 ################
 # MAIN PROGRAM
 ################
@@ -668,7 +754,7 @@ for args in sys.argv:
 import nni
 params = nni.get_next_parameter()     
 # Initial message
-log("Time Series Regression - Load forecasting using xgboost algorithm")
+log("Time Series Regression - Load forecasting using xgboost and other algorithms")
 # Dataset import 
 dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 # Data cleaning and set the input and reference data
@@ -684,39 +770,54 @@ r = 0 # index
 fig = go.Figure()
 i = 0 # index for y_all
 
+list_IMFs = []
+# fast_fourier_transform(y_all)
+#for nmode in NMODES:
+#    list_IMFs.append(emd_decompose(y_all, Nmodes=nmode))
+
+#if plot:
+#    for IMFs in list_IMFs:
+#        for series in IMFs:
+#            plt.figure()
+#            plt.plot(series)
+#            plt.show()
 # Prediction list of different components of decomposition to be assemble in the end
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
-    y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)
-    for y_decomposed in y_decomposed_list:
-        results.append(Results()) # Start new Results instance every loop step
-        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
-        decomposePred.append(y_out)
-        r+=1
-        if enable_nni:
-            break # stop on trend component
-    
-    if not enable_nni:
-        if not CROSSVALIDATION:
-            # Join all decomposed y predictions
-            y_composed = composeSeasonal(decomposePred)
-            # Print and plot the results
-            plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
-        i+=1
-    break # only south region
+   y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)   
+   for y_decomposed2 in y_decomposed_list:
+       if y_decomposed2.columns[0].find('Residual') != -1:
+           y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
+           break
+   for y_decomposed in y_decomposed_list:
+       results.append(Results()) # Start new Results instance every loop step
+       y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
+       decomposePred.append(y_out)
+       r+=1
+       if enable_nni:
+           break # stop on trend component
+   
+   if not enable_nni:
+       if not CROSSVALIDATION:
+           # Join all decomposed y predictions
+           y_composed = composeSeasonal(decomposePred)
+           # Print and plot the results
+           plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
+       i+=1
+   break # only south region
 
 # Publish the results on AutoML nni
 if enable_nni:
-    if COMPONENT.find('Trend') != -1:
-        r2testResults = results[0].r2test_per_fold # Only for one seasonal component - Trend
-    else:
-        r2testResults = results[3].r2test_per_fold # Observed component
-    r2scoreAvg = np.mean(r2testResults)
-    if r2scoreAvg > 0:
-        nni.report_final_result(r2scoreAvg)
-    else:
-        nni.report_final_result(0)
+   if COMPONENT.find('Trend') != -1:
+       r2testResults = results[0].r2test_per_fold # Only for one seasonal component - Trend
+   else:
+       r2testResults = results[3].r2test_per_fold # Observed component
+   r2scoreAvg = np.mean(r2testResults)
+   if r2scoreAvg > 0:
+       nni.report_final_result(r2scoreAvg)
+   else:
+       nni.report_final_result(0)
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 
