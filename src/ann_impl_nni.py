@@ -174,7 +174,7 @@ model.add(Dense(units = 1))
 # Compiling the ANN
 model.compile(optimizer = params['optimizer'], loss = 'mean_squared_error')
 
-
+from keras.callbacks import EarlyStopping
 early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
 #model.fit(X_trainsc, y_train, batch_size = params['batch_size'], epochs = params['epochs'], callbacks = [early_stop])
 

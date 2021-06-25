@@ -22,6 +22,7 @@ class Results:
             log(f'> Fold {i+1} - rmse: {self.rmse_per_fold[i]:.5f}')
             log(f'> Fold {i+1} - mae: {self.mae_per_fold[i]:.5f}')
             log(f'> Fold {i+1} - mape: {self.mape_per_fold[i]:.5f}')
+            log(f'> Fold {i+1} - smape: {self.smape_per_fold[i]:.5f}')
         log('------------------------------------------------------------------------')
         log('Average scores for all folds:')
         # log(f'> Loss: {np.mean{self.loss_per_fold):.5f}')

@@ -15,6 +15,7 @@ import seaborn as sns
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import holidays
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score, learning_curve, train_test_split
+from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -26,6 +27,13 @@ import sys
 from PyEMD import EMD, EEMD
 from vmdpy import VMD
 import ewtpy
+from sklearn import linear_model
+from sklearn import svm
+from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import LinearRegression
+
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
@@ -36,10 +44,10 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 4
+KFOLD = 10
 OFFSET = 365*24
-FORECASTDAYS = 90
-NMODES = 8
+FORECASTDAYS = 15
+NMODES = 3
 # Seasonal component to be analyzed
 COMPONENT : str = 'Trend'
 ###
@@ -59,7 +67,7 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
 # Selection of year
-selectDatasets = ["2014","2015","2016"]
+selectDatasets = ["2014","2015","2016","2017"]
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
@@ -95,7 +103,9 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     if dataset_name.find('ONS') != -1:
         # replace comma to dot
         dataset['DEMAND'] = dataset['DEMAND'].str.replace(',','.')
-
+    
+    ataset = dataset.iloc[:-24*60,:]
+#    d
     return dataset
 
 def dataCleaning(dataset, dataset_name='ONS'):
@@ -368,17 +378,31 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                 )
         
         if not enable_nni:
-            model = xgboost.XGBRegressor(
-                                        colsample_bytree=0.8,
-                                        gamma=0.3,
-                                        learning_rate=0.03,
-                                        max_depth=7,
-                                        min_child_weight=6.0,
-                                        n_estimators=1000,
-                                        reg_alpha=0.75,
-                                        reg_lambda=0.01,
-                                        subsample=0.95,
-                                        seed=42)
+#            model = xgboost.XGBRegressor(
+#                                        colsample_bytree=0.8,
+#                                        gamma=0.3,
+#                                        learning_rate=0.03,
+#                                        max_depth=7,
+#                                        min_child_weight=6.0,
+#                                        n_estimators=1000,
+#                                        reg_alpha=0.75,
+#                                        reg_lambda=0.01,
+#                                        subsample=0.95,
+#                                        seed=42)
+
+            regressors = list()
+            regressors.append(('xgboost', xgboost.XGBRegressor()))
+            regressors.append(('knn', KNeighborsRegressor()))
+            regressors.append(('cart', DecisionTreeRegressor()))
+            regressors.append(('rf', RandomForestRegressor()))
+            regressors.append(('svm', svm.SVR()))
+            
+            # define meta learner model
+#            meta_learner = xgboost.XGBRegressor()
+            meta_learner = LinearRegression()
+        
+#            model = VotingRegressor(estimators=regressors)
+            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
 
    
         else:
@@ -412,8 +436,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             log('------------------------------------------------------------------------')
             log(f'Training for fold {fold_no} ...')
 
-
-            model.fit(X_train, y_train)
+            model.fit(X_train, y_train.ravel())
             
             # Predict using test data
             y_pred = model.predict(X_test)
@@ -441,24 +464,28 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 
             r2train = r2_score(y_train, y_pred_train)
             r2test = r2_score(y_test, y_pred)
-            log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
-            log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+#            log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
+#            log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
             n = len(X_test)
             p = X_test.shape[1]
             adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
-            log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+#            log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
 
             rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-            log("RMSE: %f" % (rmse))
+#            log("RMSE: %f" % (rmse))
 
             mae = mean_absolute_error(y_test, y_pred)
-            log("MAE: %f" % (mae))
+#            log("MAE: %f" % (mae))
 
-            mape = mean_absolute_percentage_error(y_test, y_pred.reshape(y_pred.shape[0]))            
-            log("MAPE: %.2f%%" % (mape))
-
-            smape = symmetric_mape(y_test, y_pred.reshape(y_pred.shape[0]))            
-            log("sMAPE: %.2f%%" % (smape))
+            try:
+                y_test = y_test.values.reshape(y_test.shape[0])
+                mape = mean_absolute_percentage_error(y_test, y_pred)
+                smape = symmetric_mape(y_test, y_pred)
+            except AttributeError:
+                mape = mean_absolute_percentage_error(y_test, y_pred)
+                smape = symmetric_mape(y_test, y_pred)
+#            log("MAPE: %.2f%%" % (mape))
+#            log("sMAPE: %.2f%%" % (smape))
             
         #    if plot:
         #        fig2 = go.Figure()
@@ -528,17 +555,57 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 
         if not enable_nni:
             model = xgboost.XGBRegressor(
-                                        colsample_bytree=0.8,
-                                        gamma=0.3,
-                                        learning_rate=0.03,
-                                        max_depth=7,
-                                        min_child_weight=6.0,
-                                        n_estimators=1000,
-                                        reg_alpha=0.75,
-                                        reg_lambda=0.01,
-                                        subsample=0.95,
-                                        seed=42)
+                                         colsample_bytree=0.8,
+                                         gamma=0.3,
+                                         learning_rate=0.03,
+                                         max_depth=7,
+                                         min_child_weight=6.0,
+                                         n_estimators=1000,
+                                         reg_alpha=0.75,
+                                         reg_lambda=0.01,
+                                         subsample=0.95,
+                                         seed=42)
 
+#            from tensorflow.keras.models import Sequential
+#            from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU, Flatten, TimeDistributed
+#            from tensorflow.keras.callbacks import EarlyStopping
+
+#            ann_model = Sequential()
+#            ann_model.add(Dense(16))
+#            ann_model.add(LeakyReLU(alpha=0.05))            
+#            # Adding the hidden layers
+#            for i in range(8):
+#                ann_model.add(Dense(units = 16))
+#                ann_model.add(LeakyReLU(alpha=0.05))
+#            # output layer
+#            ann_model.add(Dense(units = 1))
+#            # Compiling the ANN
+#            model.compile(optimizer = 'Adam', loss = 'mean_squared_error')
+#            early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
+
+            regressors = list()
+            regressors.append(('xgboost', xgboost.XGBRegressor()))
+            regressors.append(('knn', KNeighborsRegressor()))
+            regressors.append(('cart', DecisionTreeRegressor()))
+            regressors.append(('rf', RandomForestRegressor()))
+            regressors.append(('svm', svm.SVR()))
+            
+            # define meta learner model
+#            meta_learner = xgboost.XGBRegressor()
+            meta_learner = LinearRegression()
+            
+#            model.add(regressors)
+#            model.add_meta(meta_learner)
+#            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+
+                # svm.SVR(kernel='poly',C=1)]      
+                # linear_model.SGDRegressor(),
+                # linear_model.BayesianRidge(),
+                # linear_model.LassoLars(),
+                # linear_model.ARDRegression(),
+                # linear_model.PassiveAggressiveRegressor(),
+                # linear_model.TheilSenRegressor(),
+                # linear_model.LinearRegression()]
    
         else:
             model = xgboost.XGBRegressor(
@@ -552,8 +619,8 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                         reg_lambda=params['reg_lambda'],
                                         subsample=params['subsample'],
                                         seed=42)
-        
-        model.fit(X_train, y_train)
+#        for model in regressors:
+        model.fit(X_train, y_train.values.ravel())
         y_pred = model.predict(X_test)
         # y_pred = special.inv_boxcox(y_pred, lambda_boxcox)
         # Prepare for plotting
@@ -587,12 +654,13 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         log("MAE: %f" % (mae))
         
         try:
-            mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)            
+            y_test = y_test.values.reshape(y_test.shape[0])
+            mape = mean_absolute_percentage_error(y_test, y_pred)
+            smape = symmetric_mape(y_test, y_pred)
         except AttributeError:
             mape = mean_absolute_percentage_error(y_test, y_pred)
+            smape = symmetric_mape(y_test, y_pred)
         log("MAPE: %.2f%%" % (mape))
-        
-        smape = symmetric_mape(y_test, y_pred)
         log("sMAPE: %.2f%%" % (smape))
 
         # tscv = TimeSeriesSplit(n_splits=5)
@@ -602,14 +670,14 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         # log("Loss: {0:.4f} (+/- {1:.3f})".format(scores.mean(), scores.std()))
 
         # Feature importance of XGBoost
-        if plot:
-            ax = xgboost.plot_importance(model)
-            ax.figure.set_size_inches(11,15)
-            if dataset_name.find('ONS') != -1:
-                ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
-            else:
-                ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
-            ax.figure.show()
+        # if plot:
+        #     ax = xgboost.plot_importance(model)
+        #     ax.figure.set_size_inches(11,15)
+        #     if dataset_name.find('ONS') != -1:
+        #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
+        #     else:
+        #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
+        #     ax.figure.show()
         log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
 
 
@@ -628,6 +696,12 @@ def composeSeasonal(decomposePred, model='additive'):
 def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
     if dataset_name.find('ONS') != -1:
         y_ = y_.drop(["SUBSYSTEM"], axis=1)
+        
+    # LabelEncoder + BoxCox
+#    le_y = preprocessing.LabelEncoder()
+#    y_ = le_y.fit_transform(y_.values.ravel())
+#    y_, lambda_boxcox = stats.boxcox(y_+1)
+#    y_ = pd.DataFrame({'DEMAND':y_})
     X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
     # Prepare for plotting
     rows = X_test.index
@@ -636,8 +710,12 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
     if plot:
         plt.figure()
         #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-        plt.plot(df,y_, label = f'Real data - {y.columns[0]}')
-        plt.plot(df2,y_pred, label = f'Predicted data - {y.columns[0]}')
+        try:
+            plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
+            plt.plot(df2,y_pred, label = f'Predicted data - {y_.columns[0]}')
+        except AttributeError:
+            plt.plot(df,y_, label = f'Real data - {y_.name}')
+            plt.plot(df2,y_pred, label = f'Predicted data - {y_.name}')
         plt.title('Prediction - XGBoost')
         plt.legend()
         plt.savefig(path+'/results/pred_vs_real.png')
@@ -772,29 +850,46 @@ i = 0 # index for y_all
 
 list_IMFs = []
 # fast_fourier_transform(y_all)
-#for nmode in NMODES:
-#    list_IMFs.append(emd_decompose(y_all, Nmodes=nmode))
 
-#if plot:
-#    for IMFs in list_IMFs:
-#        for series in IMFs:
-#            plt.figure()
-#            plt.plot(series)
-#            plt.show()
+
+#y_decoded = le.inverse_transform(encoded)
+
 # Prediction list of different components of decomposition to be assemble in the end
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
    y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)   
    for y_decomposed2 in y_decomposed_list:
-       if y_decomposed2.columns[0].find('Residual') != -1:
+       if y_decomposed2.columns[0].find('Observed') != -1:
            y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
            break
    for y_decomposed in y_decomposed_list:
        results.append(Results()) # Start new Results instance every loop step
+
+#       if y_decomposed.columns[0].find("Observed") == -1:
+#           continue
+#       le_X = preprocessing.LabelEncoder()
+#       inputs = le_X.fit_transform(inputs)
+       # transform training data & save lambda value
+#       if y_decomposed.columns[0].find("Residual") != -1:
+       # Label encoder for only positive numbers
+#       le_y = preprocessing.LabelEncoder()
+#       y_decomposed = le_y.fit_transform(y_decomposed.values.ravel())
+#       save_y = y_decomposed - le_y.inverse_transform(y_decomposed)
+ 
+       # Box-Cox transformation + shift 1000 integer
+#       y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed+1000)
+#       y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
+       # Inverse Box-Cox transformation
+#       y_out = special.inv_boxcox(y_out, lambda_boxcox)
+       # Shift -1000
+#       y_out = y_out-1000
+       # Remove label encoder
+#       y_out = y_out - save_y[-len(y_out):]
+#       y_out = le_y.inverse_transform(y_out)
        decomposePred.append(y_out)
-       r+=1
+       r+=1       
        if enable_nni:
            break # stop on trend component
    
@@ -814,10 +909,8 @@ if enable_nni:
    else:
        r2testResults = results[3].r2test_per_fold # Observed component
    r2scoreAvg = np.mean(r2testResults)
-   if r2scoreAvg > 0:
-       nni.report_final_result(r2scoreAvg)
-   else:
-       nni.report_final_result(0)
+   nni.report_final_result(r2scoreAvg)
+ 
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 
