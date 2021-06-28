@@ -29,7 +29,7 @@ from vmdpy import VMD
 import ewtpy
 from sklearn import linear_model
 from sklearn import svm
-from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor
+from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
@@ -44,10 +44,12 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 10
+KFOLD = 60
 OFFSET = 365*24
 FORECASTDAYS = 15
 NMODES = 3
+# Set algorithm
+ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
 COMPONENT : str = 'Trend'
 ###
@@ -67,7 +69,8 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
 # Selection of year
-selectDatasets = ["2014","2015","2016","2017"]
+#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+selectDatasets = ["2015","2016","2017","2018"]
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
@@ -79,7 +82,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
     # Save all files in the folder
     if dataset_name.find('ONS') != -1:
-        filename = glob.glob(path + r'/datasets/ONS/*.csv')
+        filename = glob.glob(path + r'/datasets/ONS/*allregions*.csv')
         filename = filename[0].replace('\\','/')
         dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
         # Select only selected data
@@ -103,9 +106,10 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     if dataset_name.find('ONS') != -1:
         # replace comma to dot
         dataset['DEMAND'] = dataset['DEMAND'].str.replace(',','.')
+        dataset['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
+        dataset = dataset.sort_values(by='DATE', ascending=True)
     
-    ataset = dataset.iloc[:-24*60,:]
-#    d
+#    dataset = dataset.iloc[:-24*60,:]
     return dataset
 
 def dataCleaning(dataset, dataset_name='ONS'):
@@ -154,7 +158,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_name='ONS'):
+def featureEngineering(dataset, X, selectDatasets, holiday_bridge=False, dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -193,7 +197,8 @@ def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_
     # Save in Date format
     global df  # set a global variable for easier plot
     if dataset_name.find('ONS') != -1:
-        df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
+        # df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
+        df = X['DATE'].reset_index(drop=True)
     elif dataset_name.find('ISONewEngland') != -1:
         df = X['DATE'].reset_index(drop=True)
 
@@ -265,7 +270,10 @@ def decomposeSeasonal(y_, dataset_name='ONS'):
     data = pd.DataFrame(data=df)
 
     if dataset_name.find('ONS') != -1:
-        concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+        try:
+            concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+        except AttributeError:
+            concatlist = [data,pd.DataFrame(y_)]
     elif dataset_name.find('ISONewEngland') != -1:
         concatlist = [data,pd.DataFrame(y_)]
     data = pd.concat(concatlist,axis=1)
@@ -275,7 +283,7 @@ def decomposeSeasonal(y_, dataset_name='ONS'):
     data = data.set_index('DATE')
     data = data.drop(['index'], axis=1)
     data.columns = ['DEMAND']
-    result = seasonal_decompose(data, freq=24, model='additive', extrapolate_trend='freq')
+    result = seasonal_decompose(data, period=24, model='additive', extrapolate_trend='freq')
     result.trend.reset_index(drop=True, inplace=True)
     result.seasonal.reset_index(drop=True, inplace=True)
     result.resid.reset_index(drop=True, inplace=True)
@@ -296,7 +304,114 @@ def decomposeSeasonal(y_, dataset_name='ONS'):
 
     return decomposeList
 
-def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=30, dataset_name='ONS'):
+def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
+    # global X_train, X_test, y_train, y_test, X_
+    # Drop subsystem and date columns
+    if dataset_name.find('ONS') != -1:
+        try:
+            if y_.columns[1].find("SUBSYSTEM") != -1:
+                y_ = y_.drop(['SUBSYSTEM'], axis=1)
+            else:
+                y_ = y_
+        except AttributeError:
+            y_ = y_
+
+    from sklearn.neighbors import LocalOutlierFactor
+    clf = LocalOutlierFactor(n_neighbors=25)
+
+    y_pred = clf.fit_predict(pd.DataFrame(y_))
+#    outliers_train = y_train.loc[y_pred_train == -1]
+    
+    negativeOutlierFactor = clf.negative_outlier_factor_
+    outliers = y_.loc[negativeOutlierFactor < (negativeOutlierFactor.mean() - negativeOutlierFactor.std()-1)]
+    
+#    outliers.reindex(list(range(outliers.index.min(),outliers.index.max()+1)),fill_value=0)
+    
+
+    outliers_reindex = outliers.reindex(list(range(df.index.min(),df.index.max()+1)))
+    if plot and False:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df,
+                                y=y_.squeeze(),
+                                name=columnName,
+                                showlegend=False,
+                                mode='lines'))                         
+        fig.add_trace(go.Scatter(x=df,
+                                y=outliers_reindex.squeeze(),
+                                name='Outliers',
+                                mode='markers',
+                                marker_size=10))
+        # Edit the layout
+        fig.update_layout(title=columnName+' Demand outliers',
+                        xaxis_title='DATE',
+                        yaxis_title='Demand',
+                        font=dict(size=26),
+                        yaxis = dict(
+                                scaleanchor = "x",
+                                scaleratio = 1),
+                        xaxis = dict(
+                            range=(df[0], df[len(df)-1]),
+                            constrain='domain'),
+                        legend=dict(
+                            yanchor="top",
+                            y=0.99,
+                            xanchor="left",
+                            x=0.01)
+                        )
+    #                      width=1000,
+    #                      height=500)
+
+        fig.show()
+        fig.write_image(f"{DATASET_NAME}_outliers_"+columnName+".pdf")
+    
+    # Fix outliers by removing and replacing with interpolation
+    y_ = pd.DataFrame(y_).replace([outliers],np.nan)    
+    y_ = y_.interpolate(method='linear', axis=0).ffill().bfill()
+    
+    print('Outliers fixed: ', end='\n')
+    print(y_.loc[outliers.index.values], end='\n')
+    
+    # Transform to numpy arrays    
+    y_ = np.array(y_)
+    y_ = y_.reshape(y_.shape[0])
+    
+    if plot and False:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df,
+                                y=y_,
+                                name=columnName,
+                                mode='lines'))                         
+    #    fig.add_trace(go.Scatter(x=df,
+    #                             y=outliers_reindex,
+    #                             name='Predicted Outliers',
+    #                             mode='markers',
+    #                             marker_size=10))
+        # Edit the layout
+        fig.update_layout(title=columnName+' Demand outliers fixed',
+                        xaxis_title='DATE',
+                        yaxis_title='Demand',
+                        font=dict(size=26),
+                        yaxis = dict(
+                            scaleanchor = "x",
+                            scaleratio = 1),
+                        xaxis = dict(
+                            range=(df[0], df[len(df)-1]),
+                            constrain='domain'),
+                        legend=dict(
+                            yanchor="top",
+                            y=0.99,
+                            xanchor="left",
+                            x=0.01)
+                        )
+    #                      width=1000,
+    #                      height=500)
+    
+        fig.show()
+        fig.write_image(f"{DATASET_NAME}_outliers_fixed_"+columnName+".pdf")
+    
+    return y_
+
+def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
     log("XGBoost algorithm has been started")
     start_time_xgboost = time.time()
     
@@ -378,7 +493,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
                                 )
         
         if not enable_nni:
-#            model = xgboost.XGBRegressor(
+#            model = xgboost.XGBRegressor()
 #                                        colsample_bytree=0.8,
 #                                        gamma=0.3,
 #                                        learning_rate=0.03,
@@ -389,20 +504,48 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 #                                        reg_lambda=0.01,
 #                                        subsample=0.95,
 #                                        seed=42)
-
+            # Best configuration so far: knn, cart, rf, gbr; metalearner=ARDR
             regressors = list()
-            regressors.append(('xgboost', xgboost.XGBRegressor()))
-            regressors.append(('knn', KNeighborsRegressor()))
-            regressors.append(('cart', DecisionTreeRegressor()))
-            regressors.append(('rf', RandomForestRegressor()))
-            regressors.append(('svm', svm.SVR()))
+#            regressors.append(('xgboost', xgboost.XGBRegressor()))
+#            regressors.append(('knn', KNeighborsRegressor()))
+#            regressors.append(('cart', DecisionTreeRegressor()))
+#            regressors.append(('rf', RandomForestRegressor()))
+#            regressors.append(('rf', RandomForestRegressor(n_estimators=750,
+#                                                           max_depth=32,
+#                                                           min_samples_split=2,
+#                                                           min_samples_leaf=1,
+#                                                           max_features="auto",
+#                                                           max_leaf_nodes=None,
+#                                                           min_impurity_decrease=0.001,
+#                                                           bootstrap=True,
+#                                                           random_state=42,
+#                                                           n_jobs=-1)))
+#            regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            regressors.append(('gbr', GradientBoostingRegressor()))
+#                                      n_estimators=750,
+#                                      learning_rate=0.1,
+#                                      max_depth=3,
+#                                      random_state=42)))
+#            regressors.append(('extratrees', ExtraTreesRegressor()))
+            # regressors.append(('sgd', linear_model.SGDRegressor()))
+#            regressors.append(('bayes'  , linear_model.BayesianRidge()))
+#            regressors.append(('lasso', linear_model.LassoLars()))
+#            regressors.append(('ard', linear_model.ARDRegression()))
+#            regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+#            regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+#            regressors.append(('linear', linear_model.LinearRegression()))
             
             # define meta learner model
-#            meta_learner = xgboost.XGBRegressor()
-            meta_learner = LinearRegression()
+#            meta_learner = GradientBoostingRegressor() # 0.85873
+#            meta_learner = ExtraTreesRegressor() # 0.85938
+#            meta_learner = linear_model.TheilSenRegressor() # 0.87946      
+            meta_learner = linear_model.ARDRegression() # 0.88415
+#            meta_learner = LinearRegression() # 0.88037
+#            meta_learner = linear_model.BayesianRidge() # 0.877
         
 #            model = VotingRegressor(estimators=regressors)
-            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+#            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
+            model = StackingRegressor(estimators=regressors, n_jobs=-1, final_estimator=meta_learner)
 
    
         else:
@@ -589,6 +732,13 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
             regressors.append(('cart', DecisionTreeRegressor()))
             regressors.append(('rf', RandomForestRegressor()))
             regressors.append(('svm', svm.SVR()))
+            # regressors.append(('sgd', linear_model.SGDRegressor()))
+            # regressors.append(('bayes'  , linear_model.BayesianRidge()))
+            # regressors.append(('lasso', linear_model.LassoLars()))
+            # regressors.append(('ard', linear_model.ARDRegression()))
+            # regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+            # regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+            # regressors.append(('linear', linear_model.LinearRegression()))
             
             # define meta learner model
 #            meta_learner = xgboost.XGBRegressor()
@@ -597,6 +747,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
 #            model.add(regressors)
 #            model.add_meta(meta_learner)
 #            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
 
                 # svm.SVR(kernel='poly',C=1)]      
                 # linear_model.SGDRegressor(),
@@ -679,7 +830,6 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=3
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
         #     ax.figure.show()
         log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
-
 
     return y_pred, testSize
     log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
@@ -820,6 +970,22 @@ def emd_decompose(y_, Nmodes=5, dataset_name='ONS'):
     for i in range(len(IMFs)):
         series_IMFs.append(pd.DataFrame({f"mode_{i}":IMFs[i]}))
     return series_IMFs
+
+def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastDays=15, dataset_name='ONS'):
+    log("Searching the same period of prediction series...")
+    X_train[X_train['Month'] == X_test['Month']]
+    X_train[X_train['Day'] == X_test['Day']]
+    X_train[X_train['Hour'] == X_test['Hour']]
+
+def plot_histogram(y_):
+    if plot and False:
+        plt.figure()
+        sns.histplot(y_)
+        plt.ylabel("Occurrences")
+        plt.legend()
+    #    plt.figure()
+    #    sns.kdeplot(y_.values.ravel())
+    #    plt.legend()
     
 ################
 # MAIN PROGRAM
@@ -839,6 +1005,11 @@ dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data 
 X_all, y_all = featureEngineering(dataset, X, selectDatasets, dataset_name=DATASET_NAME)
+# Outlier removal
+i=0
+for y_ in y_all:
+    y_all[i] = outlierCleaning(y_, dataset_name=DATASET_NAME)
+    i+=1
 
 # List of results
 results = []
@@ -859,15 +1030,15 @@ decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
    y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)   
-   for y_decomposed2 in y_decomposed_list:
-       if y_decomposed2.columns[0].find('Observed') != -1:
-           y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
-           break
+#   for y_decomposed2 in y_decomposed_list:
+#       if y_decomposed2.columns[0].find('Observed') != -1:
+#           y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
+#           break
    for y_decomposed in y_decomposed_list:
        results.append(Results()) # Start new Results instance every loop step
 
-#       if y_decomposed.columns[0].find("Observed") == -1:
-#           continue
+       if y_decomposed.columns[0].find("Observed") == -1:           
+           continue
 #       le_X = preprocessing.LabelEncoder()
 #       inputs = le_X.fit_transform(inputs)
        # transform training data & save lambda value
@@ -876,10 +1047,11 @@ for inputs in X_all:
 #       le_y = preprocessing.LabelEncoder()
 #       y_decomposed = le_y.fit_transform(y_decomposed.values.ravel())
 #       save_y = y_decomposed - le_y.inverse_transform(y_decomposed)
- 
+#       plot_histogram(y_decomposed)
        # Box-Cox transformation + shift 1000 integer
-#       y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed+1000)
-#       y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
+       y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed.values.ravel())
+       y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
+#       plot_histogram(y_decomposed)
        y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
        # Inverse Box-Cox transformation
 #       y_out = special.inv_boxcox(y_out, lambda_boxcox)
@@ -900,8 +1072,7 @@ for inputs in X_all:
            # Print and plot the results
            plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
        i+=1
-   break # only south region
-
+       
 # Publish the results on AutoML nni
 if enable_nni:
    if COMPONENT.find('Trend') != -1:

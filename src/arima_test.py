@@ -131,8 +131,8 @@ df = date
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(1)
-from tensorflow import set_random_seed
-set_random_seed(2)
+# from tensorflow import set_random_seed
+# set_random_seed(2)
 
 
 
@@ -166,7 +166,8 @@ data = data.set_index('DATE')
 data = data.drop(['index'], axis=1)
 #data.columns = ['DATE','DEMAND']
 data.columns = ['DEMAND']
-result = seasonal_decompose(data, model='multiplicative')
+result = seasonal_decompose(data, period=24, model='additive', extrapolate_trend='freq')
+result2 = pd.concat([result.observed, result.trend, result.seasonal, result.resid], axis=1)
 #result = sm.tsa.seasonal_decompose(data)
 result.plot()
 plt.show
@@ -221,7 +222,7 @@ fig, axes = plt.subplots(2, 1, sharex=True)
 axes[0].plot(pd.DataFrame(y)); axes[0].set_title('Demand')
 axes[1].set(ylim=(-0.5,1.2))
 #axes[1].set(xlim=(-10,100))
-plot_acf(pd.DataFrame(y).dropna(), ax=axes[1])
+plot_acf(pd.DataFrame(y).dropna(), ax=axes[1], lags=np.arange(len(y)))
 plt.show()
 
 # ACF plot of 1st differenced series
@@ -232,7 +233,7 @@ fig, axes = plt.subplots(2, 1, sharex=True)
 axes[0].plot(pd.DataFrame(y).diff()); axes[0].set_title('1st Differencing')
 axes[1].set(ylim=(-0.5,1.2))
 #axes[1].set(xlim=(-10,100))
-plot_acf(pd.DataFrame(y).diff().dropna(), ax=axes[1])
+plot_acf(pd.DataFrame(y).diff().dropna(), ax=axes[1], lags=np.arange(len(pd.DataFrame(y).diff().dropna())))
 plt.show()
 
 
@@ -332,9 +333,6 @@ plt.ylabel('DEMAND')
 
     
 
-
-
-from statsmodels.tsa.arima_model import ARIMA
 #import pmdarima as pm
 
 #
@@ -353,37 +351,37 @@ from statsmodels.tsa.arima_model import ARIMA
 #
 #print(model.summary())
 #
-##from statsmodels.tsa.arima_model import SARIMAX
-##import statsmodels.api as sm
-##model = sm.tsa.statespace.SARIMAX(train,order=(6,1,6),seasonal_order=(1,0,2,24),
-##                                  enforce_stationarity=False, enforce_invertibility=False)
-#
-##fitted = model.fit(disp=-1)
-#fitted = model.fit(train)
-##print(fitted.summary())
-#
-## Forecast
-#nIndex = test.index.size
-##fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
-##y_pred = fitted.predict(test.index[0],test.index[-1])
-#y_pred = fitted.predict(test.shape[0])
-#
-## Make as pandas series
-#fc_series = pd.Series(y_pred, index=test.index[:nIndex])
-#lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
-#upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
-## Plot
-#plt.figure(figsize=(12,5), dpi=100)
-#plt.plot(train, label='training')
-#plt.plot(test, label='actual')
-#plt.plot(fc_series, label='forecast')
-#plt.fill_between(lower_series.index, lower_series, upper_series, 
-#                 color='k', alpha=.15)
-#plt.title('Forecast vs Actuals')
-#plt.legend(loc='upper left', fontsize=8)
-#plt.show()
-#
-#model.plot_diagnostics()
+from statsmodels.tsa.arima_model import SARIMAX
+import statsmodels.api as sm
+model = sm.tsa.statespace.SARIMAX(train,order=(6,1,6),seasonal_order=(1,0,2,24),
+                                  enforce_stationarity=False, enforce_invertibility=False)
+
+#fitted = model.fit(disp=-1)
+fitted = model.fit(train)
+#print(fitted.summary())
+
+# Forecast
+nIndex = test.index.size
+#fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
+#y_pred = fitted.predict(test.index[0],test.index[-1])
+y_pred = fitted.predict(test.shape[0])
+
+# Make as pandas series
+fc_series = pd.Series(y_pred, index=test.index[:nIndex])
+lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
+upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
+# Plot
+plt.figure(figsize=(12,5), dpi=100)
+plt.plot(train, label='training')
+plt.plot(test, label='actual')
+plt.plot(fc_series, label='forecast')
+plt.fill_between(lower_series.index, lower_series, upper_series, 
+                 color='k', alpha=.15)
+plt.title('Forecast vs Actuals')
+plt.legend(loc='upper left', fontsize=8)
+plt.show()
+
+model.plot_diagnostics()
 
 
 ## Feature importance
@@ -393,13 +391,25 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 # Replace NaN values by meaningful values
-from sklearn.preprocessing import Imputer
-y_matrix = Xdata['RegSP'].as_matrix()
-y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
-imputer = imputer.fit(y_matrix)
-Xdata['RegSP'] =  imputer.transform(y_matrix)
-
+#from sklearn.preprocessing import Imputer
+#y_matrix = Xdata['RegSP'].as_matrix()
+#y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
+#imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
+#imputer = imputer.fit(y_matrix)
+#Xdata['RegSP'] =  imputer.transform(y_matrix)
+# Taking care of missing data
+print('Taking care of missing data')
+if (dataset['DEMAND'].eq(0).sum() > 0
+    or dataset['DEMAND'].isnull().any()):    
+    print(dataset[dataset['DEMAND'].isnull()])
+    # Save the NaN indexes
+    nanIndex = dataset[dataset['DEMAND'].isnull()].index.values
+    # Replace zero values by NaN
+    dataset['DEMAND'].replace(0, np.nan, inplace=True)
+    #convert to float
+    y = dataset['DEMAND'].astype(float)
+    y = y.interpolate(method='linear', axis=0).ffill().bfill()
+    print(y.iloc[nanIndex])
 
 
 # Create decision tree classifer object
