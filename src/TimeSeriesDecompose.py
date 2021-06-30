@@ -44,10 +44,13 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 60
-OFFSET = 365*24
+KFOLD = 24
+OFFSET = 365*24*3
 FORECASTDAYS = 15
-NMODES = 3
+NMODES = 5
+MODE = 'eemd'
+MODEL = 'eemd'
+BOXCOX = False
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -71,6 +74,19 @@ elif path.find('src') != -1:
 # Selection of year
 #selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
 selectDatasets = ["2015","2016","2017","2018"]
+log(f"Dataset: {DATASET_NAME}")
+log(f"Years: {selectDatasets}")
+log(f"CrossValidation: {CROSSVALIDATION}")
+log(f"KFOLD: {KFOLD}")
+log(f"OFFSET: {OFFSET}")
+log(f"FORECASTDAYS: {FORECASTDAYS}")
+log(f"NMODES: {NMODES}")
+log(f"MODE: {MODE}")
+log(f"MODEL: {MODEL}")
+log(f"BOXCOX: {BOXCOX}")
+log(f"ALGORITHM: {ALGORITHM}")
+
+
 # Seed Random Numbers with the TensorFlow Backend
 from numpy.random import seed
 seed(42)
@@ -265,42 +281,54 @@ def mean_absolute_percentage_error(y_true, y_pred):
 def symmetric_mape(y_true, y_pred):
     return 100 * np.mean(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
 
-def decomposeSeasonal(y_, dataset_name='ONS'):
-    log('Seasonal decomposition has been started')
-    data = pd.DataFrame(data=df)
+def decomposeSeasonal(y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
+    tic = time.time()
+    if mode=='stl-a' or mode=='stl-m':
+        log('Seasonal and Trend decomposition using Loess (STL) Decomposition has been started')
+        data = pd.DataFrame(data=df)
 
-    if dataset_name.find('ONS') != -1:
-        try:
-            concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
-        except AttributeError:
+        if dataset_name.find('ONS') != -1:
+            try:
+                concatlist = [data,pd.DataFrame(y_.drop(['SUBSYSTEM'], axis=1))]
+            except (AttributeError, KeyError) as e:
+                concatlist = [data,pd.DataFrame(y_)]
+        elif dataset_name.find('ISONewEngland') != -1:
             concatlist = [data,pd.DataFrame(y_)]
-    elif dataset_name.find('ISONewEngland') != -1:
-        concatlist = [data,pd.DataFrame(y_)]
-    data = pd.concat(concatlist,axis=1)
+        data = pd.concat(concatlist,axis=1)
 
-    data.reset_index(inplace=True)
-    data['DATE'] = pd.to_datetime(data['DATE'])
-    data = data.set_index('DATE')
-    data = data.drop(['index'], axis=1)
-    data.columns = ['DEMAND']
-    result = seasonal_decompose(data, period=24, model='additive', extrapolate_trend='freq')
-    result.trend.reset_index(drop=True, inplace=True)
-    result.seasonal.reset_index(drop=True, inplace=True)
-    result.resid.reset_index(drop=True, inplace=True)
-    result.observed.reset_index(drop=True, inplace=True)
-    result.trend.columns = ['Trend']
-    result.seasonal.columns = ['Seasonal']
-    result.resid.columns = ['Residual']
-    result.observed.columns = ['Observed']
-    decomposeList = [result.trend, result.seasonal, result.resid, result.observed]
+        data.reset_index(inplace=True)
+        data['DATE'] = pd.to_datetime(data['DATE'])
+        data = data.set_index('DATE')
+        data = data.drop(['index'], axis=1)
+        data.columns = ['DEMAND']
+        if mode == 'stl-a':
+            model = 'additive'
+        elif mode == 'stl-m':
+            model = 'multiplicative'
+        result = seasonal_decompose(data, period=24, model=model, extrapolate_trend='freq')
+        result.trend.reset_index(drop=True, inplace=True)
+        result.seasonal.reset_index(drop=True, inplace=True)
+        result.resid.reset_index(drop=True, inplace=True)
+        result.observed.reset_index(drop=True, inplace=True)
+        result.trend.columns = ['Trend']
+        result.seasonal.columns = ['Seasonal']
+        result.resid.columns = ['Residual']
+        result.observed.columns = ['Observed']
+        decomposeList = [result.trend, result.seasonal, result.resid, result.observed]
 
-    # Select one component for seasonal decompose
-    # REMOVE FOR NOW
-    # log(f'Seasonal component choosen: {seasonal_component}')
-    # for component in decomposeList:
-    #     if (seasonal_component == component.columns[0]):
-    #         y = component
-    #         break
+        # Select one component for seasonal decompose
+        # REMOVE FOR NOW
+        # log(f'Seasonal component choosen: {seasonal_component}')
+        # for component in decomposeList:
+        #     if (seasonal_component == component.columns[0]):
+        #         y = component
+        #         break
+        toc = time.time()
+        log(f"{toc-tic:0.3f} seconds - Seasonal and Trend decomposition using Loess (STL) Decomposition has finished.") 
+    elif mode=='emd' or mode=='eemd' or mode=='vmd' or mode=='ceemdan':
+        decomposeList = emd_decompose(y_, Nmodes=Nmodes, dataset_name=DATASET_NAME, mode=mode)
+    elif mode=='none':
+        decomposeList = [y_]
 
     return decomposeList
 
@@ -411,8 +439,8 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     
     return y_
 
-def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
-    log("XGBoost algorithm has been started")
+def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
+    log("Load Forecasting algorithm has been started")
     start_time_xgboost = time.time()
     
     # from sklearn.preprocessing import MinMaxScaler
@@ -504,7 +532,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
 #                                        reg_lambda=0.01,
 #                                        subsample=0.95,
 #                                        seed=42)
-            # Best configuration so far: knn, cart, rf, gbr; metalearner=ARDR
+            # Best configuration so far: gbr; metalearner=ARDR
             regressors = list()
 #            regressors.append(('xgboost', xgboost.XGBRegressor()))
 #            regressors.append(('knn', KNeighborsRegressor()))
@@ -681,7 +709,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
                 size=12)
             ))
             fig.show()
-            fig.write_image(file=path+'/results/xgboost_k-fold_crossvalidation.svg', width=921, height=618)
+            fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf', width=921, height=618)
 
             # Print the results: average per fold
             results[r].printResults()
@@ -727,11 +755,12 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
 #            early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
 
             regressors = list()
-            regressors.append(('xgboost', xgboost.XGBRegressor()))
-            regressors.append(('knn', KNeighborsRegressor()))
-            regressors.append(('cart', DecisionTreeRegressor()))
-            regressors.append(('rf', RandomForestRegressor()))
-            regressors.append(('svm', svm.SVR()))
+#            regressors.append(('xgboost', xgboost.XGBRegressor()))
+#            regressors.append(('knn', KNeighborsRegressor()))
+#            regressors.append(('cart', DecisionTreeRegressor()))
+#            regressors.append(('rf', RandomForestRegressor()))
+#            regressors.append(('svm', svm.SVR()))
+            regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
             # regressors.append(('bayes'  , linear_model.BayesianRidge()))
             # regressors.append(('lasso', linear_model.LassoLars()))
@@ -741,8 +770,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
             # regressors.append(('linear', linear_model.LinearRegression()))
             
             # define meta learner model
-#            meta_learner = xgboost.XGBRegressor()
-            meta_learner = LinearRegression()
+            meta_learner = linear_model.ARDRegression()
             
 #            model.add(regressors)
 #            model.add_meta(meta_learner)
@@ -770,6 +798,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
                                         reg_lambda=params['reg_lambda'],
                                         subsample=params['subsample'],
                                         seed=42)
+            
 #        for model in regressors:
         model.fit(X_train, y_train.values.ravel())
         y_pred = model.predict(X_test)
@@ -783,7 +812,7 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
             #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
             plt.plot(df,y, label = f'Real data - {y.columns[0]}')
             plt.plot(df2,y_pred, label = f'Predicted data - {y.columns[0]}')
-            plt.title('Prediction - XGBoost')
+            plt.title('Prediction - Ensemble')
             plt.legend()
             plt.savefig(path+'/results/pred_vs_real.png')
             plt.show()
@@ -829,66 +858,221 @@ def xgboostCalc(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=1
         #     else:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
         #     ax.figure.show()
-        log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
+        log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
 
-    return y_pred, testSize
-    log("\n--- \t{:0.3f} seconds --- XGBoost ".format(time.time() - start_time_xgboost)) 
+    return y_pred, testSize, kfoldPred
+    log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
     
 
 def composeSeasonal(decomposePred, model='additive'):
-    if model == 'additive':
-        finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
-    elif model == 'multiplicative':
-        finalPred = decomposePred[0] * decomposePred[1] * decomposePred[2]
+    if not CROSSVALIDATION:
+        if model == 'additive':
+            finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
+        elif model == 'multiplicative':
+            finalPred = decomposePred[0] * decomposePred[1] * decomposePred[2]
+        elif model=='emd' or model=='eemd' or model=='vmd' or model=='ceemdan':
+            finalPred = sum(decomposePred)
+        elif model=='none':
+            finalPred = decomposePred[0]
+    else:
+        if model=='none':
+            finalPred = decomposePred[0]
+        else:
+            finalPred = [sum(x) for x in zip(*decomposePred)]
     return finalPred
 
 
 def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
-    if dataset_name.find('ONS') != -1:
-        y_ = y_.drop(["SUBSYSTEM"], axis=1)
-        
-    # LabelEncoder + BoxCox
-#    le_y = preprocessing.LabelEncoder()
-#    y_ = le_y.fit_transform(y_.values.ravel())
-#    y_, lambda_boxcox = stats.boxcox(y_+1)
-#    y_ = pd.DataFrame({'DEMAND':y_})
-    X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
-    # Prepare for plotting
-    rows = X_test.index
-    df2 = df.iloc[rows[0]:]
-    
-    if plot:
-        plt.figure()
-        #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
-        try:
-            plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
-            plt.plot(df2,y_pred, label = f'Predicted data - {y_.columns[0]}')
-        except AttributeError:
-            plt.plot(df,y_, label = f'Real data - {y_.name}')
-            plt.plot(df2,y_pred, label = f'Predicted data - {y_.name}')
-        plt.title('Prediction - XGBoost')
-        plt.legend()
-        plt.savefig(path+'/results/pred_vs_real.png')
-        plt.show()
-    
-    r2test = r2_score(y_test, y_pred)
-    log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
-    n = len(X_test)
-    p = X_test.shape[1]
-    adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
-    log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
-    
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    log("RMSE: %f" % (rmse))
-    
-    mae = mean_absolute_error(y_test, y_pred)
-    log("MAE: %f" % (mae))
-    
-    mape = mean_absolute_percentage_error(y_test.to_numpy(), y_pred)
-    log("MAPE: %.2f%%" % (mape))
 
-    smape = symmetric_mape(y_test.to_numpy(), y_pred)
-    log("sMAPE: %.2f%%" % (smape))
+    if not CROSSVALIDATION:
+        if len(y_pred.shape) > 1:
+            if y_pred.shape[1]==1:
+                y_pred = y_pred.reshape(y_pred.shape[0])
+            elif y_pred.shape[0]==1:
+                y_pred = y_pred.reshape(y_pred.shape[1])
+        if dataset_name.find('ONS') != -1:
+            try:
+                y_ = y_.drop(["SUBSYSTEM"], axis=1)
+            except (AttributeError,KeyError) as e:
+                pass
+            
+        X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
+        # Prepare for plotting
+        rows = X_test.index
+        df2 = df.iloc[rows[0]:]
+        
+        if plot:
+            plt.figure()
+            #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+            try:
+                plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
+                plt.plot(df2,y_pred, label = f'Predicted data - {y_.columns[0]}')
+    #        except AttributeError:
+    #            plt.plot(df,y_, label = f'Real data - {y_.name}')
+    #            plt.plot(df2,y_pred, label = f'Predicted data - {y_.name}')
+            except AttributeError:
+                plt.plot(df,y_, label = f'Real data')
+                plt.plot(df2,y_pred, label = f'Predicted data')
+            plt.title('Prediction - Ensemble')
+            plt.legend()
+            plt.savefig(path+'/results/pred_vs_real.png')
+            plt.show()
+        
+        r2test = r2_score(y_test, y_pred)
+        log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+        n = len(X_test)
+        p = X_test.shape[1]
+        adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
+        log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+        
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        log("RMSE: %f" % (rmse))
+        
+        mae = mean_absolute_error(y_test, y_pred)
+        log("MAE: %f" % (mae))
+        
+        try:
+            y_test = y_test.values.reshape(y_test.shape[0])
+            mape = mean_absolute_percentage_error(y_test, y_pred)
+            smape = symmetric_mape(y_test, y_pred)
+        except AttributeError:
+            mape = mean_absolute_percentage_error(y_test, y_pred)
+            smape = symmetric_mape(y_test, y_pred)
+        log("MAPE: %.2f%%" % (mape))
+        log("sMAPE: %.2f%%" % (smape))
+        finalResults[i].r2train_per_fold.append(0)
+        finalResults[i].r2test_per_fold.append(r2test)
+        finalResults[i].rmse_per_fold.append(rmse)
+        finalResults[i].mae_per_fold.append(mae)
+        finalResults[i].mape_per_fold.append(mape)
+        finalResults[i].smape_per_fold.append(smape)
+        finalResults[i].name.append("DEMAND")
+
+        finalResults[i].printResults()
+
+    else:
+        # Add real data to plot
+        if plot:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df,
+                                     y=y_.squeeze(),
+                                     name=f'Electricity Demand [MW]',
+                                     mode='lines'))
+            # Edit the layout            
+            fig.update_layout(title=f'{DATASET_NAME} dataset Load Forecasting - Cross-Validation of {KFOLD}-fold',
+                                xaxis_title='Date',
+                                yaxis_title=f'Load [MW]'
+                                )
+        # Change variable name because of lazyness
+        inputs = np.array(X_)
+        targets = np.array(y_)
+
+        # Rest fold number
+        fold_no = 1
+        
+        # Forecast X days
+        test_size = round(FORECASTDAYS*24)
+        train_size = round((len(inputs)/KFOLD) - test_size)
+        
+        # Offset on Forecast window        
+        # offset = test_size*3
+        
+        if OFFSET > 0:
+            log(f'OFFSET has been set by {OFFSET/24} days')
+            # test_size = round((X.shape[0]-OFFSET)/uniqueYears.size/12/2)
+            test_size = round(FORECASTDAYS*24)
+            train_size = round(((len(inputs)-OFFSET)/KFOLD) - test_size)
+    
+
+        train_index = np.arange(0,train_size+OFFSET)
+        test_index = np.arange(train_size+OFFSET, train_size+test_size+OFFSET)
+
+        for i in range(0, KFOLD):
+            finalResults.append(Results())
+            X_train = inputs[train_index]
+            y_train = targets[train_index]
+            try:                
+                X_test = inputs[test_index]
+                y_test = targets[test_index]
+            except IndexError:
+                test_index = np.arange(test_index[0],len(inputs))
+                X_test = inputs[test_index]
+                y_test = targets[test_index]
+
+            # Prepare the plot data
+            rows = test_index
+            # rows = test
+            df2 = df.iloc[rows[0]:rows[-1]+1]
+            # df2.reset_index(drop=True,inplace=True)
+            # df = pd.to_datetime(df)
+            df2 = pd.to_datetime(df2)
+            y_pred[i] = np.float64(y_pred[i])
+            
+            if plot:
+                fig.add_trace(go.Scatter(x=df2,
+                                        y=y_pred[i],
+                                        name='Predicted Load (fold='+str(i+1)+")",
+                                        mode='lines'))
+
+        
+            r2test = r2_score(y_test, y_pred[i])
+#            log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
+#            log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+            n = len(X_test)
+            p = X_test.shape[1]
+            adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
+#            log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+
+            rmse = np.sqrt(mean_squared_error(y_test, y_pred[i]))
+#            log("RMSE: %f" % (rmse))
+
+            mae = mean_absolute_error(y_test, y_pred[i])
+#            log("MAE: %f" % (mae))
+
+            try:
+                y_test = y_test.values.reshape(y_test.shape[0])
+                mape = mean_absolute_percentage_error(y_test, y_pred[i])
+                smape = symmetric_mape(y_test, y_pred[i])
+            except AttributeError:
+                mape = mean_absolute_percentage_error(y_test, y_pred[i])
+                smape = symmetric_mape(y_test, y_pred[i])
+#            log("MAPE: %.2f%%" % (mape))
+#            log("sMAPE: %.2f%%" % (smape))
+            
+            
+            finalResults[0].r2train_per_fold.append(0)
+            finalResults[0].r2test_per_fold.append(r2test)
+            finalResults[0].rmse_per_fold.append(rmse)
+            finalResults[0].mae_per_fold.append(mae)
+            finalResults[0].mape_per_fold.append(mape)
+            finalResults[0].smape_per_fold.append(smape)
+            finalResults[0].name.append(f'kfold_{i}')
+
+            # Increase fold number
+            fold_no = fold_no + 1
+
+            # Increase indexes            
+            # train_index = np.concatenate((train_index, test_index), axis=0)
+            train_index = np.arange(train_index[-1] + 1, train_index[-1] + 1 + train_size + test_size)
+                
+            test_index = test_index + train_size + test_size
+
+        if plot:
+            fig.update_layout(
+                font=dict(size=12),
+                legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                font=dict(
+                size=12)
+            ))
+            fig.show()
+            fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf', width=921, height=618)
+
+        # Print the results: average per fold
+        finalResults[0].printResults()
 
 def test_stationarity(data):
     from statsmodels.tsa.stattools import adfuller
@@ -940,52 +1124,87 @@ def fast_fourier_transform(y_):
         plt.show()
 
 
-def emd_decompose(y_, Nmodes=5, dataset_name='ONS'):
-    log("Empirical Mode Decomposition (EMD) has been started")
-    def do_emd():
-        #% EMD features
-        tic = time.time()
+def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):    
+    if mode=='emd':
+        printName = 'Empirical Mode Decomposition (EMD)'
+    elif mode == 'eemd':
+        printName = 'Extended Empirical Mode Decomposition (EEMD)'
+    elif mode == 'vmd':
+        printName = 'Variational Mode Decomposition (VMD)'
+    elif mode == 'ceemdan':
+        printName = 'Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN)'
+    log(f"{printName} has been started")
+    tic = time.time()  
+    
+    def do_emd():        
         emd = EMD()
         emd.MAX_ITERATION = 2000
         IMFs = emd.emd(y_series, max_imf=Nmodes)
-        toc = time.time()        
+        return IMFs
+    
+    def do_eemd():
+        eemd = EEMD(trials = 200)
+        eemd.MAX_ITERATION = 2000
+        IMFs = eemd(y_series, max_imf=Nmodes)
+        return IMFs
+    
+    def do_vmd():
+        #VMD parameters 
+        alpha = 2000 #      % moderate bandwidth constraint
+        tau = 0       #     % noise-tolerance (no strict fidelity enforcement)
+        init = 1        #  % initialize omegas uniformly
+        tol = 1e-7 #
+        DC = np.mean(y_series)   # no DC part imposed    
+        IMFs = VMD(y_series, alpha, tau, Nmodes, DC, init, tol)
         return IMFs
 
-    if DATASET_NAME.find("ONS") != -1:
-        y_series = np.array(y_)
-        if y_series.shape[1] == 1:
-            y_series = y_series.reshape(y_series.shape[0])
-        elif y_series.shape[0] == 1:
-            y_series = y_series.reshape(y_series.shape[1])
-            IMFs = do_emd()
-    else:
-        y_series = np.array(y_)
+    def do_ceemdan():
+        # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
+        from PyEMD import CEEMDAN
+        ceemdan = CEEMDAN()
+        IMFs = ceemdan(y_series,max_imf = Nmodes)
+        return IMFs
+    
+    y_series = np.array(y_)
+    try:
         if y_series.shape[0] == 1:
             y_series = y_series.reshape(y_series.shape[1])
         elif y_series.shape[1] == 1:
             y_series = y_series.reshape(y_series.shape[0])
+    except IndexError:
+        pass
+    if mode == 'emd':
         IMFs = do_emd()
-
+    elif mode == 'eemd':
+        IMFs = do_eemd()
+    elif mode == 'vmd':
+        IMFs = do_vmd()
+    elif mode == 'ceemdan':
+        IMFs = do_ceemdan ()
+    
+    toc = time.time()
+    log(f"{toc-tic:0.3f} seconds - {printName} has finished.") 
     series_IMFs = []
     for i in range(len(IMFs)):
         series_IMFs.append(pd.DataFrame({f"mode_{i}":IMFs[i]}))
     return series_IMFs
 
 def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastDays=15, dataset_name='ONS'):
-    log("Searching the same period of prediction series...")
+    log("Fetching the same period of prediction series...")
     X_train[X_train['Month'] == X_test['Month']]
     X_train[X_train['Day'] == X_test['Day']]
     X_train[X_train['Hour'] == X_test['Hour']]
+    
 
-def plot_histogram(y_):
-    if plot and False:
+    
+def plot_histogram(y_, xlabel):
+    if plot:
         plt.figure()
         sns.histplot(y_)
         plt.ylabel("Occurrences")
+        if xlabel is not None:
+            plt.xlabel(xlabel)
         plt.legend()
-    #    plt.figure()
-    #    sns.kdeplot(y_.values.ravel())
-    #    plt.legend()
     
 ################
 # MAIN PROGRAM
@@ -998,7 +1217,7 @@ for args in sys.argv:
 import nni
 params = nni.get_next_parameter()     
 # Initial message
-log("Time Series Regression - Load forecasting using xgboost and other algorithms")
+log("Time Series Regression - Load forecasting using ensemble algorithms")
 # Dataset import 
 dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 # Data cleaning and set the input and reference data
@@ -1013,6 +1232,7 @@ for y_ in y_all:
 
 # List of results
 results = []
+finalResults = []
 r = 0 # index
 
 # Initialize fig
@@ -1022,65 +1242,95 @@ i = 0 # index for y_all
 list_IMFs = []
 # fast_fourier_transform(y_all)
 
-
-#y_decoded = le.inverse_transform(encoded)
-
 # Prediction list of different components of decomposition to be assemble in the end
 decomposePred = []
 listOfDecomposePred = []
 for inputs in X_all:
-   y_decomposed_list = decomposeSeasonal(y_all[i], dataset_name=DATASET_NAME)   
-#   for y_decomposed2 in y_decomposed_list:
-#       if y_decomposed2.columns[0].find('Observed') != -1:
-#           y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
-#           break
-   for y_decomposed in y_decomposed_list:
-       results.append(Results()) # Start new Results instance every loop step
+    log("Plot Histogram")
+    plot_histogram(y_all[i], xlabel='Load [MW]')
+    if BOXCOX:
+        log("Shift negative to positive values + offset 1")
+        min_y = min(y_all[i])
+        if min_y <= 0:           
+            y_transf = y_all[i]+abs(min_y)+1
+        else:
+            y_transf = y_all[i]
+        log("Box-Cox transformation + shift neg2pos integer")
+        y_transf, lambda_boxcox = stats.boxcox(y_transf)
+        y_transf = pd.DataFrame({'DEMAND':y_transf})
+        log("Plot Histogram after Box-Cox Transformation")
+        plot_histogram(y_transf, xlabel='Box-Cox')
+    else:
+        y_transf = y_all[i]
+        y_transf = pd.DataFrame({'DEMAND':y_transf})
+    y_decomposed_list = decomposeSeasonal(y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+    # for y_decomposed2 in y_decomposed_list:
+    #     if y_decomposed2.columns[0].find('Observed') != -1:
+    #         y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
+    #         break
+    for y_decomposed in y_decomposed_list:
+        results.append(Results()) # Start new Results instance every loop step
 
-       if y_decomposed.columns[0].find("Observed") == -1:           
-           continue
-#       le_X = preprocessing.LabelEncoder()
-#       inputs = le_X.fit_transform(inputs)
-       # transform training data & save lambda value
-#       if y_decomposed.columns[0].find("Residual") != -1:
-       # Label encoder for only positive numbers
-#       le_y = preprocessing.LabelEncoder()
-#       y_decomposed = le_y.fit_transform(y_decomposed.values.ravel())
-#       save_y = y_decomposed - le_y.inverse_transform(y_decomposed)
-#       plot_histogram(y_decomposed)
-       # Box-Cox transformation + shift 1000 integer
-       y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed.values.ravel())
-       y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
-#       plot_histogram(y_decomposed)
-       y_out, testSize = xgboostCalc(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
-       # Inverse Box-Cox transformation
-#       y_out = special.inv_boxcox(y_out, lambda_boxcox)
-       # Shift -1000
-#       y_out = y_out-1000
-       # Remove label encoder
-#       y_out = y_out - save_y[-len(y_out):]
-#       y_out = le_y.inverse_transform(y_out)
-       decomposePred.append(y_out)
-       r+=1       
-       if enable_nni:
-           break # stop on trend component
+    #       if y_decomposed.columns[0].find("Observed") == -1:           
+    #           continue
+        
+#        # Shift negative to positive values + offset 10
+#        min_y = min(y_decomposed.values)
+#        if min_y <= 0:           
+#            y_decomposed = y_decomposed+abs(min_y)+10
+#        plot_histogram(y_decomposed)
+#        # Box-Cox transformation + shift 1000 integer
+#        y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed.values.ravel())
+#        y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
+#        # Histogram
+#        plot_histogram(y_decomposed, xlabel='Box-Cox')
+        # Load Forecasting
+        y_out, testSize, kfoldPred = loadForecast(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
+#        # Inverse Box-Cox transformation
+#        y_out = special.inv_boxcox(y_out, lambda_boxcox)
+#     
+#        # Restore shifted values from positive to negative + offset -10
+#        if min_y <= 0: 
+#           y_out = y_out - abs(min_y)-10
+        if CROSSVALIDATION:
+            decomposePred.append(kfoldPred)
+        else:
+            decomposePred.append(y_out)
+        r+=1
    
-   if not enable_nni:
-       if not CROSSVALIDATION:
-           # Join all decomposed y predictions
-           y_composed = composeSeasonal(decomposePred)
-           # Print and plot the results
-           plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
-       i+=1
+    if not enable_nni and not CROSSVALIDATION:        
+        log("Join all decomposed y predictions")
+        y_composed = composeSeasonal(decomposePred, model=MODEL)
+        if BOXCOX:
+            log("Inverse Box-Cox transformation")
+            y_composed = special.inv_boxcox(y_composed, lambda_boxcox)         
+            log("Restore shifted values from positive to negative + offset -1")
+            if min_y <= 0: 
+                y_composed = y_composed - abs(min_y)-1
+        log("Print and plot the results")
+        finalResults.append(Results())
+        plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
+
+    i+=1 # y_all[i]
        
-# Publish the results on AutoML nni
+if CROSSVALIDATION:
+    log("Join all decomposed y predictions")
+    y_composed = composeSeasonal(decomposePred, model=MODEL)
+    if BOXCOX:
+        for i in range(len(y_composed)):                    
+            log("Inverse Box-Cox transformation")
+            y_composed[i] = special.inv_boxcox(y_composed[i], lambda_boxcox)         
+            log("Restore shifted values from positive to negative + offset -1")
+            if min_y <= 0: 
+                y_composed[i] = y_composed[i] - abs(min_y)-1
+    log("Print and plot the results")    
+    plotResults(X_=inputs, y_=y_all[0], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
+        
 if enable_nni:
-   if COMPONENT.find('Trend') != -1:
-       r2testResults = results[0].r2test_per_fold # Only for one seasonal component - Trend
-   else:
-       r2testResults = results[3].r2test_per_fold # Observed component
-   r2scoreAvg = np.mean(r2testResults)
-   nni.report_final_result(r2scoreAvg)
+    log("Publish the results on AutoML nni")
+    r2testResults = results[0].r2test_per_fold
+    r2scoreAvg = np.mean(r2testResults)
+    nni.report_final_result(r2scoreAvg)
  
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 

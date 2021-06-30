@@ -12,7 +12,7 @@ import glob
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import os
-
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import seaborn as sns
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(11, 4)})
@@ -178,7 +178,7 @@ plt.show
 #from matplotlib import pyplot as plt
 from statsmodels.tsa.stattools import adfuller
 #from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
@@ -250,12 +250,27 @@ plot_acf(pd.DataFrame(y).diff().diff().dropna(), ax=axes[1], lags=100)
 plt.show()
 
 
+def mean_absolute_percentage_error(y_true, y_pred): 
+    """Calculates MAPE given y_true and y_pred"""
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+def symmetric_mape(y_true, y_pred):
+    return 100 * np.mean(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
+
 
 #from statsmodels.tsa.arima_model import ARIMA
 
 # 1,1,2 ARIMA Model
-model = ARIMA(data, order=(6,0,1))
-model_fit = model.fit(disp=0)
+#freq : str {'B','D','W','M','A', 'Q'}
+#    'B' - business day, ie., Mon. - Fri.
+#    'D' - daily
+#    'W' - weekly
+#    'M' - monthly
+#    'A' - annual
+#    'Q' - quarterly
+model = ARIMA(data, order=(2,1,1))
+model_fit = model.fit()
 print(model_fit.summary())
 
 
@@ -267,42 +282,91 @@ residuals.plot(kind='kde', title='Density', ax=ax[1])
 plt.show()
 
 # Actual vs Fitted
-model_fit.plot_predict(dynamic=False)
-plt.show()
+#model_fit.plot_predict(dynamic=False)
+#plt.show()
 
 
 from statsmodels.tsa.stattools import acf
 
+
+
+# create a differenced series
+def difference(dataset, interval=1):
+	diff = list()
+	for i in range(interval, len(dataset)):
+		value = dataset[i] - dataset[i - interval]
+		diff.append(value)
+	return np.array(diff)
+ 
+# invert differenced value
+def inverse_difference(history, yhat, interval=1):
+	return yhat + history[-interval]
+
+
+data_diff = data.diff().dropna()
+
 # Create Training and Test
 # Splitting the dataset into the Training set and Test set
-train, test = train_test_split(data, test_size = 0.2, random_state = 0, shuffle = False)
+forecastDays = 7
+testSize = forecastDays*24/data.shape[0]
+train, test = train_test_split(data_diff, test_size=testSize, random_state=42, shuffle = False)
 
 
 # Build Model
 # model = ARIMA(train, order=(3,2,1))  
-model = ARIMA(train, order=(3, 0, 2))  
-fitted = model.fit(disp=-1)  
-print(fitted.summary())
+model = ARIMA(train, order=(27, 0, 11))  
+model_fit = model.fit()
+print(model_fit.summary())
 
 # Forecast
-nIndex = test.index.size
-fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
+forecast = model_fit.predict(start=test.index[0], end=test.index[-1])
+
+#forecast_inv = np.concatenate([data.iloc[0].values, forecast]).cumsum()
+
+
+#nIndex = test.index.size
+#fc, se, conf = fitted.forecast(nIndex, alpha=0.05)  # 95% conf
 
 # Make as pandas series
-fc_series = pd.Series(fc, index=test.index[:nIndex])
-lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
-upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
+#fc_series = pd.Series(fc, index=test.index[:nIndex])
+#lower_series = pd.Series(conf[:, 0], index=test.index[:nIndex])
+#upper_series = pd.Series(conf[:, 1], index=test.index[:nIndex])
+
+r2test = r2_score(test.values.ravel(), forecast.values.ravel())
+print(f"r2test: {r2test:0.5f}")
+n = len(test)
+p = test.shape[1]
+adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
+print("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+
+rmse = np.sqrt(mean_squared_error(test.values.ravel(), forecast.values.ravel()))
+print("RMSE: %f" % (rmse))
+
+mae = mean_absolute_error(test.values.ravel(), forecast.values.ravel())
+print("MAE: %f" % (mae))
+
+try:
+    y_test = y_test.values.reshape(test.shape[0])
+    mape = mean_absolute_percentage_error(test.values.ravel(), forecast.values.ravel())
+    smape = symmetric_mape(test.values.ravel(), forecast.values.ravel())
+except (AttributeError,ValueError) as e:
+    mape = mean_absolute_percentage_error(test.values.ravel(), forecast.values.ravel())
+    smape = symmetric_mape(test.values.ravel(), forecast.values.ravel())
+print("MAPE: %.2f%%" % (mape))
+print("sMAPE: %.2f%%" % (smape))
 
 # Plot
 plt.figure(figsize=(12,5), dpi=100)
 plt.plot(train, label='training')
 plt.plot(test, label='actual')
-plt.plot(fc_series, label='forecast')
-plt.fill_between(lower_series.index, lower_series, upper_series, 
-                 color='k', alpha=.15)
+plt.plot(forecast, label='forecast')
+#plt.fill_between(lower_series.index, lower_series, upper_series, 
+#                 color='k', alpha=.15)
 plt.title('Forecast vs Actuals')
 plt.legend(loc='upper left', fontsize=8)
 plt.show()
+
+
 
 
 data.hist()
@@ -351,7 +415,7 @@ plt.ylabel('DEMAND')
 #
 #print(model.summary())
 #
-from statsmodels.tsa.arima_model import SARIMAX
+from statsmodels.tsa.arima.model import SARIMAX
 import statsmodels.api as sm
 model = sm.tsa.statespace.SARIMAX(train,order=(6,1,6),seasonal_order=(1,0,2,24),
                                   enforce_stationarity=False, enforce_invertibility=False)
