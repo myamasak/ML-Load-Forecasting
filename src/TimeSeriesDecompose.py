@@ -24,7 +24,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from scipy import stats, special
 from Results import Results
 import sys
-from PyEMD import EMD, EEMD
+from PyEMD import EMD, EEMD, CEEMDAN
 from vmdpy import VMD
 import ewtpy
 from sklearn import linear_model
@@ -33,11 +33,12 @@ from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingReg
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
+from RobustSTL import RobustSTL
 
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-DATASET_NAME = 'ISONewEngland'
+DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves 
@@ -45,12 +46,12 @@ plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
 KFOLD = 24
-OFFSET = 365*24*3
+OFFSET = 24*365*7
 FORECASTDAYS = 15
 NMODES = 5
-MODE = 'eemd'
-MODEL = 'eemd'
-BOXCOX = False
+MODE = 'none'
+MODEL = 'none'
+BOXCOX = True 
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -72,8 +73,9 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
 # Selection of year
-#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
-selectDatasets = ["2015","2016","2017","2018"]
+selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+#selectDatasets = ["2015","2016","2017","2018"]
+#selectDatasets = ["2015"]
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
 log(f"CrossValidation: {CROSSVALIDATION}")
@@ -98,7 +100,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
     # Save all files in the folder
     if dataset_name.find('ONS') != -1:
-        filename = glob.glob(path + r'/datasets/ONS/*allregions*.csv')
+        filename = glob.glob(path + r'/datasets/ONS/*south*.csv')
         filename = filename[0].replace('\\','/')
         dataset = pd.read_csv(filename,index_col=None, header=0, delimiter=";")
         # Select only selected data
@@ -125,7 +127,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
         dataset['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
         dataset = dataset.sort_values(by='DATE', ascending=True)
     
-#    dataset = dataset.iloc[:-24*60,:]
+    dataset = dataset.iloc[:-24*60,:]
     return dataset
 
 def dataCleaning(dataset, dataset_name='ONS'):
@@ -135,7 +137,10 @@ def dataCleaning(dataset, dataset_name='ONS'):
     if dataset_name.find('ONS') != -1:
         X = X.drop(['DEMAND'], axis=1)
     elif dataset_name.find('ISONewEngland') != -1:
-        X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+        try:
+            X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad','RegSP','RegCP'], axis=1)
+        except KeyError:
+            X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','RT_LMP','RT_EC','RT_CC','RT_MLC','SYSLoad'], axis=1)
         # Drop additional unused columns/features
         for columnNames in X.columns:
             if(columnNames.find("5min") != -1):
@@ -174,7 +179,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, holiday_bridge=False, dataset_name='ONS'):
+def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -325,8 +330,14 @@ def decomposeSeasonal(y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
         #         break
         toc = time.time()
         log(f"{toc-tic:0.3f} seconds - Seasonal and Trend decomposition using Loess (STL) Decomposition has finished.") 
-    elif mode=='emd' or mode=='eemd' or mode=='vmd' or mode=='ceemdan':
+    elif mode=='emd' or mode=='eemd' or mode=='vmd' or mode=='ceemdan' or mode=='ewt':
         decomposeList = emd_decompose(y_, Nmodes=Nmodes, dataset_name=DATASET_NAME, mode=mode)
+    elif mode=='robust-stl':        
+        decomposeList = RobustSTL(y_.values.ravel(), 50, reg1=10.0, reg2= 0.5, K=2, H=5, dn1=1., dn2=1., ds1=50., ds2=1.)
+        labels = ['Observed','Trend','Seasonal','Remainder']
+        for i in range(len(decomposeList)):
+            decomposeList[i] = pd.DataFrame({labels[i]:decomposeList[i]})
+
     elif mode=='none':
         decomposeList = [y_]
 
@@ -449,9 +460,11 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
     # X_ = sc.fit_transform(X_)
     
     global df, fig
+    kfoldPred = []
     # Plot 
     if plot:
-        fig = go.Figure()
+        # fig = go.Figure()
+        plt.figure()
     
     # Drop subsystem and date columns
     if dataset_name.find('ONS') != -1:
@@ -510,15 +523,19 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 
         # Add real data to plot
         if plot:
-            fig.add_trace(go.Scatter(x=df,
-                                        y=y.squeeze(),
-                                        name=f'Electricity Demand [MW] - {y.columns[0]}',
-                                        mode='lines'))
-            # Edit the layout            
-            fig.update_layout(title=f'{dataset_name} dataset Load Forecasting - Cross-Validation of {kfold}-fold',
-                                xaxis_title='DATE',
-                                yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
-                                )
+            # fig.add_trace(go.Scatter(x=df,
+            #                             y=y.squeeze(),
+            #                             name=f'Electricity Demand [MW] - {y.columns[0]}',
+            #                             mode='lines'))
+            # # Edit the layout            
+            # fig.update_layout(title=f'{dataset_name} dataset Load Forecasting - Cross-Validation of {kfold}-fold',
+            #                     xaxis_title='DATE',
+            #                     yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
+            #                     )
+            plt.title(f'Electricity Prediction [MW] - {y.columns[0]}')
+            plt.ylabel(f'Load [MW] - {y.columns[0]}')
+            plt.xlabel(f'Date')
+            plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
         
         if not enable_nni:
 #            model = xgboost.XGBRegressor()
@@ -573,7 +590,17 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
         
 #            model = VotingRegressor(estimators=regressors)
 #            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
-            model = StackingRegressor(estimators=regressors, n_jobs=-1, final_estimator=meta_learner)
+            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            if y.columns[0].find('mode_0') != -1:
+                # Best configuration so far: gbr; metalearner=ARDR
+                regressors = list()
+#                regressors.append(('xgboost', xgboost.XGBRegressor()))
+                regressors.append(('knn', KNeighborsRegressor()))
+#                regressors.append(('cart', DecisionTreeRegressor()))
+#                regressors.append(('rf', RandomForestRegressor()))
+#                regressors.append(('svr', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+                meta_learner = linear_model.ARDRegression() # 0.88415
+                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
 
    
         else:
@@ -590,7 +617,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                                         seed=42)
 
         i=0
-        kfoldPred = []
+        
         for i in range(0, kfold):
             X_train = inputs[train_index]
             y_train = targets[train_index]
@@ -623,10 +650,11 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             y_pred = np.float64(y_pred)
             
             if plot:
-                fig.add_trace(go.Scatter(x=df2,
-                                        y=y_pred,
-                                        name='Predicted Load (fold='+str(i+1)+")",
-                                        mode='lines'))
+                # fig.add_trace(go.Scatter(x=df2,
+                #                         y=y_pred,
+                #                         name='Predicted Load (fold='+str(i+1)+")",
+                #                         mode='lines'))
+                plt.plot(df2, y_pred, label='Predicted Load (fold='+str(i+1)+")")
 
         
 
@@ -698,18 +726,22 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             test_index = test_index + train_size + test_size
 
         if plot:
-            fig.update_layout(
-                font=dict(size=12),
-                legend=dict(
-                yanchor="top",
-                y=0.99,
-                xanchor="left",
-                x=0.01,
-                font=dict(
-                size=12)
-            ))
-            fig.show()
-            fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf', width=921, height=618)
+            # fig.update_layout(
+            #     font=dict(size=12),
+            #     legend=dict(
+            #     yanchor="top",
+            #     y=0.99,
+            #     xanchor="left",
+            #     x=0.01,
+            #     font=dict(
+            #     size=12)
+            # ))
+            # fig.show()
+            # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+            plt.rcParams.update({'font.size': 14})
+            plt.legend()
+            plt.show()
+            plt.savefig(path+'/results/loadForecast_k-fold_crossvalidation.pdf')
 
             # Print the results: average per fold
             results[r].printResults()
@@ -864,19 +896,23 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
     log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
     
 
-def composeSeasonal(decomposePred, model='additive'):
+def composeSeasonal(decomposePred, model='stl-a'):
     if not CROSSVALIDATION:
-        if model == 'additive':
+        if model == 'stl-a':
             finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
-        elif model == 'multiplicative':
+        elif model == 'stl-m':
             finalPred = decomposePred[0] * decomposePred[1] * decomposePred[2]
-        elif model=='emd' or model=='eemd' or model=='vmd' or model=='ceemdan':
+        elif model=='emd' or model=='eemd' or model=='vmd' or model=='ceemdan' or model=='ewt':
             finalPred = sum(decomposePred)
         elif model=='none':
             finalPred = decomposePred[0]
+        elif model=='robust-stl':
+            finalPred = decomposePred[1] + decomposePred[2] + decomposePred[3]
     else:
         if model=='none':
             finalPred = decomposePred[0]
+        elif model=='robust-stl':
+            finalPred = decomposePred[1] + decomposePred[2] + decomposePred[3]
         else:
             finalPred = [sum(x) for x in zip(*decomposePred)]
     return finalPred
@@ -940,29 +976,35 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             smape = symmetric_mape(y_test, y_pred)
         log("MAPE: %.2f%%" % (mape))
         log("sMAPE: %.2f%%" % (smape))
-        finalResults[i].r2train_per_fold.append(0)
-        finalResults[i].r2test_per_fold.append(r2test)
-        finalResults[i].rmse_per_fold.append(rmse)
-        finalResults[i].mae_per_fold.append(mae)
-        finalResults[i].mape_per_fold.append(mape)
-        finalResults[i].smape_per_fold.append(smape)
-        finalResults[i].name.append("DEMAND")
+        finalResults[0].r2train_per_fold.append(0)
+        finalResults[0].r2test_per_fold.append(r2test)
+        finalResults[0].rmse_per_fold.append(rmse)
+        finalResults[0].mae_per_fold.append(mae)
+        finalResults[0].mape_per_fold.append(mape)
+        finalResults[0].smape_per_fold.append(smape)
+        finalResults[0].name.append("DEMAND")
 
-        finalResults[i].printResults()
+        finalResults[0].printResults()
 
     else:
         # Add real data to plot
         if plot:
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=df,
-                                     y=y_.squeeze(),
-                                     name=f'Electricity Demand [MW]',
-                                     mode='lines'))
-            # Edit the layout            
-            fig.update_layout(title=f'{DATASET_NAME} dataset Load Forecasting - Cross-Validation of {KFOLD}-fold',
-                                xaxis_title='Date',
-                                yaxis_title=f'Load [MW]'
-                                )
+            # fig = go.Figure()
+            # fig.add_trace(go.Scatter(x=df,
+            #                          y=y_.squeeze(),
+            #                          name=f'Electricity Demand [MW]',
+            #                          mode='lines'))
+            # # Edit the layout            
+            # fig.update_layout(title=f'{DATASET_NAME} dataset Load Forecasting - Cross-Validation of {KFOLD}-fold',
+            #                     xaxis_title='Date',
+            #                     yaxis_title=f'Load [MW]'
+            #                     )
+            plt.figure()
+            plt.title(f'{DATASET_NAME} dataset Load Forecasting - Cross-Validation of {KFOLD}-fold')
+            plt.xlabel('Date')
+            plt.ylabel('Load [MW]')
+            plt.plot(df, y_.squeeze(), color='darkgray', label=f'Electricity Demand [MW]')
+            
         # Change variable name because of lazyness
         inputs = np.array(X_)
         targets = np.array(y_)
@@ -1009,10 +1051,11 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             y_pred[i] = np.float64(y_pred[i])
             
             if plot:
-                fig.add_trace(go.Scatter(x=df2,
-                                        y=y_pred[i],
-                                        name='Predicted Load (fold='+str(i+1)+")",
-                                        mode='lines'))
+                # fig.add_trace(go.Scatter(x=df2,
+                #                         y=y_pred[i],
+                #                         name='Predicted Load (fold='+str(i+1)+")",
+                #                         mode='lines'))
+                plt.plot(df2, y_pred[i], label='Predicted Load (fold='+str(i+1)+")")
 
         
             r2test = r2_score(y_test, y_pred[i])
@@ -1058,18 +1101,22 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             test_index = test_index + train_size + test_size
 
         if plot:
-            fig.update_layout(
-                font=dict(size=12),
-                legend=dict(
-                yanchor="top",
-                y=0.99,
-                xanchor="left",
-                x=0.01,
-                font=dict(
-                size=12)
-            ))
-            fig.show()
-            fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf', width=921, height=618)
+            # fig.update_layout(
+            #     font=dict(size=12),
+            #     legend=dict(
+            #     yanchor="top",
+            #     y=0.99,
+            #     xanchor="left",
+            #     x=0.01,
+            #     font=dict(
+            #     size=12)
+            # ))
+            # fig.show()
+            # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+            plt.rcParams.update({'font.size': 14})
+            plt.show()
+            plt.savefig(path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+
 
         # Print the results: average per fold
         finalResults[0].printResults()
@@ -1133,6 +1180,8 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         printName = 'Variational Mode Decomposition (VMD)'
     elif mode == 'ceemdan':
         printName = 'Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN)'
+    elif mode == 'ewt':
+        printName = 'Empirical Wavelet Transform (EWT)'
     log(f"{printName} has been started")
     tic = time.time()  
     
@@ -1160,9 +1209,24 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_ceemdan():
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        from PyEMD import CEEMDAN
         ceemdan = CEEMDAN()
         IMFs = ceemdan(y_series,max_imf = Nmodes)
+        return IMFs
+
+    def do_ewt():
+        # EWT - Empirical Wavelet Transform
+        FFTreg = 'gaussian'
+        FFTregLen = 25
+        gaussSigma = 5        
+        ewt,_,_ = ewtpy.EWT1D(y_series, N = Nmodes, log = 0,
+                        detect = "locmax", 
+                        completion = 0, 
+                        reg = FFTreg, 
+                        lengthFilter = FFTregLen,
+                        sigmaFilter = gaussSigma)
+        IMFs = []
+        for i in range(ewt.shape[1]):
+            IMFs.append(ewt[:,i])        
         return IMFs
     
     y_series = np.array(y_)
@@ -1181,6 +1245,8 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         IMFs = do_vmd()
     elif mode == 'ceemdan':
         IMFs = do_ceemdan ()
+    elif mode == 'ewt':
+        IMFs = do_ewt()
     
     toc = time.time()
     log(f"{toc-tic:0.3f} seconds - {printName} has finished.") 
@@ -1335,6 +1401,13 @@ if enable_nni:
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
 
+
+# trend = pd.concat([df, y_decomposed_list[1]], axis=1)
+# seasonal = pd.concat([df, y_decomposed_list[2]], axis=1)
+# remainder = pd.concat([df, y_decomposed_list[3]], axis=1)
+# trend.to_csv(path+f'/robust-stl_trend_{selectDatasets[0]}.csv', index = None, header=True)
+# seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
+# remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
 
 # Close logging handlers to release the log file
 handlers = logging.getLogger().handlers[:]
