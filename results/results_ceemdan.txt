@@ -1,0 +1,1128 @@
+Dataset: ISONewEngland
+Years: ['2015', '2016', '2017', '2018']
+CrossValidation: True
+KFOLD: 20
+OFFSET: 26280
+FORECASTDAYS: 15
+NMODES: 5
+MODE: ceemdan
+MODEL: ceemdan
+BOXCOX: True
+ALGORITHM: ensemble
+Time Series Regression - Load forecasting using ensemble algorithms
+Dataset import has been started
+Data cleaning function has been started
+
+Feature engineering has been started
+Adding date components (year, month, day, holidays and weekdays) to input data
+Adding bridge days (Mondays / Fridays) to the Holiday column
+Plot Histogram
+No handles with labels found to put in legend.
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+No handles with labels found to put in legend.
+Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN) has been started
+Max iterations reached for IMF. Continuing with another IMF.
+
+896.513 seconds - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN) has finished.
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_0
+Offset has been set by 1095.0 days
+
+------------------------------------------------------------------------
+Score per fold - mode_0
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.81631
+> Fold 1 - r2_score_test: 0.54524
+> Fold 1 - rmse: 0.01440
+> Fold 1 - mae: 0.01079
+> Fold 1 - mape: 335.63248
+> Fold 1 - smape: 139.31558
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.71335
+> Fold 2 - r2_score_test: 0.13060
+> Fold 2 - rmse: 0.02407
+> Fold 2 - mae: 0.02039
+> Fold 2 - mape: 152.56155
+> Fold 2 - smape: 144.39236
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.71319
+> Fold 3 - r2_score_test: 0.39173
+> Fold 3 - rmse: 0.02008
+> Fold 3 - mae: 0.01625
+> Fold 3 - mape: 163.19599
+> Fold 3 - smape: 139.25621
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.69078
+> Fold 4 - r2_score_test: 0.14372
+> Fold 4 - rmse: 0.02342
+> Fold 4 - mae: 0.01923
+> Fold 4 - mape: 364.68360
+> Fold 4 - smape: 142.21258
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: 0.57382
+> Fold 5 - r2_score_test: 0.21116
+> Fold 5 - rmse: 0.01975
+> Fold 5 - mae: 0.01616
+> Fold 5 - mape: 188.05081
+> Fold 5 - smape: 152.56249
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.71496
+> Fold 6 - r2_score_test: 0.31415
+> Fold 6 - rmse: 0.02366
+> Fold 6 - mae: 0.01980
+> Fold 6 - mape: 163.05610
+> Fold 6 - smape: 142.71107
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.68592
+> Fold 7 - r2_score_test: 0.05139
+> Fold 7 - rmse: 0.02319
+> Fold 7 - mae: 0.01889
+> Fold 7 - mape: 419.62236
+> Fold 7 - smape: 142.40931
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.56940
+> Fold 8 - r2_score_test: 0.13292
+> Fold 8 - rmse: 0.02270
+> Fold 8 - mae: 0.01836
+> Fold 8 - mape: 417.86589
+> Fold 8 - smape: 146.21040
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: 0.61830
+> Fold 9 - r2_score_test: 0.23394
+> Fold 9 - rmse: 0.01717
+> Fold 9 - mae: 0.01352
+> Fold 9 - mape: 217.98504
+> Fold 9 - smape: 137.64428
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: 0.69019
+> Fold 10 - r2_score_test: 0.08525
+> Fold 10 - rmse: 0.01270
+> Fold 10 - mae: 0.01029
+> Fold 10 - mape: 561.21543
+> Fold 10 - smape: 136.11169
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: 0.54105
+> Fold 11 - r2_score_test: -0.00292
+> Fold 11 - rmse: 0.01129
+> Fold 11 - mae: 0.00875
+> Fold 11 - mape: 421.29982
+> Fold 11 - smape: 141.02477
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.52857
+> Fold 12 - r2_score_test: 0.05901
+> Fold 12 - rmse: 0.00788
+> Fold 12 - mae: 0.00638
+> Fold 12 - mape: 162.17918
+> Fold 12 - smape: 152.85399
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.31914
+> Fold 13 - r2_score_test: -0.00305
+> Fold 13 - rmse: 0.04493
+> Fold 13 - mae: 0.03793
+> Fold 13 - mape: 102.65733
+> Fold 13 - smape: 185.17809
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.89642
+> Fold 14 - r2_score_test: -2.99646
+> Fold 14 - rmse: 0.03517
+> Fold 14 - mae: 0.03076
+> Fold 14 - mape: 4216.40387
+> Fold 14 - smape: 166.58202
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.26301
+> Fold 15 - r2_score_test: -0.36337
+> Fold 15 - rmse: 0.00757
+> Fold 15 - mae: 0.00545
+> Fold 15 - mape: 579.27487
+> Fold 15 - smape: 148.24335
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.00118
+> Fold 16 - r2_score_test: -0.00358
+> Fold 16 - rmse: 0.00558
+> Fold 16 - mae: 0.00422
+> Fold 16 - mape: 130.50731
+> Fold 16 - smape: 176.54301
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.30557
+> Fold 17 - r2_score_test: -0.00008
+> Fold 17 - rmse: 0.01395
+> Fold 17 - mae: 0.01003
+> Fold 17 - mape: 115.45567
+> Fold 17 - smape: 178.79113
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.27769
+> Fold 18 - r2_score_test: 0.08273
+> Fold 18 - rmse: 0.02173
+> Fold 18 - mae: 0.01888
+> Fold 18 - mape: 113.54137
+> Fold 18 - smape: 172.15566
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: 0.77300
+> Fold 19 - r2_score_test: 0.30274
+> Fold 19 - rmse: 0.02202
+> Fold 19 - mae: 0.01837
+> Fold 19 - mape: 215.44040
+> Fold 19 - smape: 147.57455
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.72638
+> Fold 20 - r2_score_test: 0.18282
+> Fold 20 - rmse: 0.02616
+> Fold 20 - mae: 0.02111
+> Fold 20 - mape: 177.07188
+> Fold 20 - smape: 142.04538
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.57091 (+- 0.22118)
+> r2_score_test: -0.02510 (+- 0.70525)
+> rmse: 0.01987 (+- 0.00914)
+> mae: 0.01628 (+- 0.00804)
+> mape: 460.88505 (+- 873.82361)
+> smape: 151.69090 (+- 14.89875)
+------------------------------------------------------------------------
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_1
+Offset has been set by 1095.0 days
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+Score per fold - mode_1
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.88184
+> Fold 1 - r2_score_test: 0.93253
+> Fold 1 - rmse: 0.00891
+> Fold 1 - mae: 0.00684
+> Fold 1 - mape: 343.99318
+> Fold 1 - smape: 133.67144
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.99014
+> Fold 2 - r2_score_test: 0.87843
+> Fold 2 - rmse: 0.01275
+> Fold 2 - mae: 0.01047
+> Fold 2 - mape: 429.09754
+> Fold 2 - smape: 135.42052
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.98717
+> Fold 3 - r2_score_test: 0.91556
+> Fold 3 - rmse: 0.01060
+> Fold 3 - mae: 0.00858
+> Fold 3 - mape: 455.12433
+> Fold 3 - smape: 135.27074
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.98349
+> Fold 4 - r2_score_test: 0.71335
+> Fold 4 - rmse: 0.02013
+> Fold 4 - mae: 0.01491
+> Fold 4 - mape: 436.14767
+> Fold 4 - smape: 136.46932
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: 0.92245
+> Fold 5 - r2_score_test: 0.68350
+> Fold 5 - rmse: 0.01938
+> Fold 5 - mae: 0.01586
+> Fold 5 - mape: 253.46925
+> Fold 5 - smape: 140.60533
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.85693
+> Fold 6 - r2_score_test: 0.45215
+> Fold 6 - rmse: 0.02249
+> Fold 6 - mae: 0.01655
+> Fold 6 - mape: 480.93307
+> Fold 6 - smape: 143.18780
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.94521
+> Fold 7 - r2_score_test: 0.45764
+> Fold 7 - rmse: 0.02538
+> Fold 7 - mae: 0.01990
+> Fold 7 - mape: 240.64343
+> Fold 7 - smape: 140.18310
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.87000
+> Fold 8 - r2_score_test: 0.49902
+> Fold 8 - rmse: 0.02824
+> Fold 8 - mae: 0.02291
+> Fold 8 - mape: 230.79040
+> Fold 8 - smape: 134.91478
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: 0.87168
+> Fold 9 - r2_score_test: 0.67711
+> Fold 9 - rmse: 0.02925
+> Fold 9 - mae: 0.02510
+> Fold 9 - mape: 468.48981
+> Fold 9 - smape: 142.64194
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: 0.97670
+> Fold 10 - r2_score_test: 0.79079
+> Fold 10 - rmse: 0.02530
+> Fold 10 - mae: 0.02019
+> Fold 10 - mape: 424.80900
+> Fold 10 - smape: 134.84379
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: 0.94578
+> Fold 11 - r2_score_test: 0.73818
+> Fold 11 - rmse: 0.02662
+> Fold 11 - mae: 0.01981
+> Fold 11 - mape: 285.37624
+> Fold 11 - smape: 130.94028
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.96248
+> Fold 12 - r2_score_test: 0.87638
+> Fold 12 - rmse: 0.02303
+> Fold 12 - mae: 0.01927
+> Fold 12 - mape: 259.95935
+> Fold 12 - smape: 130.34236
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.98635
+> Fold 13 - r2_score_test: -0.59417
+> Fold 13 - rmse: 0.04372
+> Fold 13 - mae: 0.03749
+> Fold 13 - mape: 1571.77041
+> Fold 13 - smape: 148.33986
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.92695
+> Fold 14 - r2_score_test: 0.37696
+> Fold 14 - rmse: 0.04649
+> Fold 14 - mae: 0.04053
+> Fold 14 - mape: 124.02523
+> Fold 14 - smape: 153.36904
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.98838
+> Fold 15 - r2_score_test: 0.86179
+> Fold 15 - rmse: 0.02359
+> Fold 15 - mae: 0.01927
+> Fold 15 - mape: 557.90854
+> Fold 15 - smape: 133.03663
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.98486
+> Fold 16 - r2_score_test: 0.86850
+> Fold 16 - rmse: 0.02259
+> Fold 16 - mae: 0.01863
+> Fold 16 - mape: 200.41607
+> Fold 16 - smape: 131.49075
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.99594
+> Fold 17 - r2_score_test: 0.92322
+> Fold 17 - rmse: 0.01685
+> Fold 17 - mae: 0.01231
+> Fold 17 - mape: 388.87599
+> Fold 17 - smape: 129.74688
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.98960
+> Fold 18 - r2_score_test: 0.90433
+> Fold 18 - rmse: 0.01651
+> Fold 18 - mae: 0.01329
+> Fold 18 - mape: 670.58159
+> Fold 18 - smape: 133.91378
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: 0.99050
+> Fold 19 - r2_score_test: 0.96327
+> Fold 19 - rmse: 0.00988
+> Fold 19 - mae: 0.00786
+> Fold 19 - mape: 426.89338
+> Fold 19 - smape: 134.57886
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.99398
+> Fold 20 - r2_score_test: 0.72900
+> Fold 20 - rmse: 0.01944
+> Fold 20 - mae: 0.01272
+> Fold 20 - mape: 351.60757
+> Fold 20 - smape: 136.91714
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.95252 (+- 0.04653)
+> r2_score_test: 0.68238 (+- 0.34088)
+> rmse: 0.02256 (+- 0.00952)
+> mae: 0.01812 (+- 0.00851)
+> mape: 430.04560 (+- 291.61260)
+> smape: 136.99422 (+- 5.96128)
+------------------------------------------------------------------------
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_2
+Offset has been set by 1095.0 days
+------------------------------------------------------------------------
+
+Score per fold - mode_2
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.15761
+> Fold 1 - r2_score_test: -0.99308
+> Fold 1 - rmse: 0.00311
+> Fold 1 - mae: 0.00247
+> Fold 1 - mape: 1440.93884
+> Fold 1 - smape: 151.77376
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: -0.35928
+> Fold 2 - r2_score_test: -0.02880
+> Fold 2 - rmse: 0.00391
+> Fold 2 - mae: 0.00267
+> Fold 2 - mape: 191.91829
+> Fold 2 - smape: 159.02337
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: -0.01575
+> Fold 3 - r2_score_test: 0.00046
+> Fold 3 - rmse: 0.00692
+> Fold 3 - mae: 0.00551
+> Fold 3 - mape: 103.16971
+> Fold 3 - smape: 191.69736
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.26862
+> Fold 4 - r2_score_test: 0.01347
+> Fold 4 - rmse: 0.01731
+> Fold 4 - mae: 0.01145
+> Fold 4 - mape: 1995.49698
+> Fold 4 - smape: 176.42459
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: -0.26305
+> Fold 5 - r2_score_test: -0.07075
+> Fold 5 - rmse: 0.01674
+> Fold 5 - mae: 0.01216
+> Fold 5 - mape: 151.58114
+> Fold 5 - smape: 163.94727
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: -1.09801
+> Fold 6 - r2_score_test: -0.74608
+> Fold 6 - rmse: 0.01637
+> Fold 6 - mae: 0.01065
+> Fold 6 - mape: 164634.05970
+> Fold 6 - smape: 174.03558
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.02642
+> Fold 7 - r2_score_test: 0.00463
+> Fold 7 - rmse: 0.02191
+> Fold 7 - mae: 0.01694
+> Fold 7 - mape: 174.93951
+> Fold 7 - smape: 192.54080
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.11809
+> Fold 8 - r2_score_test: 0.01593
+> Fold 8 - rmse: 0.01936
+> Fold 8 - mae: 0.01661
+> Fold 8 - mape: 106.38794
+> Fold 8 - smape: 185.40285
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: -0.14939
+> Fold 9 - r2_score_test: -0.00383
+> Fold 9 - rmse: 0.01460
+> Fold 9 - mae: 0.00988
+> Fold 9 - mape: 265.97817
+> Fold 9 - smape: 169.25208
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: -0.29528
+> Fold 10 - r2_score_test: -0.01313
+> Fold 10 - rmse: 0.02334
+> Fold 10 - mae: 0.01752
+> Fold 10 - mape: 1862.92421
+> Fold 10 - smape: 180.26063
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: 0.05275
+> Fold 11 - r2_score_test: -0.00268
+> Fold 11 - rmse: 0.02728
+> Fold 11 - mae: 0.01950
+> Fold 11 - mape: 2532.43781
+> Fold 11 - smape: 174.02830
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.36789
+> Fold 12 - r2_score_test: -0.01641
+> Fold 12 - rmse: 0.01606
+> Fold 12 - mae: 0.01141
+> Fold 12 - mape: 1505.79598
+> Fold 12 - smape: 169.44379
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.00000
+> Fold 13 - r2_score_test: -0.00897
+> Fold 13 - rmse: 0.00284
+> Fold 13 - mae: 0.00239
+> Fold 13 - mape: 130.76297
+> Fold 13 - smape: 170.48723
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.38513
+> Fold 14 - r2_score_test: 0.05543
+> Fold 14 - rmse: 0.00336
+> Fold 14 - mae: 0.00194
+> Fold 14 - mape: 812.82177
+> Fold 14 - smape: 156.93954
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.23993
+> Fold 15 - r2_score_test: 0.00304
+> Fold 15 - rmse: 0.01836
+> Fold 15 - mae: 0.01572
+> Fold 15 - mape: 110.03300
+> Fold 15 - smape: 185.90765
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.44609
+> Fold 16 - r2_score_test: -0.86797
+> Fold 16 - rmse: 0.01052
+> Fold 16 - mae: 0.00840
+> Fold 16 - mape: 261.40799
+> Fold 16 - smape: 138.74232
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.48909
+> Fold 17 - r2_score_test: -0.16488
+> Fold 17 - rmse: 0.00514
+> Fold 17 - mae: 0.00404
+> Fold 17 - mape: 683.99091
+> Fold 17 - smape: 151.96737
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.00000
+> Fold 18 - r2_score_test: -0.01441
+> Fold 18 - rmse: 0.00365
+> Fold 18 - mae: 0.00255
+> Fold 18 - mape: 262.50747
+> Fold 18 - smape: 161.74472
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: -0.29228
+> Fold 19 - r2_score_test: -0.05864
+> Fold 19 - rmse: 0.00322
+> Fold 19 - mae: 0.00229
+> Fold 19 - mape: 683.25003
+> Fold 19 - smape: 160.89624
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.17940
+> Fold 20 - r2_score_test: 0.00526
+> Fold 20 - rmse: 0.01565
+> Fold 20 - mae: 0.00944
+> Fold 20 - mape: 282.28882
+> Fold 20 - smape: 174.78066
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.01290 (+- 0.35509)
+> r2_score_test: -0.14457 (+- 0.30976)
+> rmse: 0.01248 (+- 0.00769)
+> mae: 0.00918 (+- 0.00580)
+> mape: 8909.63456 (+- 35733.02109)
+> smape: 169.46481 (+- 13.74701)
+------------------------------------------------------------------------
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_3
+Offset has been set by 1095.0 days
+------------------------------------------------------------------------
+
+Score per fold - mode_3
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.15709
+> Fold 1 - r2_score_test: -0.05949
+> Fold 1 - rmse: 0.00818
+> Fold 1 - mae: 0.00653
+> Fold 1 - mape: 330.66031
+> Fold 1 - smape: 151.60652
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.00000
+> Fold 2 - r2_score_test: -0.00052
+> Fold 2 - rmse: 0.01575
+> Fold 2 - mae: 0.01408
+> Fold 2 - mape: 124.08191
+> Fold 2 - smape: 165.19548
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.32519
+> Fold 3 - r2_score_test: 0.18665
+> Fold 3 - rmse: 0.01206
+> Fold 3 - mae: 0.00993
+> Fold 3 - mape: 164.07317
+> Fold 3 - smape: 157.93133
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.80238
+> Fold 4 - r2_score_test: -0.09491
+> Fold 4 - rmse: 0.01317
+> Fold 4 - mae: 0.01022
+> Fold 4 - mape: 175.27850
+> Fold 4 - smape: 159.82626
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: -0.00224
+> Fold 5 - r2_score_test: -0.00296
+> Fold 5 - rmse: 0.01404
+> Fold 5 - mae: 0.01245
+> Fold 5 - mape: 100.01894
+> Fold 5 - smape: 198.70104
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.47875
+> Fold 6 - r2_score_test: -0.16390
+> Fold 6 - rmse: 0.01341
+> Fold 6 - mae: 0.00938
+> Fold 6 - mape: 1116.32308
+> Fold 6 - smape: 152.58738
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.01162
+> Fold 7 - r2_score_test: -0.00583
+> Fold 7 - rmse: 0.01360
+> Fold 7 - mae: 0.01063
+> Fold 7 - mape: 119.35209
+> Fold 7 - smape: 182.75825
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: -0.31043
+> Fold 8 - r2_score_test: 0.01750
+> Fold 8 - rmse: 0.00739
+> Fold 8 - mae: 0.00578
+> Fold 8 - mape: 4102.55310
+> Fold 8 - smape: 153.59638
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: -0.81731
+> Fold 9 - r2_score_test: -0.03602
+> Fold 9 - rmse: 0.01417
+> Fold 9 - mae: 0.01231
+> Fold 9 - mape: 141.46892
+> Fold 9 - smape: 154.75921
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: -0.08308
+> Fold 10 - r2_score_test: -0.01464
+> Fold 10 - rmse: 0.01627
+> Fold 10 - mae: 0.01173
+> Fold 10 - mape: 158.61760
+> Fold 10 - smape: 169.31496
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: -0.87339
+> Fold 11 - r2_score_test: -0.18131
+> Fold 11 - rmse: 0.01510
+> Fold 11 - mae: 0.01139
+> Fold 11 - mape: 178.45077
+> Fold 11 - smape: 138.10846
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: -0.58512
+> Fold 12 - r2_score_test: -0.10697
+> Fold 12 - rmse: 0.01479
+> Fold 12 - mae: 0.01241
+> Fold 12 - mape: 152.86896
+> Fold 12 - smape: 164.21045
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.20193
+> Fold 13 - r2_score_test: 0.01102
+> Fold 13 - rmse: 0.02626
+> Fold 13 - mae: 0.02213
+> Fold 13 - mape: 119.23744
+> Fold 13 - smape: 168.69056
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.39307
+> Fold 14 - r2_score_test: 0.14127
+> Fold 14 - rmse: 0.01434
+> Fold 14 - mae: 0.01269
+> Fold 14 - mape: 130.77871
+> Fold 14 - smape: 162.55860
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.00000
+> Fold 15 - r2_score_test: -0.00139
+> Fold 15 - rmse: 0.01194
+> Fold 15 - mae: 0.00993
+> Fold 15 - mape: 110.89107
+> Fold 15 - smape: 185.00910
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.28330
+> Fold 16 - r2_score_test: -0.04757
+> Fold 16 - rmse: 0.01535
+> Fold 16 - mae: 0.01199
+> Fold 16 - mape: 118.20283
+> Fold 16 - smape: 165.70385
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.87062
+> Fold 17 - r2_score_test: -0.24125
+> Fold 17 - rmse: 0.02372
+> Fold 17 - mae: 0.01912
+> Fold 17 - mape: 268.34352
+> Fold 17 - smape: 131.08579
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.64177
+> Fold 18 - r2_score_test: 0.03344
+> Fold 18 - rmse: 0.01248
+> Fold 18 - mae: 0.00997
+> Fold 18 - mape: 855.02023
+> Fold 18 - smape: 139.66280
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: 0.70259
+> Fold 19 - r2_score_test: -1.34146
+> Fold 19 - rmse: 0.01341
+> Fold 19 - mae: 0.01142
+> Fold 19 - mape: 4152.31799
+> Fold 19 - smape: 155.72875
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.00000
+> Fold 20 - r2_score_test: -0.08579
+> Fold 20 - rmse: 0.01270
+> Fold 20 - mae: 0.00982
+> Fold 20 - mape: 284.63419
+> Fold 20 - smape: 162.04895
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.10984 (+- 0.47842)
+> r2_score_test: -0.09971 (+- 0.30084)
+> rmse: 0.01441 (+- 0.00415)
+> mae: 0.01169 (+- 0.00357)
+> mape: 645.15867 (+- 1188.33821)
+> smape: 160.95421 (+- 15.52183)
+------------------------------------------------------------------------
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_4
+Offset has been set by 1095.0 days
+------------------------------------------------------------------------
+
+Score per fold - mode_4
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.45925
+> Fold 1 - r2_score_test: 0.14860
+> Fold 1 - rmse: 0.01539
+> Fold 1 - mae: 0.01335
+> Fold 1 - mape: 242.76633
+> Fold 1 - smape: 151.07363
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.85873
+> Fold 2 - r2_score_test: -0.10775
+> Fold 2 - rmse: 0.02435
+> Fold 2 - mae: 0.01992
+> Fold 2 - mape: 228.04625
+> Fold 2 - smape: 143.81646
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.75244
+> Fold 3 - r2_score_test: 0.27577
+> Fold 3 - rmse: 0.01622
+> Fold 3 - mae: 0.01301
+> Fold 3 - mape: 302.77062
+> Fold 3 - smape: 137.09506
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.64770
+> Fold 4 - r2_score_test: -0.05669
+> Fold 4 - rmse: 0.01068
+> Fold 4 - mae: 0.00837
+> Fold 4 - mape: 209.97327
+> Fold 4 - smape: 149.47310
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: 0.74208
+> Fold 5 - r2_score_test: -0.55569
+> Fold 5 - rmse: 0.01190
+> Fold 5 - mae: 0.00945
+> Fold 5 - mape: 469.37735
+> Fold 5 - smape: 142.91767
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.22599
+> Fold 6 - r2_score_test: 0.10249
+> Fold 6 - rmse: 0.00762
+> Fold 6 - mae: 0.00633
+> Fold 6 - mape: 158.41100
+> Fold 6 - smape: 169.80010
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.00000
+> Fold 7 - r2_score_test: -0.08294
+> Fold 7 - rmse: 0.01598
+> Fold 7 - mae: 0.01464
+> Fold 7 - mape: 99.91282
+> Fold 7 - smape: 193.81424
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.84217
+> Fold 8 - r2_score_test: -1.13537
+> Fold 8 - rmse: 0.01093
+> Fold 8 - mae: 0.00811
+> Fold 8 - mape: 516.93682
+> Fold 8 - smape: 144.54509
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: 0.65825
+> Fold 9 - r2_score_test: 0.22866
+> Fold 9 - rmse: 0.00642
+> Fold 9 - mae: 0.00516
+> Fold 9 - mape: 152.83176
+> Fold 9 - smape: 150.18934
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: 0.59750
+> Fold 10 - r2_score_test: -0.07095
+> Fold 10 - rmse: 0.01171
+> Fold 10 - mae: 0.00846
+> Fold 10 - mape: 306.87454
+> Fold 10 - smape: 160.71004
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: -0.56102
+> Fold 11 - r2_score_test: -0.02801
+> Fold 11 - rmse: 0.01809
+> Fold 11 - mae: 0.01373
+> Fold 11 - mape: 104.53245
+> Fold 11 - smape: 181.40866
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.47453
+> Fold 12 - r2_score_test: 0.09189
+> Fold 12 - rmse: 0.01365
+> Fold 12 - mae: 0.01187
+> Fold 12 - mape: 200.21332
+> Fold 12 - smape: 142.47938
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: -0.57421
+> Fold 13 - r2_score_test: -0.03674
+> Fold 13 - rmse: 0.02846
+> Fold 13 - mae: 0.02505
+> Fold 13 - mape: 117.94488
+> Fold 13 - smape: 174.14554
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.95343
+> Fold 14 - r2_score_test: -0.29696
+> Fold 14 - rmse: 0.03041
+> Fold 14 - mae: 0.02058
+> Fold 14 - mape: 432.79857
+> Fold 14 - smape: 146.01116
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.82199
+> Fold 15 - r2_score_test: 0.25076
+> Fold 15 - rmse: 0.02725
+> Fold 15 - mae: 0.02410
+> Fold 15 - mape: 166.57170
+> Fold 15 - smape: 161.18890
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.90381
+> Fold 16 - r2_score_test: -0.12705
+> Fold 16 - rmse: 0.03750
+> Fold 16 - mae: 0.03064
+> Fold 16 - mape: 291.15063
+> Fold 16 - smape: 141.31538
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.99468
+> Fold 17 - r2_score_test: 0.50457
+> Fold 17 - rmse: 0.02528
+> Fold 17 - mae: 0.01923
+> Fold 17 - mape: 673.03705
+> Fold 17 - smape: 142.55542
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.70399
+> Fold 18 - r2_score_test: 0.12699
+> Fold 18 - rmse: 0.02199
+> Fold 18 - mae: 0.01861
+> Fold 18 - mape: 267.47931
+> Fold 18 - smape: 140.35980
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: 0.90413
+> Fold 19 - r2_score_test: 0.42811
+> Fold 19 - rmse: 0.02123
+> Fold 19 - mae: 0.01905
+> Fold 19 - mape: 151.02298
+> Fold 19 - smape: 146.47446
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.75403
+> Fold 20 - r2_score_test: -0.83009
+> Fold 20 - rmse: 0.02016
+> Fold 20 - mae: 0.01822
+> Fold 20 - mape: 593.80704
+> Fold 20 - smape: 149.07733
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.55797 (+- 0.44446)
+> r2_score_test: -0.05852 (+- 0.38973)
+> rmse: 0.01876 (+- 0.00805)
+> mae: 0.01539 (+- 0.00668)
+> mape: 284.32293 (+- 163.51534)
+> smape: 153.42254 (+- 14.97089)
+------------------------------------------------------------------------
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 20-folds each by 15.0 days
+Prediction on decomposed part: mode_5
+Offset has been set by 1095.0 days
+------------------------------------------------------------------------
+
+Score per fold - mode_5
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.80675
+> Fold 1 - r2_score_test: -1.07993
+> Fold 1 - rmse: 0.03500
+> Fold 1 - mae: 0.03167
+> Fold 1 - mape: 0.55701
+> Fold 1 - smape: 0.55906
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.89603
+> Fold 2 - r2_score_test: -7.06149
+> Fold 2 - rmse: 0.02730
+> Fold 2 - mae: 0.02190
+> Fold 2 - mape: 0.35322
+> Fold 2 - smape: 0.35242
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.99786
+> Fold 3 - r2_score_test: -0.18473
+> Fold 3 - rmse: 0.01328
+> Fold 3 - mae: 0.01143
+> Fold 3 - mape: 0.19973
+> Fold 3 - smape: 0.19957
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.96598
+> Fold 4 - r2_score_test: -9.22594
+> Fold 4 - rmse: 0.02907
+> Fold 4 - mae: 0.02705
+> Fold 4 - mape: 0.43903
+> Fold 4 - smape: 0.43794
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: 0.00676
+> Fold 5 - r2_score_test: -0.44562
+> Fold 5 - rmse: 0.01514
+> Fold 5 - mae: 0.01302
+> Fold 5 - mape: 0.21077
+> Fold 5 - smape: 0.21102
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.92343
+> Fold 6 - r2_score_test: -0.02033
+> Fold 6 - rmse: 0.02470
+> Fold 6 - mae: 0.01918
+> Fold 6 - mape: 0.35304
+> Fold 6 - smape: 0.35219
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.94513
+> Fold 7 - r2_score_test: -1.24994
+> Fold 7 - rmse: 0.02421
+> Fold 7 - mae: 0.01932
+> Fold 7 - mape: 0.29117
+> Fold 7 - smape: 0.29174
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.94326
+> Fold 8 - r2_score_test: -0.31558
+> Fold 8 - rmse: 0.02670
+> Fold 8 - mae: 0.02392
+> Fold 8 - mape: 0.42749
+> Fold 8 - smape: 0.42642
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: 0.99338
+> Fold 9 - r2_score_test: -2.33227
+> Fold 9 - rmse: 0.03846
+> Fold 9 - mae: 0.03429
+> Fold 9 - mape: 0.57255
+> Fold 9 - smape: 0.57050
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: -0.86521
+> Fold 10 - r2_score_test: -0.63319
+> Fold 10 - rmse: 0.02663
+> Fold 10 - mae: 0.02194
+> Fold 10 - mape: 0.32153
+> Fold 10 - smape: 0.32207
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: 0.00113
+> Fold 11 - r2_score_test: -0.03604
+> Fold 11 - rmse: 0.00955
+> Fold 11 - mae: 0.00782
+> Fold 11 - mape: 0.12746
+> Fold 11 - smape: 0.12752
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.75900
+> Fold 12 - r2_score_test: -1.11019
+> Fold 12 - rmse: 0.06552
+> Fold 12 - mae: 0.05251
+> Fold 12 - mape: 0.81706
+> Fold 12 - smape: 0.82246
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.94253
+> Fold 13 - r2_score_test: 0.18760
+> Fold 13 - rmse: 0.03140
+> Fold 13 - mae: 0.02390
+> Fold 13 - mape: 0.58464
+> Fold 13 - smape: 0.58361
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.95906
+> Fold 14 - r2_score_test: -0.89729
+> Fold 14 - rmse: 0.02236
+> Fold 14 - mae: 0.01733
+> Fold 14 - mape: 0.33632
+> Fold 14 - smape: 0.33620
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.93720
+> Fold 15 - r2_score_test: 0.62563
+> Fold 15 - rmse: 0.00975
+> Fold 15 - mae: 0.00745
+> Fold 15 - mape: 0.25003
+> Fold 15 - smape: 0.25021
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.98299
+> Fold 16 - r2_score_test: -0.60772
+> Fold 16 - rmse: 0.03456
+> Fold 16 - mae: 0.02803
+> Fold 16 - mape: 0.46191
+> Fold 16 - smape: 0.46042
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.98213
+> Fold 17 - r2_score_test: -1.19230
+> Fold 17 - rmse: 0.04955
+> Fold 17 - mae: 0.04183
+> Fold 17 - mape: 0.70256
+> Fold 17 - smape: 0.69916
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.99712
+> Fold 18 - r2_score_test: -7.90638
+> Fold 18 - rmse: 0.04774
+> Fold 18 - mae: 0.04104
+> Fold 18 - mape: 0.67067
+> Fold 18 - smape: 0.66783
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: -0.21479
+> Fold 19 - r2_score_test: -0.78035
+> Fold 19 - rmse: 0.01925
+> Fold 19 - mae: 0.01644
+> Fold 19 - mape: 0.26174
+> Fold 19 - smape: 0.26131
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.76631
+> Fold 20 - r2_score_test: -8.18814
+> Fold 20 - rmse: 0.02073
+> Fold 20 - mae: 0.01941
+> Fold 20 - mape: 0.31548
+> Fold 20 - smape: 0.31604
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.68630 (+- 0.50767)
+> r2_score_test: -2.12271 (+- 3.06748)
+> rmse: 0.02855 (+- 0.01363)
+> mae: 0.02397 (+- 0.01141)
+> mape: 0.41267 (+- 0.18105)
+> smape: 0.41239 (+- 0.18108)
+------------------------------------------------------------------------
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+
+Print and plot the results
+OFFSET has been set by 1095.0 days
+------------------------------------------------------------------------
+Score per fold - kfold_0
+------------------------------------------------------------------------
+> Fold 1 - r2_score_train: 0.00000
+> Fold 1 - r2_score_test: 0.70747
+> Fold 1 - rmse: 1203.79281
+> Fold 1 - mae: 989.09556
+> Fold 1 - mape: 6.02467
+> Fold 1 - smape: 6.26442
+------------------------------------------------------------------------
+> Fold 2 - r2_score_train: 0.00000
+> Fold 2 - r2_score_test: 0.52988
+> Fold 2 - rmse: 1382.55242
+> Fold 2 - mae: 1081.52354
+> Fold 2 - mape: 7.65810
+> Fold 2 - smape: 7.42201
+------------------------------------------------------------------------
+> Fold 3 - r2_score_train: 0.00000
+> Fold 3 - r2_score_test: 0.69580
+> Fold 3 - rmse: 1013.71840
+> Fold 3 - mae: 842.11334
+> Fold 3 - mape: 6.08401
+> Fold 3 - smape: 5.90377
+------------------------------------------------------------------------
+> Fold 4 - r2_score_train: 0.00000
+> Fold 4 - r2_score_test: 0.49189
+> Fold 4 - rmse: 1165.33142
+> Fold 4 - mae: 987.44101
+> Fold 4 - mape: 7.99869
+> Fold 4 - smape: 7.58697
+------------------------------------------------------------------------
+> Fold 5 - r2_score_train: 0.00000
+> Fold 5 - r2_score_test: 0.61815
+> Fold 5 - rmse: 1002.87930
+> Fold 5 - mae: 804.69328
+> Fold 5 - mape: 6.04410
+> Fold 5 - smape: 6.06361
+------------------------------------------------------------------------
+> Fold 6 - r2_score_train: 0.00000
+> Fold 6 - r2_score_test: 0.50830
+> Fold 6 - rmse: 1125.78518
+> Fold 6 - mae: 936.89603
+> Fold 6 - mape: 7.46272
+> Fold 6 - smape: 7.36516
+------------------------------------------------------------------------
+> Fold 7 - r2_score_train: 0.00000
+> Fold 7 - r2_score_test: 0.28434
+> Fold 7 - rmse: 1375.28225
+> Fold 7 - mae: 1070.44793
+> Fold 7 - mape: 8.07362
+> Fold 7 - smape: 8.41766
+------------------------------------------------------------------------
+> Fold 8 - r2_score_train: 0.00000
+> Fold 8 - r2_score_test: 0.27187
+> Fold 8 - rmse: 1340.11802
+> Fold 8 - mae: 1097.09469
+> Fold 8 - mape: 10.20192
+> Fold 8 - smape: 9.44013
+------------------------------------------------------------------------
+> Fold 9 - r2_score_train: 0.00000
+> Fold 9 - r2_score_test: 0.54587
+> Fold 9 - rmse: 1262.16961
+> Fold 9 - mae: 1031.89572
+> Fold 9 - mape: 9.28754
+> Fold 9 - smape: 8.87707
+------------------------------------------------------------------------
+> Fold 10 - r2_score_train: 0.00000
+> Fold 10 - r2_score_test: 0.54507
+> Fold 10 - rmse: 1489.20706
+> Fold 10 - mae: 1185.28364
+> Fold 10 - mape: 9.00326
+> Fold 10 - smape: 9.35435
+------------------------------------------------------------------------
+> Fold 11 - r2_score_train: 0.00000
+> Fold 11 - r2_score_test: 0.77470
+> Fold 11 - rmse: 947.04679
+> Fold 11 - mae: 759.30602
+> Fold 11 - mape: 6.32298
+> Fold 11 - smape: 6.25971
+------------------------------------------------------------------------
+> Fold 12 - r2_score_train: 0.00000
+> Fold 12 - r2_score_test: 0.26750
+> Fold 12 - rmse: 2599.20662
+> Fold 12 - mae: 1960.15924
+> Fold 12 - mape: 12.11868
+> Fold 12 - smape: 13.28668
+------------------------------------------------------------------------
+> Fold 13 - r2_score_train: 0.00000
+> Fold 13 - r2_score_test: 0.60253
+> Fold 13 - rmse: 2305.95652
+> Fold 13 - mae: 1774.93893
+> Fold 13 - mape: 11.97762
+> Fold 13 - smape: 11.15807
+------------------------------------------------------------------------
+> Fold 14 - r2_score_train: 0.00000
+> Fold 14 - r2_score_test: 0.84852
+> Fold 14 - rmse: 1191.11494
+> Fold 14 - mae: 962.06590
+> Fold 14 - mape: 6.28458
+> Fold 14 - smape: 6.15303
+------------------------------------------------------------------------
+> Fold 15 - r2_score_train: 0.00000
+> Fold 15 - r2_score_test: 0.76621
+> Fold 15 - rmse: 1715.23825
+> Fold 15 - mae: 1410.97661
+> Fold 15 - mape: 7.74872
+> Fold 15 - smape: 7.88859
+------------------------------------------------------------------------
+> Fold 16 - r2_score_train: 0.00000
+> Fold 16 - r2_score_test: 0.61293
+> Fold 16 - rmse: 2300.14394
+> Fold 16 - mae: 2035.62884
+> Fold 16 - mape: 14.05588
+> Fold 16 - smape: 13.05893
+------------------------------------------------------------------------
+> Fold 17 - r2_score_train: 0.00000
+> Fold 17 - r2_score_test: 0.76089
+> Fold 17 - rmse: 1719.67562
+> Fold 17 - mae: 1514.42945
+> Fold 17 - mape: 10.75902
+> Fold 17 - smape: 10.23687
+------------------------------------------------------------------------
+> Fold 18 - r2_score_train: 0.00000
+> Fold 18 - r2_score_test: 0.52966
+> Fold 18 - rmse: 1603.41339
+> Fold 18 - mae: 1379.59317
+> Fold 18 - mape: 11.34858
+> Fold 18 - smape: 10.62323
+------------------------------------------------------------------------
+> Fold 19 - r2_score_train: 0.00000
+> Fold 19 - r2_score_test: 0.68059
+> Fold 19 - rmse: 1136.29851
+> Fold 19 - mae: 937.13919
+> Fold 19 - mape: 7.79276
+> Fold 19 - smape: 7.41949
+------------------------------------------------------------------------
+> Fold 20 - r2_score_train: 0.00000
+> Fold 20 - r2_score_test: 0.71034
+> Fold 20 - rmse: 905.66967
+> Fold 20 - mae: 716.55468
+> Fold 20 - mape: 5.58390
+> Fold 20 - smape: 5.60652
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.58763 (+- 0.16377)
+> rmse: 1439.23003 (+- 466.42862)
+> mae: 1173.86384 (+- 376.52368)
+> mape: 8.59157 (+- 2.36966)
+> smape: 8.41931 (+- 2.25075)
+------------------------------------------------------------------------
+
+--- 	953.051 seconds --- the end of the file.

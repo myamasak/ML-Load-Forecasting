@@ -38,19 +38,19 @@ from RobustSTL import RobustSTL
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-DATASET_NAME = 'ONS'
+DATASET_NAME = 'ISONewEngland'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves 
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 24
-OFFSET = 24*365*7
+KFOLD = 20
+OFFSET = 24*365*3
 FORECASTDAYS = 15
 NMODES = 5
-MODE = 'none'
-MODEL = 'none'
+MODE = 'stl-a'
+MODEL = 'stl-a'
 BOXCOX = True 
 # Set algorithm
 ALGORITHM = 'ensemble'
@@ -63,7 +63,7 @@ pio.renderers.default = 'browser'
 pio.kaleido.scope.default_width = 1280
 pio.kaleido.scope.default_height = 720
 # Use seaborn style defaults and set the default figure size
-sns.set(rc={'figure.figsize':(11, 4)})
+sns.set(rc={'figure.figsize':(14, 6)})
 # Set path to import dataset and export figures
 path = os.path.realpath(__file__)
 path = r'%s' % path.replace(f'\\{os.path.basename(__file__)}','').replace('\\','/')
@@ -73,8 +73,8 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
 # Selection of year
-selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
-#selectDatasets = ["2015","2016","2017","2018"]
+#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+selectDatasets = ["2015","2016","2017","2018"]
 #selectDatasets = ["2015"]
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
@@ -401,7 +401,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     #                      height=500)
 
         fig.show()
-        fig.write_image(f"{DATASET_NAME}_outliers_"+columnName+".pdf")
+        fig.write_image(f"{path}{DATASET_NAME}_outliers_"+columnName+".pdf")
     
     # Fix outliers by removing and replacing with interpolation
     y_ = pd.DataFrame(y_).replace([outliers],np.nan)    
@@ -532,8 +532,12 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             #                     xaxis_title='DATE',
             #                     yaxis_title=f'Demand Prediction [MW] - {y.columns[0]}'
             #                     )
-            plt.title(f'Electricity Prediction [MW] - {y.columns[0]}')
-            plt.ylabel(f'Load [MW] - {y.columns[0]}')
+            if BOXCOX:
+                plt.title(f'Electricity Prediction [MW] - with Box-Cox Transformation - {y.columns[0]}')
+                plt.ylabel(f'Load [MW] - Box-Cox')
+            else:
+                plt.title(f'Electricity Prediction [MW] - {y.columns[0]}')
+                plt.ylabel(f'Load [MW] - {y.columns[0]}')
             plt.xlabel(f'Date')
             plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
         
@@ -603,7 +607,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                 model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
 
    
-        else:
+        else: # nni enabled
             model = xgboost.XGBRegressor(
                                         colsample_bytree=params['colsample_bytree'],
                                         gamma=params['gamma'],                 
@@ -741,12 +745,15 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             plt.rcParams.update({'font.size': 14})
             plt.legend()
             plt.show()
-            plt.savefig(path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+            if BOXCOX:
+                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
+            else:
+                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
 
             # Print the results: average per fold
             results[r].printResults()
 
-    else:
+    else: # NOT CROSSVALIDATION
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
         log(f'Prediction on decomposed part: {y.columns[0]}')
         # transform training data & save lambda value
@@ -757,17 +764,17 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = testSize, random_state = 0, shuffle = False)
 
         if not enable_nni:
-            model = xgboost.XGBRegressor(
-                                         colsample_bytree=0.8,
-                                         gamma=0.3,
-                                         learning_rate=0.03,
-                                         max_depth=7,
-                                         min_child_weight=6.0,
-                                         n_estimators=1000,
-                                         reg_alpha=0.75,
-                                         reg_lambda=0.01,
-                                         subsample=0.95,
-                                         seed=42)
+            # model = xgboost.XGBRegressor(
+            #                              colsample_bytree=0.8,
+            #                              gamma=0.3,
+            #                              learning_rate=0.03,
+            #                              max_depth=7,
+            #                              min_child_weight=6.0,
+            #                              n_estimators=1000,
+            #                              reg_alpha=0.75,
+            #                              reg_lambda=0.01,
+            #                              subsample=0.95,
+            #                              seed=42)
 
 #            from tensorflow.keras.models import Sequential
 #            from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU, Flatten, TimeDistributed
@@ -806,8 +813,8 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             
 #            model.add(regressors)
 #            model.add_meta(meta_learner)
-#            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
+            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
 
                 # svm.SVR(kernel='poly',C=1)]      
                 # linear_model.SGDRegressor(),
@@ -913,6 +920,8 @@ def composeSeasonal(decomposePred, model='stl-a'):
             finalPred = decomposePred[0]
         elif model=='robust-stl':
             finalPred = decomposePred[1] + decomposePred[2] + decomposePred[3]
+        elif model == 'stl-a':
+            finalPred = [sum(x) for x in zip(*[decomposePred[0],decomposePred[1],decomposePred[2]])]
         else:
             finalPred = [sum(x) for x in zip(*decomposePred)]
     return finalPred
@@ -951,7 +960,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 plt.plot(df2,y_pred, label = f'Predicted data')
             plt.title('Prediction - Ensemble')
             plt.legend()
-            plt.savefig(path+'/results/pred_vs_real.png')
+            plt.savefig(path+'/results/pred_vs_real.pdf')
             plt.show()
         
         r2test = r2_score(y_test, y_pred)
@@ -1115,7 +1124,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
             plt.show()
-            plt.savefig(path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+            plt.savefig(path+f'/results/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
 
 
         # Print the results: average per fold
@@ -1175,7 +1184,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     if mode=='emd':
         printName = 'Empirical Mode Decomposition (EMD)'
     elif mode == 'eemd':
-        printName = 'Extended Empirical Mode Decomposition (EEMD)'
+        printName = 'Ensemble Empirical Mode Decomposition (EEMD)'
     elif mode == 'vmd':
         printName = 'Variational Mode Decomposition (VMD)'
     elif mode == 'ceemdan':
@@ -1266,11 +1275,16 @@ def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastD
 def plot_histogram(y_, xlabel):
     if plot:
         plt.figure()
-        sns.histplot(y_)
+        plt.title(f'{DATASET_NAME} Demand Histogram')
         plt.ylabel("Occurrences")
         if xlabel is not None:
             plt.xlabel(xlabel)
+        sns.histplot(y_)
         plt.legend()
+        if xlabel.find('Box') != -1:
+            plt.savefig(path+f'/results/{DATASET_NAME}_BoxCox_histogram.pdf')
+        else:        
+            plt.savefig(path+f'/results/{DATASET_NAME}_demand_histogram.pdf')
     
 ################
 # MAIN PROGRAM
@@ -1296,6 +1310,14 @@ for y_ in y_all:
     y_all[i] = outlierCleaning(y_, dataset_name=DATASET_NAME)
     i+=1
 
+if plot and True:
+    plt.figure()
+    plt.title(f'{DATASET_NAME} dataset demand curve')
+    plt.xlabel('Date')
+    plt.ylabel('Load [MW]')
+    plt.plot(df, y_all[0])
+    plt.show()
+    plt.savefig(path+f'/results/{DATASET_NAME}_after_outlierClean.pdf')
 # List of results
 results = []
 finalResults = []
@@ -1314,14 +1336,14 @@ listOfDecomposePred = []
 for inputs in X_all:
     log("Plot Histogram")
     plot_histogram(y_all[i], xlabel='Load [MW]')
-    if BOXCOX:
-        log("Shift negative to positive values + offset 1")
+    if BOXCOX:        
         min_y = min(y_all[i])
         if min_y <= 0:           
+            log("Shift negative to positive values + offset 1")
             y_transf = y_all[i]+abs(min_y)+1
         else:
             y_transf = y_all[i]
-        log("Box-Cox transformation + shift neg2pos integer")
+        log("Box-Cox transformation")
         y_transf, lambda_boxcox = stats.boxcox(y_transf)
         y_transf = pd.DataFrame({'DEMAND':y_transf})
         log("Plot Histogram after Box-Cox Transformation")
@@ -1369,9 +1391,9 @@ for inputs in X_all:
         y_composed = composeSeasonal(decomposePred, model=MODEL)
         if BOXCOX:
             log("Inverse Box-Cox transformation")
-            y_composed = special.inv_boxcox(y_composed, lambda_boxcox)         
-            log("Restore shifted values from positive to negative + offset -1")
+            y_composed = special.inv_boxcox(y_composed, lambda_boxcox)                     
             if min_y <= 0: 
+                log("Restore shifted values from positive to negative + offset -1")
                 y_composed = y_composed - abs(min_y)-1
         log("Print and plot the results")
         finalResults.append(Results())
@@ -1385,9 +1407,9 @@ if CROSSVALIDATION:
     if BOXCOX:
         for i in range(len(y_composed)):                    
             log("Inverse Box-Cox transformation")
-            y_composed[i] = special.inv_boxcox(y_composed[i], lambda_boxcox)         
-            log("Restore shifted values from positive to negative + offset -1")
+            y_composed[i] = special.inv_boxcox(y_composed[i], lambda_boxcox)                     
             if min_y <= 0: 
+                log("Restore shifted values from positive to negative + offset -1")
                 y_composed[i] = y_composed[i] - abs(min_y)-1
     log("Print and plot the results")    
     plotResults(X_=inputs, y_=y_all[0], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
