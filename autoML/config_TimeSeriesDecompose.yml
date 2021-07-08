@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose
+experimentName: TimeSeriesDecompose_GradientBoosting
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 9999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space_xgboost.json
+searchSpacePath: search_space_gradientboosting.json
 #choice: true, false
 useAnnotation: false
 tuner:

@@ -25,15 +25,15 @@ from scipy import stats, special
 from Results import Results
 import sys
 from PyEMD import EMD, EEMD, CEEMDAN
-from vmdpy import VMD
+# from vmdpy import VMD
 import ewtpy
-from sklearn import linear_model
+from sklearn import linear_model, cross_decomposition
 from sklearn import svm
 from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import LinearRegression
 from RobustSTL import RobustSTL
+from sklearn.preprocessing import MinMaxScaler, normalize
 
 sys.path.append('../')
 ### Constants ###
@@ -46,12 +46,13 @@ plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
 KFOLD = 20
-OFFSET = 24*365*3
+OFFSET = 24*365
 FORECASTDAYS = 15
 NMODES = 5
-MODE = 'stl-a'
-MODEL = 'stl-a'
-BOXCOX = True 
+MODE = 'ewt'
+MODEL = 'ewt'
+BOXCOX = True
+MINMAXSCALER = True
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -87,6 +88,7 @@ log(f"MODE: {MODE}")
 log(f"MODEL: {MODEL}")
 log(f"BOXCOX: {BOXCOX}")
 log(f"ALGORITHM: {ALGORITHM}")
+log(f"MINMAXSCALER: {MINMAXSCALER}")
 
 
 # Seed Random Numbers with the TensorFlow Backend
@@ -179,7 +181,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_name='ONS'):
+def featureEngineering(dataset, X, selectDatasets, weekday=False, holiday=False, holiday_bridge=False,  dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -196,19 +198,25 @@ def featureEngineering(dataset, X, selectDatasets, holiday_bridge=True, dataset_
     Day = pd.DataFrame({'Day':date.dt.day})
     Hour = pd.DataFrame({'HOUR':date.dt.hour})
 
-    # Add weekday to X data
-    Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
+    if weekday:
+        # Add weekday to X data
+        Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
 
-    # Add holidays to X data
-    br_holidays = []
-    for date2 in holidays.Brazil(years=list(map(int,selectDatasets))).items():
-        br_holidays.append(str(date2[0]))
+    if holiday:
+        # Add holidays to X data
+        br_holidays = []
+        for date2 in holidays.Brazil(years=list(map(int,selectDatasets))).items():
+            br_holidays.append(str(date2[0]))
 
-    # Set 1 or 0 for Holiday, when compared between date and br_holidays
-    Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in br_holidays else 0 for val in date]})
+        # Set 1 or 0 for Holiday, when compared between date and br_holidays
+        Holiday = pd.DataFrame({'Holiday':[1 if str(val).split()[0] in br_holidays else 0 for val in date]})
 
+    
     # Concat all new features into X data
-    concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
+    try: 
+        concatlist = [X,Year,Month,Day,Weekday,Hour,Holiday]
+    except (AttributeError, ValueError, KeyError, UnboundLocalError) as e:
+        concatlist = [X,Year,Month,Day,Hour]
     X = pd.concat(concatlist,axis=1)
 
     # Split X data to different subsystems/regions
@@ -453,11 +461,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
 def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
     log("Load Forecasting algorithm has been started")
     start_time_xgboost = time.time()
-    
-    # from sklearn.preprocessing import MinMaxScaler
-    # sc = StandardScaler()
-    # sc = MinMaxScaler()
-    # X_ = sc.fit_transform(X_)
+        
     
     global df, fig
     kfoldPred = []
@@ -595,30 +599,70 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 #            model = VotingRegressor(estimators=regressors)
 #            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-            if y.columns[0].find('mode_0') != -1:
+            # if y.columns[0].find('mode_0') != -1:
                 # Best configuration so far: gbr; metalearner=ARDR
-                regressors = list()
+#                regressors = list()
 #                regressors.append(('xgboost', xgboost.XGBRegressor()))
-                regressors.append(('knn', KNeighborsRegressor()))
+#                regressors.append(('gbr', GradientBoostingRegressor()))
+#                regressors.append(('knn', KNeighborsRegressor()))
 #                regressors.append(('cart', DecisionTreeRegressor()))
 #                regressors.append(('rf', RandomForestRegressor()))
-#                regressors.append(('svr', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
-                meta_learner = linear_model.ARDRegression() # 0.88415
-                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+#                regressors.append(('svr', svm.SVR()))
+#                regressors.append(('extratrees', ExtraTreesRegressor()))
+#                regressors.append(('ridge', linear_model.Ridge()))
+#                regressors.append(('pls', cross_decomposition.PLSRegression()))
+#                regressors.append(('sgd', linear_model.SGDRegressor()))
+#                regressors.append(('bayes'  , linear_model.BayesianRidge()))
+#                regressors.append(('lasso', linear_model.LassoLars()))
+#                regressors.append(('ard', linear_model.ARDRegression()))
+#                regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+#                regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+#                regressors.append(('linear', linear_model.LinearRegression()))
+#                meta_learner = linear_model.ARDRegression() # 0.88415
+#                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+                
+                
 
    
         else: # nni enabled
-            model = xgboost.XGBRegressor(
-                                        colsample_bytree=params['colsample_bytree'],
-                                        gamma=params['gamma'],                 
-                                        learning_rate=params['learning_rate'],
-                                        max_depth=params['max_depth'],
-                                        min_child_weight=params['min_child_weight'],
-                                        n_estimators=params['n_estimators'],                                                                    
-                                        reg_alpha=params['reg_alpha'],
-                                        reg_lambda=params['reg_lambda'],
-                                        subsample=params['subsample'],
-                                        seed=42)
+            # model = xgboost.XGBRegressor(
+            #                             colsample_bytree=params['colsample_bytree'],
+            #                             gamma=params['gamma'],                 
+            #                             learning_rate=params['learning_rate'],
+            #                             max_depth=params['max_depth'],
+            #                             min_child_weight=params['min_child_weight'],
+            #                             n_estimators=params['n_estimators'],                                                                    
+            #                             reg_alpha=params['reg_alpha'],
+            #                             reg_lambda=params['reg_lambda'],
+            #                             subsample=params['subsample'],
+            #                             seed=42)
+            if params['warm_start'] == "True":
+                warm_start = True
+            elif params['warm_start'] == "False":
+                warm_start = False
+
+            if params['min_samples_split'] > 1:
+                min_samples_split=int(params['min_samples_split'])
+            else:
+                min_samples_split=float(params['min_samples_split'])
+
+            model = GradientBoostingRegressor(
+                                              loss=params['loss'],
+                                              learning_rate=params['learning_rate'],
+                                              n_estimators=int(params['n_estimators']),
+                                              subsample=params['subsample'],
+                                              criterion=params['criterion'],
+                                              min_samples_split=min_samples_split,
+                                              min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
+                                              max_depth=int(params['max_depth']),
+                                              min_impurity_decrease=params['min_impurity_decrease'],
+                                              max_features=params['max_features'],
+                                              alpha=params['alpha'],
+                                              warm_start=warm_start,
+                                              validation_fraction=params['validation_fraction'],
+                                              tol=params['tol'],
+                                              ccp_alpha=params['ccp_alpha'],
+                                              random_state=42)
 
         i=0
         
@@ -639,9 +683,18 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             log(f'Training for fold {fold_no} ...')
 
             model.fit(X_train, y_train.ravel())
+            # model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+#            X_new = np.arange(len(X_train[:,0]))
+#            X_new = X_new.reshape(X_new.shape[0],1)
+#            model.fit(X_new, y_train.ravel())
             
             # Predict using test data
-            y_pred = model.predict(X_test)
+#            X_new_test = np.arange(len(X_test[:,0]))
+#            X_new_test = X_new_test.reshape(X_new_test.shape[0],1)
+#            X_new_test = X_new_test + len(X_new)
+#            y_pred = model.predict(X_new_test)
+            
             # Save y_pred
             kfoldPred.append(y_pred)
             # Prepare the plot data
@@ -664,9 +717,9 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 
             y_pred_train = model.predict(X_train)
             y_pred_train = np.float64(y_pred_train)
-
             r2train = r2_score(y_train, y_pred_train)
             r2test = r2_score(y_test, y_pred)
+
 #            log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
 #            log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
             n = len(X_test)
@@ -712,7 +765,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             # Generate generalization metrics
             # scores = model.evaluate(X_test, y_test, verbose=0)
             
-            results[r].r2train_per_fold.append(r2train)
+            results[r].r2train_per_fold.append(r2train)            
             results[r].r2test_per_fold.append(r2test)
             results[r].rmse_per_fold.append(rmse)
             results[r].mae_per_fold.append(mae)
@@ -743,15 +796,15 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             # fig.show()
             # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
-            plt.legend()
+            # plt.legend()
             plt.show()
             if BOXCOX:
                 plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
             else:
                 plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
 
-            # Print the results: average per fold
-            results[r].printResults()
+        # Print the results: average per fold
+        results[r].printResults()
 
     else: # NOT CROSSVALIDATION
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
@@ -793,13 +846,13 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 #            model.compile(optimizer = 'Adam', loss = 'mean_squared_error')
 #            early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
 
-            regressors = list()
+            # regressors = list()
 #            regressors.append(('xgboost', xgboost.XGBRegressor()))
 #            regressors.append(('knn', KNeighborsRegressor()))
 #            regressors.append(('cart', DecisionTreeRegressor()))
 #            regressors.append(('rf', RandomForestRegressor()))
 #            regressors.append(('svm', svm.SVR()))
-            regressors.append(('gbr', GradientBoostingRegressor()))
+            # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
             # regressors.append(('bayes'  , linear_model.BayesianRidge()))
             # regressors.append(('lasso', linear_model.LassoLars()))
@@ -809,11 +862,11 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             # regressors.append(('linear', linear_model.LinearRegression()))
             
             # define meta learner model
-            meta_learner = linear_model.ARDRegression()
+            # meta_learner = linear_model.ARDRegression()
             
 #            model.add(regressors)
 #            model.add_meta(meta_learner)
-            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
 
                 # svm.SVR(kernel='poly',C=1)]      
@@ -824,7 +877,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                 # linear_model.PassiveAggressiveRegressor(),
                 # linear_model.TheilSenRegressor(),
                 # linear_model.LinearRegression()]
-   
+             model = GradientBoostingRegressor()
         else:
             model = xgboost.XGBRegressor(
                                         colsample_bytree=params['colsample_bytree'],
@@ -847,13 +900,22 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
         df2 = df.iloc[rows[0]:]
         
         if plot:
-            plt.figure()
+            # plt.figure()
             #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
             plt.plot(df,y, label = f'Real data - {y.columns[0]}')
             plt.plot(df2,y_pred, label = f'Predicted data - {y.columns[0]}')
-            plt.title('Prediction - Ensemble')
+            if BOXCOX:
+                plt.title(f'{DATASET_NAME} dataset Prediction - with BoxCox')                
+                plt.ylabel('Load [MW] - BoxCox')
+            else: 
+                plt.title(f'{DATASET_NAME} dataset Prediction')
+                plt.ylabel('Load [MW]')
+            plt.xlabel('Date')
             plt.legend()
-            plt.savefig(path+'/results/pred_vs_real.png')
+            if BOXCOX:
+                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
+            else:
+                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
             plt.show()
         
         y_pred_train = model.predict(X_train)
@@ -958,9 +1020,11 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             except AttributeError:
                 plt.plot(df,y_, label = f'Real data')
                 plt.plot(df2,y_pred, label = f'Predicted data')
-            plt.title('Prediction - Ensemble')
+            plt.title(f'{DATASET_NAME} dataset Prediction')
+            plt.xlabel('Date')
+            plt.ylabel('Load [MW]')
             plt.legend()
-            plt.savefig(path+'/results/pred_vs_real.pdf')
+            plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
             plt.show()
         
         r2test = r2_score(y_test, y_pred)
@@ -1333,9 +1397,12 @@ list_IMFs = []
 # Prediction list of different components of decomposition to be assemble in the end
 decomposePred = []
 listOfDecomposePred = []
+
+
 for inputs in X_all:
     log("Plot Histogram")
-    plot_histogram(y_all[i], xlabel='Load [MW]')
+    plot_histogram(y_all[i], xlabel='Load [MW]')    
+    
     if BOXCOX:        
         min_y = min(y_all[i])
         if min_y <= 0:           
@@ -1344,42 +1411,51 @@ for inputs in X_all:
         else:
             y_transf = y_all[i]
         log("Box-Cox transformation")
+        if len(y_transf.shape) > 1:
+            y_transf = y_transf.reshape(y_transf.shape[0])
         y_transf, lambda_boxcox = stats.boxcox(y_transf)
         y_transf = pd.DataFrame({'DEMAND':y_transf})
         log("Plot Histogram after Box-Cox Transformation")
         plot_histogram(y_transf, xlabel='Box-Cox')
     else:
         y_transf = y_all[i]
-        y_transf = pd.DataFrame({'DEMAND':y_transf})
+        try:
+            y_transf = pd.DataFrame({'DEMAND':y_transf})
+        except ValueError:
+            y_transf = pd.DataFrame({'DEMAND':y_transf.ravel()})
     y_decomposed_list = decomposeSeasonal(y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
     # for y_decomposed2 in y_decomposed_list:
     #     if y_decomposed2.columns[0].find('Observed') != -1:
     #         y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
     #         break
     for y_decomposed in y_decomposed_list:
+        # if y_decomposed.columns[0].find("mode_0") == -1:           
+        #     continue
         results.append(Results()) # Start new Results instance every loop step
-
-    #       if y_decomposed.columns[0].find("Observed") == -1:           
-    #           continue
         
-#        # Shift negative to positive values + offset 10
-#        min_y = min(y_decomposed.values)
-#        if min_y <= 0:           
-#            y_decomposed = y_decomposed+abs(min_y)+10
-#        plot_histogram(y_decomposed)
-#        # Box-Cox transformation + shift 1000 integer
-#        y_decomposed, lambda_boxcox = stats.boxcox(y_decomposed.values.ravel())
-#        y_decomposed = pd.DataFrame({'DEMAND':y_decomposed})
-#        # Histogram
-#        plot_histogram(y_decomposed, xlabel='Box-Cox')
+        if MINMAXSCALER:            
+            label = y_decomposed.columns[0]
+            sc = MinMaxScaler(feature_range=(1,100))
+#            sc = preprocessing.StandardScaler()
+            y_decomposed = sc.fit_transform(y_decomposed)
+#            y_decomposed = sc.fit_transform(y_decomposed)
+            try:
+                y_decomposed = pd.DataFrame({label:y_decomposed})
+            except ValueError:
+                y_decomposed = pd.DataFrame({label:y_decomposed.ravel()})
+            except AttributeError:
+                y_decomposed = pd.DataFrame({label:y_decomposed.values.ravel()})
+                
+
         # Load Forecasting
         y_out, testSize, kfoldPred = loadForecast(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
-#        # Inverse Box-Cox transformation
-#        y_out = special.inv_boxcox(y_out, lambda_boxcox)
-#     
-#        # Restore shifted values from positive to negative + offset -10
-#        if min_y <= 0: 
-#           y_out = y_out - abs(min_y)-10
+        
+        if MINMAXSCALER:            
+            y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
+            for j in range(len(kfoldPred)):
+                kfoldPred[j] = sc.inverse_transform(kfoldPred[j].reshape(kfoldPred[j].shape[0],1))
+
+
         if CROSSVALIDATION:
             decomposePred.append(kfoldPred)
         else:
@@ -1416,9 +1492,11 @@ if CROSSVALIDATION:
         
 if enable_nni:
     log("Publish the results on AutoML nni")
-    r2testResults = results[0].r2test_per_fold
+    r2testResults = finalResults[0].r2test_per_fold
     r2scoreAvg = np.mean(r2testResults)
-    nni.report_final_result(r2scoreAvg)
+    log(f"r2test = {r2scoreAvg}")
+    nni.report_final_result(r2scoreAvg)    
+    # results[0].printResults()
  
 
 log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - start_time)) 
