@@ -34,7 +34,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from RobustSTL import RobustSTL
 from sklearn.preprocessing import MinMaxScaler, normalize
-
+import nni
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
@@ -574,11 +574,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 #                                                           random_state=42,
 #                                                           n_jobs=-1)))
 #            regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
-            regressors.append(('gbr', GradientBoostingRegressor()))
-#                                      n_estimators=750,
-#                                      learning_rate=0.1,
-#                                      max_depth=3,
-#                                      random_state=42)))
+            # regressors.append(('gbr', GradientBoostingRegressor()))
 #            regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
 #            regressors.append(('bayes'  , linear_model.BayesianRidge()))
@@ -599,6 +595,23 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 #            model = VotingRegressor(estimators=regressors)
 #            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            model = GradientBoostingRegressor(
+                                        loss="ls",
+                                        learning_rate=0.0023509843102651725,
+                                        n_estimators=10000,
+                                        subsample=0.0065259491955755415,
+                                        criterion="mse",
+                                        min_samples_split=8,
+                                        min_weight_fraction_leaf=0,
+                                        max_depth=23,
+                                        min_impurity_decrease=0.5,
+                                        max_features="log2",
+                                        alpha=0.9,
+                                        warm_start=True,
+                                        validation_fraction=0.5,
+                                        tol=0.00009659717194630799,
+                                        ccp_alpha=0.7000000000000001,
+                                        random_state=42)
             # if y.columns[0].find('mode_0') != -1:
                 # Best configuration so far: gbr; metalearner=ARDR
 #                regressors = list()
@@ -1325,7 +1338,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     log(f"{toc-tic:0.3f} seconds - {printName} has finished.") 
     series_IMFs = []
     for i in range(len(IMFs)):
-        series_IMFs.append(pd.DataFrame({f"mode_{i}":IMFs[i]}))
+        series_IMFs.append(pd.DataFrame({f"IMF_{i}":IMFs[i]}))
     return series_IMFs
 
 def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastDays=15, dataset_name='ONS'):
@@ -1358,7 +1371,7 @@ for args in sys.argv:
     if args == '-nni':
         enable_nni = True
         plot = False
-import nni
+
 params = nni.get_next_parameter()     
 # Initial message
 log("Time Series Regression - Load forecasting using ensemble algorithms")
@@ -1508,6 +1521,10 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 # trend.to_csv(path+f'/robust-stl_trend_{selectDatasets[0]}.csv', index = None, header=True)
 # seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
 # remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
+
+# for imf in y_decomposed_list:
+#     imf.to_csv(path+f'/{imf.columns[0]}_2015-2018.csv', index = None, header=True)
+
 
 # Close logging handlers to release the log file
 handlers = logging.getLogger().handlers[:]
