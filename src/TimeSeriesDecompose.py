@@ -44,15 +44,16 @@ enable_nni = False
 # Set True to plot curves 
 plot = True
 # Configuration for Forecasting
-CROSSVALIDATION = True
-KFOLD = 20
-OFFSET = 24*365
+CROSSVALIDATION = False
+KFOLD = 3
+OFFSET = 365*24
 FORECASTDAYS = 15
 NMODES = 5
 MODE = 'ewt'
 MODEL = 'ewt'
 BOXCOX = True
 MINMAXSCALER = True
+DIFF = False
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -181,7 +182,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, weekday=False, holiday=False, holiday_bridge=False,  dataset_name='ONS'):
+def featureEngineering(dataset, X, selectDatasets, weekday=True, holiday=True, holiday_bridge=False,  dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -595,23 +596,23 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
 #            model = VotingRegressor(estimators=regressors)
 #            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-            model = GradientBoostingRegressor(
-                                        loss="ls",
-                                        learning_rate=0.0023509843102651725,
-                                        n_estimators=10000,
-                                        subsample=0.0065259491955755415,
-                                        criterion="mse",
-                                        min_samples_split=8,
-                                        min_weight_fraction_leaf=0,
-                                        max_depth=23,
-                                        min_impurity_decrease=0.5,
-                                        max_features="log2",
-                                        alpha=0.9,
-                                        warm_start=True,
-                                        validation_fraction=0.5,
-                                        tol=0.00009659717194630799,
-                                        ccp_alpha=0.7000000000000001,
-                                        random_state=42)
+            model = GradientBoostingRegressor()
+                                        # loss="ls",
+                                        # learning_rate=0.0023509843102651725,
+                                        # n_estimators=10000,
+                                        # subsample=0.0065259491955755415,
+                                        # criterion="mse",
+                                        # min_samples_split=8,
+                                        # min_weight_fraction_leaf=0,
+                                        # max_depth=23,
+                                        # min_impurity_decrease=0.5,
+                                        # max_features="log2",
+                                        # alpha=0.9,
+                                        # warm_start=True,
+                                        # validation_fraction=0.5,
+                                        # tol=0.00009659717194630799,
+                                        # ccp_alpha=0.7000000000000001,
+                                        # random_state=42)
             # if y.columns[0].find('mode_0') != -1:
                 # Best configuration so far: gbr; metalearner=ARDR
 #                regressors = list()
@@ -890,7 +891,8 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                 # linear_model.PassiveAggressiveRegressor(),
                 # linear_model.TheilSenRegressor(),
                 # linear_model.LinearRegression()]
-             model = GradientBoostingRegressor()
+            #  model = GradientBoostingRegressor()
+             model = xgboost.XGBRegressor(objective='reg:squarederror', max_depth=2)
         else:
             model = xgboost.XGBRegressor(
                                         colsample_bytree=params['colsample_bytree'],
@@ -1209,7 +1211,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
 def test_stationarity(data):
     from statsmodels.tsa.stattools import adfuller
-    test_result = adfuller(data.iloc[:,0].values, regression='ct')
+    log('Stationarity test using Augmented Dickey-Fuller unit root test.')
+    test_result = adfuller(data.iloc[:,0].values, regression='ct', maxlag=360, autolag='t-stat')
     log('ADF Statistic: {}'.format(test_result[0]))
     log('p-value: {}'.format(test_result[1]))
     pvalue = test_result[1]
@@ -1362,7 +1365,21 @@ def plot_histogram(y_, xlabel):
             plt.savefig(path+f'/results/{DATASET_NAME}_BoxCox_histogram.pdf')
         else:        
             plt.savefig(path+f'/results/{DATASET_NAME}_demand_histogram.pdf')
+
+def transform_stationary(y_, y_diff=0, invert=False):
+    if invert and len(y_diff)>1:
+        try:
+            result = np.cumsum(np.concatenate([y_.iloc[0],y_diff.ravel()]))                        
+        except KeyError:
+            result = np.cumsum(np.concatenate([y_.iloc[0],y_diff.values.ravel()]))
+        return result[1:]
+    elif not invert:    
+        return pd.DataFrame(y_).diff()
     
+    # Error
+    if y_diff==0:
+        assert False
+
 ################
 # MAIN PROGRAM
 ################
@@ -1411,10 +1428,11 @@ list_IMFs = []
 decomposePred = []
 listOfDecomposePred = []
 
-
+ 
 for inputs in X_all:
     log("Plot Histogram")
     plot_histogram(y_all[i], xlabel='Load [MW]')    
+    
     
     if BOXCOX:        
         min_y = min(y_all[i])
@@ -1429,26 +1447,38 @@ for inputs in X_all:
         y_transf, lambda_boxcox = stats.boxcox(y_transf)
         y_transf = pd.DataFrame({'DEMAND':y_transf})
         log("Plot Histogram after Box-Cox Transformation")
-        plot_histogram(y_transf, xlabel='Box-Cox')
+        plot_histogram(y_transf, xlabel='Box-Cox')        
     else:
         y_transf = y_all[i]
         try:
             y_transf = pd.DataFrame({'DEMAND':y_transf})
         except ValueError:
             y_transf = pd.DataFrame({'DEMAND':y_transf.ravel()})
+    
+    # if DIFF:
+    #     log("Differential operation to make time series stationary")
+    #     df = df[1:].reset_index(drop=True)
+    #     inputs = inputs[1:].reset_index(drop=True)
+    #     y_all[i] = y_all[i][1:]
+    #     y_transf_save = y_transf
+    #     label = y_transf.columns[0]
+    #     y_transf = transform_stationary(y_transf)
+    #     y_transf = pd.DataFrame({label:y_transf.dropna().values.ravel()})
+        
     y_decomposed_list = decomposeSeasonal(y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
     # for y_decomposed2 in y_decomposed_list:
     #     if y_decomposed2.columns[0].find('Observed') != -1:
     #         y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
     #         break
     for y_decomposed in y_decomposed_list:
-        # if y_decomposed.columns[0].find("mode_0") == -1:           
+        # if y_decomposed.columns[0].find("IMF_1") == -1:           
         #     continue
+            
         results.append(Results()) # Start new Results instance every loop step
         
         if MINMAXSCALER:            
             label = y_decomposed.columns[0]
-            sc = MinMaxScaler(feature_range=(1,100))
+            sc = MinMaxScaler(feature_range=(1,2))
 #            sc = preprocessing.StandardScaler()
             y_decomposed = sc.fit_transform(y_decomposed)
 #            y_decomposed = sc.fit_transform(y_decomposed)
@@ -1459,7 +1489,7 @@ for inputs in X_all:
             except AttributeError:
                 y_decomposed = pd.DataFrame({label:y_decomposed.values.ravel()})
                 
-
+#        test_stationarity(y_decomposed)
         # Load Forecasting
         y_out, testSize, kfoldPred = loadForecast(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
         
@@ -1467,8 +1497,7 @@ for inputs in X_all:
             y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
             for j in range(len(kfoldPred)):
                 kfoldPred[j] = sc.inverse_transform(kfoldPred[j].reshape(kfoldPred[j].shape[0],1))
-
-
+                
         if CROSSVALIDATION:
             decomposePred.append(kfoldPred)
         else:
@@ -1477,13 +1506,17 @@ for inputs in X_all:
    
     if not enable_nni and not CROSSVALIDATION:        
         log("Join all decomposed y predictions")
-        y_composed = composeSeasonal(decomposePred, model=MODEL)
+        y_composed = composeSeasonal(decomposePred, model=MODEL)        
+        # if DIFF:
+        #     log("Invert differential")
+        #     y_composed = transform_stationary(y_transf_save.iloc[-FORECASTDAYS*24:].reset_index(drop=True), y_composed, invert=True)
         if BOXCOX:
             log("Inverse Box-Cox transformation")
             y_composed = special.inv_boxcox(y_composed, lambda_boxcox)                     
             if min_y <= 0: 
                 log("Restore shifted values from positive to negative + offset -1")
                 y_composed = y_composed - abs(min_y)-1
+        
         log("Print and plot the results")
         finalResults.append(Results())
         plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
@@ -1505,7 +1538,8 @@ if CROSSVALIDATION:
         
 if enable_nni:
     log("Publish the results on AutoML nni")
-    r2testResults = finalResults[0].r2test_per_fold
+#    r2testResults = finalResults[0].r2test_per_fold
+    r2testResults = results[0].r2test_per_fold
     r2scoreAvg = np.mean(r2testResults)
     log(f"r2test = {r2scoreAvg}")
     nni.report_final_result(r2scoreAvg)    
