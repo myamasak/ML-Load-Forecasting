@@ -44,10 +44,10 @@ enable_nni = False
 # Set True to plot curves 
 plot = True
 # Configuration for Forecasting
-CROSSVALIDATION = False
-KFOLD = 3
+CROSSVALIDATION = True
+KFOLD = 40
 OFFSET = 365*24
-FORECASTDAYS = 15
+FORECASTDAYS = 1
 NMODES = 5
 MODE = 'ewt'
 MODEL = 'ewt'
@@ -62,8 +62,8 @@ COMPONENT : str = 'Trend'
 # Default render
 pio.renderers.default = 'browser'
 # Default size for plotly export figures
-pio.kaleido.scope.default_width = 1280
-pio.kaleido.scope.default_height = 720
+#pio.kaleido.scope.default_width = 1280
+#pio.kaleido.scope.default_height = 720
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize':(14, 6)})
 # Set path to import dataset and export figures
@@ -182,7 +182,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
 
     return X, y
 
-def featureEngineering(dataset, X, selectDatasets, weekday=True, holiday=True, holiday_bridge=False,  dataset_name='ONS'):
+def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False,  dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -191,7 +191,18 @@ def featureEngineering(dataset, X, selectDatasets, weekday=True, holiday=True, h
     log("Adding date components (year, month, day, holidays and weekdays) to input data")
     # Transform to date type
     X['DATE'] = pd.to_datetime(dataset.DATE)
-    # X['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
+    
+    # log("Use lagged y (demand) to include as input in X")
+    # y_lag = pd.DataFrame({f'Demand_lag':y.shift(-FORECASTDAYS*24)})
+    # concatlist = [X, y_lag]
+    # X = pd.concat(concatlist,axis=1)
+    # # Drop null/NaN values    
+    # # First save indexes to drop in y
+    # drop = X[X[f'Demand_lag'].isnull()].index.values
+    # # Drop X
+    # X = X.dropna()
+    # # Drop y
+    # y = y.drop(index=drop)
 
     date = X['DATE']
     Year = pd.DataFrame({'Year':date.dt.year})
@@ -283,6 +294,7 @@ def featureEngineering(dataset, X, selectDatasets, weekday=True, holiday=True, h
     elif dataset_name.find('ISONewEngland') != -1:
         X_all.append(X)
         y_all.append(y)
+
 
     return X_all, y_all
 
@@ -459,7 +471,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     
     return y_
 
-def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
+def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
     log("Load Forecasting algorithm has been started")
     start_time_xgboost = time.time()
         
@@ -474,21 +486,39 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
     # Drop subsystem and date columns
     if dataset_name.find('ONS') != -1:
         try:
-            X = X_.drop(['SUBSYSTEM', 'DATE'], axis=1)
+            X = X.drop(['SUBSYSTEM', 'DATE'], axis=1)
         except KeyError:
             pass 
     elif dataset_name.find('ISONewEngland') != -1:
         try:
-            X = X_.drop(['DATE'], axis=1)
+            X = X.drop(['DATE'], axis=1)
         except KeyError:
             pass # ignore it
     try:
-        if y_.columns.str.find("SUBSYSTEM") != -1:
-            y = y_.drop(['SUBSYSTEM'], axis=1)
+        if y.columns.str.find("SUBSYSTEM") != -1:
+            y = y.drop(['SUBSYSTEM'], axis=1)
         else:
-            y = y_
+            pass
     except AttributeError:
-        y = y_
+        pass
+
+    # Shift demand and drop null values
+    X, y = get_lagged_y(X, y, forecastDays=forecastDays)
+    if len(df) > len(y):
+        df = df[:len(y)]
+
+    # Drop unnecessary columns from inputs
+    if y.columns[0].find('IMF_0') != -1:
+        X = X.drop(['Year','Month','Day','Weekday','Holiday','HOUR','DRYBULB','DEWPNT'], axis=1)
+    elif y.columns[0].find('IMF_1') != -1:
+        X = X.drop(['Year','HOUR','Month','DRYBULB','Holiday'], axis=1)
+    elif y.columns[0].find('IMF_2') != -1:
+        X = X.drop(['Year','Holiday','HOUR','DRYBULB'], axis=1)
+    # elif y.columns[0].find('IMF_3') != -1:
+    #     X = X.drop(['Year','Month','Day','Holiday','Weekday','DEWPNT','DRYBULB'], axis=1)
+    # elif y.columns[0].find('IMF_4') != -1:
+        # X = X.drop(['Year','Month','Day','Holiday','DRYBULB','DEWPNT','Weekday','HOUR'], axis=1)
+    
     # Define test size by converting days to percentage
     # testSize = 0.05
     testSize = forecastDays*24/X.shape[0]
@@ -508,7 +538,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
         fold_no = 1
         
         # Forecast X days
-        uniqueYears = X['Year'].unique()
+        # uniqueYears = X['Year'].unique()
         # test_size = round((X.shape[0]/uniqueYears.size)/12/2)
         test_size = round(forecastDays*24)
         train_size = round((len(inputs)/kfold) - test_size)
@@ -547,55 +577,55 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
         
         if not enable_nni:
-#            model = xgboost.XGBRegressor()
-#                                        colsample_bytree=0.8,
-#                                        gamma=0.3,
-#                                        learning_rate=0.03,
-#                                        max_depth=7,
-#                                        min_child_weight=6.0,
-#                                        n_estimators=1000,
-#                                        reg_alpha=0.75,
-#                                        reg_lambda=0.01,
-#                                        subsample=0.95,
-#                                        seed=42)
+            # model = xgboost.XGBRegressor()
+            #                             colsample_bytree=0.8,
+            #                             gamma=0.3,
+            #                             learning_rate=0.03,
+            #                             max_depth=7,
+            #                             min_child_weight=6.0,
+            #                             n_estimators=1000,
+            #                             reg_alpha=0.75,
+            #                             reg_lambda=0.01,
+            #                             subsample=0.95,
+            #                             seed=42)
             # Best configuration so far: gbr; metalearner=ARDR
-            regressors = list()
-#            regressors.append(('xgboost', xgboost.XGBRegressor()))
-#            regressors.append(('knn', KNeighborsRegressor()))
-#            regressors.append(('cart', DecisionTreeRegressor()))
-#            regressors.append(('rf', RandomForestRegressor()))
-#            regressors.append(('rf', RandomForestRegressor(n_estimators=750,
-#                                                           max_depth=32,
-#                                                           min_samples_split=2,
-#                                                           min_samples_leaf=1,
-#                                                           max_features="auto",
-#                                                           max_leaf_nodes=None,
-#                                                           min_impurity_decrease=0.001,
-#                                                           bootstrap=True,
-#                                                           random_state=42,
-#                                                           n_jobs=-1)))
-#            regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            # regressors = list()
+            # regressors.append(('xgboost', xgboost.XGBRegressor()))
+            # regressors.append(('knn', KNeighborsRegressor()))
+            # regressors.append(('cart', DecisionTreeRegressor()))
+            # regressors.append(('rf', RandomForestRegressor()))
+            # regressors.append(('rf', RandomForestRegressor(n_estimators=750,
+            #                                               max_depth=32,
+            #                                               min_samples_split=2,
+            #                                               min_samples_leaf=1,
+            #                                               max_features="auto",
+            #                                               max_leaf_nodes=None,
+            #                                               min_impurity_decrease=0.001,
+            #                                               bootstrap=True,
+            #                                               random_state=42,
+            #                                               n_jobs=-1)))
+            # regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
             # regressors.append(('gbr', GradientBoostingRegressor()))
-#            regressors.append(('extratrees', ExtraTreesRegressor()))
+            # regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
-#            regressors.append(('bayes'  , linear_model.BayesianRidge()))
-#            regressors.append(('lasso', linear_model.LassoLars()))
-#            regressors.append(('ard', linear_model.ARDRegression()))
-#            regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
-#            regressors.append(('theilsen', linear_model.TheilSenRegressor()))
-#            regressors.append(('linear', linear_model.LinearRegression()))
+            # regressors.append(('bayes'  , linear_model.BayesianRidge()))
+            # regressors.append(('lasso', linear_model.LassoLars()))
+            # regressors.append(('ard', linear_model.ARDRegression()))
+            # regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+            # regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+            # regressors.append(('linear', linear_model.LinearRegression()))
             
             # define meta learner model
-#            meta_learner = GradientBoostingRegressor() # 0.85873
-#            meta_learner = ExtraTreesRegressor() # 0.85938
-#            meta_learner = linear_model.TheilSenRegressor() # 0.87946      
-            meta_learner = linear_model.ARDRegression() # 0.88415
-#            meta_learner = LinearRegression() # 0.88037
-#            meta_learner = linear_model.BayesianRidge() # 0.877
-        
-#            model = VotingRegressor(estimators=regressors)
-#            model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
-            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            # meta_learner = GradientBoostingRegressor() # 0.85873
+            # meta_learner = ExtraTreesRegressor() # 0.85938
+            # meta_learner = linear_model.TheilSenRegressor() # 0.87946      
+            # meta_learner = linear_model.ARDRegression() # 0.88415
+            # meta_learner = LinearRegression() # 0.88037
+            # meta_learner = linear_model.BayesianRidge() # 0.877
+            
+            # model = VotingRegressor(estimators=regressors)
+            # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
+            # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             model = GradientBoostingRegressor()
                                         # loss="ls",
                                         # learning_rate=0.0023509843102651725,
@@ -615,25 +645,25 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                                         # random_state=42)
             # if y.columns[0].find('mode_0') != -1:
                 # Best configuration so far: gbr; metalearner=ARDR
-#                regressors = list()
-#                regressors.append(('xgboost', xgboost.XGBRegressor()))
-#                regressors.append(('gbr', GradientBoostingRegressor()))
-#                regressors.append(('knn', KNeighborsRegressor()))
-#                regressors.append(('cart', DecisionTreeRegressor()))
-#                regressors.append(('rf', RandomForestRegressor()))
-#                regressors.append(('svr', svm.SVR()))
-#                regressors.append(('extratrees', ExtraTreesRegressor()))
-#                regressors.append(('ridge', linear_model.Ridge()))
-#                regressors.append(('pls', cross_decomposition.PLSRegression()))
-#                regressors.append(('sgd', linear_model.SGDRegressor()))
-#                regressors.append(('bayes'  , linear_model.BayesianRidge()))
-#                regressors.append(('lasso', linear_model.LassoLars()))
-#                regressors.append(('ard', linear_model.ARDRegression()))
-#                regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
-#                regressors.append(('theilsen', linear_model.TheilSenRegressor()))
-#                regressors.append(('linear', linear_model.LinearRegression()))
-#                meta_learner = linear_model.ARDRegression() # 0.88415
-#                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            # regressors = list()
+            # regressors.append(('xgboost', xgboost.XGBRegressor()))
+            # regressors.append(('gbr', GradientBoostingRegressor()))
+            # regressors.append(('knn', KNeighborsRegressor()))
+            # regressors.append(('cart', DecisionTreeRegressor()))
+            # regressors.append(('rf', RandomForestRegressor()))
+            # regressors.append(('svr', svm.SVR()))
+            # regressors.append(('extratrees', ExtraTreesRegressor()))
+            # regressors.append(('ridge', linear_model.Ridge()))
+            # regressors.append(('pls', cross_decomposition.PLSRegression()))
+            # regressors.append(('sgd', linear_model.SGDRegressor()))
+            # regressors.append(('bayes'  , linear_model.BayesianRidge()))
+            # regressors.append(('lasso', linear_model.LassoLars()))
+            # regressors.append(('ard', linear_model.ARDRegression()))
+            # regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+            # regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+            # regressors.append(('linear', linear_model.LinearRegression()))
+            # meta_learner = linear_model.ARDRegression() # 0.88415
+            # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
                 
                 
 
@@ -697,17 +727,7 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             log(f'Training for fold {fold_no} ...')
 
             model.fit(X_train, y_train.ravel())
-            # model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-#            X_new = np.arange(len(X_train[:,0]))
-#            X_new = X_new.reshape(X_new.shape[0],1)
-#            model.fit(X_new, y_train.ravel())
-            
-            # Predict using test data
-#            X_new_test = np.arange(len(X_test[:,0]))
-#            X_new_test = X_new_test.reshape(X_new_test.shape[0],1)
-#            X_new_test = X_new_test + len(X_new)
-#            y_pred = model.predict(X_new_test)
+            y_pred = model.predict(X_test)            
             
             # Save y_pred
             kfoldPred.append(y_pred)
@@ -725,27 +745,25 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                 #                         y=y_pred,
                 #                         name='Predicted Load (fold='+str(i+1)+")",
                 #                         mode='lines'))
-                plt.plot(df2, y_pred, label='Predicted Load (fold='+str(i+1)+")")
-
-        
+                plt.plot(df2, y_pred, label='Predicted Load (fold='+str(i+1)+")")        
 
             y_pred_train = model.predict(X_train)
             y_pred_train = np.float64(y_pred_train)
             r2train = r2_score(y_train, y_pred_train)
             r2test = r2_score(y_test, y_pred)
 
-#            log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
-#            log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+            # log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
+            # log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
             n = len(X_test)
             p = X_test.shape[1]
             adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
-#            log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+            # log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
 
             rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-#            log("RMSE: %f" % (rmse))
+            # log("RMSE: %f" % (rmse))
 
             mae = mean_absolute_error(y_test, y_pred)
-#            log("MAE: %f" % (mae))
+            # log("MAE: %f" % (mae))
 
             try:
                 y_test = y_test.values.reshape(y_test.shape[0])
@@ -754,26 +772,26 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             except AttributeError:
                 mape = mean_absolute_percentage_error(y_test, y_pred)
                 smape = symmetric_mape(y_test, y_pred)
-#            log("MAPE: %.2f%%" % (mape))
-#            log("sMAPE: %.2f%%" % (smape))
+            # log("MAPE: %.2f%%" % (mape))
+            # log("sMAPE: %.2f%%" % (smape))
             
-        #    if plot:
-        #        fig2 = go.Figure()
-        #        fig2.add_shape(dict(
-        #                        type="line",
-        #                        x0=math.floor(min(np.array(y_test))),
-        #                        y0=math.floor(min(np.array(y_test))),
-        #                        x1=math.ceil(max(np.array(y_test))),
-        #                        y1=math.ceil(max(np.array(y_test)))))
-        #        fig2.update_shapes(dict(xref='x', yref='y'))
-        #        fig2.add_trace(go.Scatter(x=y_test.reshape(y_test.shape[0]),
-        #                                y=y_pred,
-        #                                name='Real price VS Predicted Price (fold='+str(i+1)+")",
-        #                                mode='markers'))
-        #        fig2.update_layout(title='Real vs Predicted price',
-        #                        xaxis_title=f'Real Demand - {y.columns[0]}',
-        #                        yaxis_title=f'Predicted Load - {y.columns[0]}')
-        #        fig2.show()
+            # if plot:
+            #     fig2 = go.Figure()
+            #     fig2.add_shape(dict(
+            #                     type="line",
+            #                     x0=math.floor(min(np.array(y_test))),
+            #                     y0=math.floor(min(np.array(y_test))),
+            #                     x1=math.ceil(max(np.array(y_test))),
+            #                     y1=math.ceil(max(np.array(y_test)))))
+            #     fig2.update_shapes(dict(xref='x', yref='y'))
+            #     fig2.add_trace(go.Scatter(x=y_test.reshape(y_test.shape[0]),
+            #                             y=y_pred,
+            #                             name='Real price VS Predicted Price (fold='+str(i+1)+")",
+            #                             mode='markers'))
+            #     fig2.update_layout(title='Real vs Predicted price',
+            #                     xaxis_title=f'Real Demand - {y.columns[0]}',
+            #                     yaxis_title=f'Predicted Load - {y.columns[0]}')
+            #     fig2.show()
             
             
             # Generate generalization metrics
@@ -813,9 +831,27 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             # plt.legend()
             plt.show()
             if BOXCOX:
-                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
+                plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
             else:
-                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
+                plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
+
+            # Calculate feature importances
+            importances = model.feature_importances_
+            # Sort feature importances in descending order
+            indices = np.argsort(importances)[::-1]
+            # Rearrange feature names so they match the sorted feature importances
+            names = [X.columns[i] for i in indices]
+            #plot_feature_importances(importances,Xdata.columns)
+            # Create plot
+            plt.figure()
+            # Create plot title
+            plt.title(f"Feature Importance - {y.columns[0]}")
+            # Add bars
+            plt.bar(range(X.shape[1]), importances[indices])
+            # Add feature names as x-axis labels
+            plt.xticks(range(X.shape[1]), names, rotation=0)
+            # Show plot
+            plt.show()
 
         # Print the results: average per fold
         results[r].printResults()
@@ -843,29 +879,29 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             #                              subsample=0.95,
             #                              seed=42)
 
-#            from tensorflow.keras.models import Sequential
-#            from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU, Flatten, TimeDistributed
-#            from tensorflow.keras.callbacks import EarlyStopping
+            # from tensorflow.keras.models import Sequential
+            # from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU, Flatten, TimeDistributed
+            # from tensorflow.keras.callbacks import EarlyStopping
 
-#            ann_model = Sequential()
-#            ann_model.add(Dense(16))
-#            ann_model.add(LeakyReLU(alpha=0.05))            
-#            # Adding the hidden layers
-#            for i in range(8):
-#                ann_model.add(Dense(units = 16))
-#                ann_model.add(LeakyReLU(alpha=0.05))
-#            # output layer
-#            ann_model.add(Dense(units = 1))
-#            # Compiling the ANN
-#            model.compile(optimizer = 'Adam', loss = 'mean_squared_error')
-#            early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
+            # ann_model = Sequential()
+            # ann_model.add(Dense(16))
+            # ann_model.add(LeakyReLU(alpha=0.05))            
+            # # Adding the hidden layers
+            # for i in range(8):
+            #     ann_model.add(Dense(units = 16))
+            #     ann_model.add(LeakyReLU(alpha=0.05))
+            # # output layer
+            # ann_model.add(Dense(units = 1))
+            # # Compiling the ANN
+            # model.compile(optimizer = 'Adam', loss = 'mean_squared_error')
+            # early_stop = EarlyStopping(monitor='loss', patience=10, verbose=1)
 
             # regressors = list()
-#            regressors.append(('xgboost', xgboost.XGBRegressor()))
-#            regressors.append(('knn', KNeighborsRegressor()))
-#            regressors.append(('cart', DecisionTreeRegressor()))
-#            regressors.append(('rf', RandomForestRegressor()))
-#            regressors.append(('svm', svm.SVR()))
+            # regressors.append(('xgboost', xgboost.XGBRegressor()))
+            # regressors.append(('knn', KNeighborsRegressor()))
+            # regressors.append(('cart', DecisionTreeRegressor()))
+            # regressors.append(('rf', RandomForestRegressor()))
+            # regressors.append(('svm', svm.SVR()))
             # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
             # regressors.append(('bayes'  , linear_model.BayesianRidge()))
@@ -878,8 +914,8 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             # define meta learner model
             # meta_learner = linear_model.ARDRegression()
             
-#            model.add(regressors)
-#            model.add_meta(meta_learner)
+            # model.add(regressors)
+            # model.add_meta(meta_learner)
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
 
@@ -891,9 +927,9 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                 # linear_model.PassiveAggressiveRegressor(),
                 # linear_model.TheilSenRegressor(),
                 # linear_model.LinearRegression()]
-            #  model = GradientBoostingRegressor()
-             model = xgboost.XGBRegressor(objective='reg:squarederror', max_depth=2)
-        else:
+            model = GradientBoostingRegressor()
+             
+        else: # mni enabled
             model = xgboost.XGBRegressor(
                                         colsample_bytree=params['colsample_bytree'],
                                         gamma=params['gamma'],                 
@@ -906,17 +942,17 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
                                         subsample=params['subsample'],
                                         seed=42)
             
-#        for model in regressors:
+        # for model in regressors:
         model.fit(X_train, y_train.values.ravel())
         y_pred = model.predict(X_test)
-        # y_pred = special.inv_boxcox(y_pred, lambda_boxcox)
+
         # Prepare for plotting
         rows = X_test.index
         df2 = df.iloc[rows[0]:]
         
         if plot:
             # plt.figure()
-            #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
+            # plt.plot(df2,y_tested, color = 'red', label = 'Real data')            
             plt.plot(df,y, label = f'Real data - {y.columns[0]}')
             plt.plot(df2,y_pred, label = f'Predicted data - {y.columns[0]}')
             if BOXCOX:
@@ -928,9 +964,9 @@ def loadForecast(X_, y_, CrossValidation=False, kfold=5, offset=0, forecastDays=
             plt.xlabel('Date')
             plt.legend()
             if BOXCOX:
-                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
+                plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
             else:
-                plt.savefig(path+f'/results/{MODE}_{y_.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
+                plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
             plt.show()
         
         y_pred_train = model.predict(X_train)
@@ -1006,6 +1042,11 @@ def composeSeasonal(decomposePred, model='stl-a'):
 
 def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
+    if len(df) != len(y_):
+        y_ = y_[:len(df)]
+    if len(df) != len(X_):
+        X_ = X_[:len(df)]
+            
     if not CROSSVALIDATION:
         if len(y_pred.shape) > 1:
             if y_pred.shape[1]==1:
@@ -1017,6 +1058,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 y_ = y_.drop(["SUBSYSTEM"], axis=1)
             except (AttributeError,KeyError) as e:
                 pass
+        
             
         X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
         # Prepare for plotting
@@ -1304,9 +1346,9 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_ewt():
         # EWT - Empirical Wavelet Transform
-        FFTreg = 'gaussian'
-        FFTregLen = 25
-        gaussSigma = 5        
+        FFTreg = 'average'
+        FFTregLen = 200
+        gaussSigma = 15
         ewt,_,_ = ewtpy.EWT1D(y_series, N = Nmodes, log = 0,
                         detect = "locmax", 
                         completion = 0, 
@@ -1380,6 +1422,22 @@ def transform_stationary(y_, y_diff=0, invert=False):
     if y_diff==0:
         assert False
 
+def get_lagged_y(X_, y_, forecastDays=FORECASTDAYS):
+    log("Use lagged y (demand) to include as input in X")
+    label = y_.columns[0]
+    y_lag = y_.shift(-int(forecastDays*24))
+    y_lag.rename(columns={label:'DEMAND_LAG'})
+    concatlist = [X_, y_lag]
+    X_ = pd.concat(concatlist,axis=1)
+    # Drop null/NaN values    
+    # First save indexes to drop in y
+    drop = X_[X_[label].isnull()].index.values
+    # Drop X
+    X_ = X_.dropna()
+    # Drop y
+    y_ = y_.drop(index=drop)
+    return X_, y_
+
 ################
 # MAIN PROGRAM
 ################
@@ -1397,7 +1455,7 @@ dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 # Data cleaning and set the input and reference data
 X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data 
-X_all, y_all = featureEngineering(dataset, X, selectDatasets, dataset_name=DATASET_NAME)
+X_all, y_all = featureEngineering(dataset, X, y, selectDatasets, dataset_name=DATASET_NAME)
 # Outlier removal
 i=0
 for y_ in y_all:
@@ -1428,7 +1486,8 @@ list_IMFs = []
 decomposePred = []
 listOfDecomposePred = []
 
- 
+
+
 for inputs in X_all:
     log("Plot Histogram")
     plot_histogram(y_all[i], xlabel='Load [MW]')    
@@ -1480,7 +1539,10 @@ for inputs in X_all:
             label = y_decomposed.columns[0]
             sc = MinMaxScaler(feature_range=(1,2))
 #            sc = preprocessing.StandardScaler()
-            y_decomposed = sc.fit_transform(y_decomposed)
+            try:
+                y_decomposed = sc.fit_transform(y_decomposed)
+            except ValueError:
+                y_decomposed = sc.fit_transform(y_decomposed.to_numpy().reshape(y_decomposed.shape[0],1))
 #            y_decomposed = sc.fit_transform(y_decomposed)
             try:
                 y_decomposed = pd.DataFrame({label:y_decomposed})
@@ -1491,7 +1553,7 @@ for inputs in X_all:
                 
 #        test_stationarity(y_decomposed)
         # Load Forecasting
-        y_out, testSize, kfoldPred = loadForecast(X_=inputs, y_=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
+        y_out, testSize, kfoldPred = loadForecast(X=inputs, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
         
         if MINMAXSCALER:            
             y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
