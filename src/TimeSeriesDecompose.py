@@ -35,6 +35,8 @@ from sklearn.tree import DecisionTreeRegressor
 from RobustSTL import RobustSTL
 from sklearn.preprocessing import MinMaxScaler, normalize
 import nni
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
@@ -49,11 +51,11 @@ KFOLD = 40
 OFFSET = 365*24
 FORECASTDAYS = 1
 NMODES = 5
-MODE = 'ewt'
-MODEL = 'ewt'
+MODE = 'eemd'
 BOXCOX = True
 MINMAXSCALER = True
 DIFF = False
+LOAD_DECOMPOSED = True
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -86,7 +88,6 @@ log(f"OFFSET: {OFFSET}")
 log(f"FORECASTDAYS: {FORECASTDAYS}")
 log(f"NMODES: {NMODES}")
 log(f"MODE: {MODE}")
-log(f"MODEL: {MODEL}")
 log(f"BOXCOX: {BOXCOX}")
 log(f"ALGORITHM: {ALGORITHM}")
 log(f"MINMAXSCALER: {MINMAXSCALER}")
@@ -508,12 +509,12 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         df = df[:len(y)]
 
     # Drop unnecessary columns from inputs
-    if y.columns[0].find('IMF_0') != -1:
-        X = X.drop(['Year','Month','Day','Weekday','Holiday','HOUR','DRYBULB','DEWPNT'], axis=1)
-    elif y.columns[0].find('IMF_1') != -1:
-        X = X.drop(['Year','HOUR','Month','DRYBULB','Holiday'], axis=1)
-    elif y.columns[0].find('IMF_2') != -1:
-        X = X.drop(['Year','Holiday','HOUR','DRYBULB'], axis=1)
+    # if y.columns[0].find('IMF_0') != -1:
+    #     X = X.drop(['Year','Month','Day','Weekday','Holiday','HOUR','DRYBULB','DEWPNT'], axis=1)
+    # elif y.columns[0].find('IMF_1') != -1:
+    #     X = X.drop(['Year','HOUR','Month','DRYBULB','Holiday'], axis=1)
+    # elif y.columns[0].find('IMF_2') != -1:
+    #     X = X.drop(['Year','Holiday','HOUR','DRYBULB'], axis=1)
     # elif y.columns[0].find('IMF_3') != -1:
     #     X = X.drop(['Year','Month','Day','Holiday','Weekday','DEWPNT','DRYBULB'], axis=1)
     # elif y.columns[0].find('IMF_4') != -1:
@@ -1317,15 +1318,29 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     tic = time.time()  
     
     def do_emd():        
-        emd = EMD()
+        emd = EMD(trials = 50)
         emd.MAX_ITERATION = 2000
+        emd.noise_seed(42)
         IMFs = emd.emd(y_series, max_imf=Nmodes)
         return IMFs
     
     def do_eemd():
-        eemd = EEMD(trials = 200)
-        eemd.MAX_ITERATION = 2000
-        IMFs = eemd(y_series, max_imf=Nmodes)
+        if LOAD_DECOMPOSED:
+            all_files = glob.glob(path + r'/datasets/ISONewEngland/custom/EEMD*IMF*.csv')
+            # Initialize dataset list
+            IMFs = []
+            # Read all csv files and concat them
+            for filename in all_files:
+                if (filename.find("IMF") != -1) and (filename.find("EEMD") != -1):
+                    df = pd.read_csv(filename, index_col=None, header=0)
+                    df = df.values.ravel()
+                    IMFs.append(df)
+        
+        else:
+            eemd = EEMD(trials=500, noise_width=0.15, DTYPE=np.float16)
+            eemd.MAX_ITERATION = 2000
+            eemd.noise_seed(42)
+            IMFs = eemd(y_series, max_imf=Nmodes)
         return IMFs
     
     def do_vmd():
@@ -1340,7 +1355,8 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_ceemdan():
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        ceemdan = CEEMDAN()
+        ceemdan = CEEMDAN(trials = 50)
+        ceemdan.noise_seed(42)
         IMFs = ceemdan(y_series,max_imf = Nmodes)
         return IMFs
 
@@ -1514,6 +1530,17 @@ for inputs in X_all:
         except ValueError:
             y_transf = pd.DataFrame({'DEMAND':y_transf.ravel()})
     
+    if MINMAXSCALER:            
+        label = y_transf.columns[0]
+        # sc1 = MinMaxScaler(feature_range=(-1,1))
+        sc1 = preprocessing.StandardScaler()
+        y_transf = sc1.fit_transform(y_transf)
+        try:
+            y_transf = pd.DataFrame({label:y_transf})
+        except ValueError:
+            y_transf = pd.DataFrame({label:y_transf.ravel()})
+        except AttributeError:
+            y_transf = pd.DataFrame({label:y_transf.values.ravel()})
     # if DIFF:
     #     log("Differential operation to make time series stationary")
     #     df = df[1:].reset_index(drop=True)
@@ -1535,9 +1562,9 @@ for inputs in X_all:
             
         results.append(Results()) # Start new Results instance every loop step
         
-        if MINMAXSCALER:            
+        if MINMAXSCALER and False:            
             label = y_decomposed.columns[0]
-            sc = MinMaxScaler(feature_range=(1,2))
+            sc = MinMaxScaler(feature_range=(-1,1))
 #            sc = preprocessing.StandardScaler()
             try:
                 y_decomposed = sc.fit_transform(y_decomposed)
@@ -1555,7 +1582,7 @@ for inputs in X_all:
         # Load Forecasting
         y_out, testSize, kfoldPred = loadForecast(X=inputs, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
         
-        if MINMAXSCALER:            
+        if MINMAXSCALER and False:            
             y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
             for j in range(len(kfoldPred)):
                 kfoldPred[j] = sc.inverse_transform(kfoldPred[j].reshape(kfoldPred[j].shape[0],1))
@@ -1568,7 +1595,7 @@ for inputs in X_all:
    
     if not enable_nni and not CROSSVALIDATION:        
         log("Join all decomposed y predictions")
-        y_composed = composeSeasonal(decomposePred, model=MODEL)        
+        y_composed = composeSeasonal(decomposePred, model=MODE)        
         # if DIFF:
         #     log("Invert differential")
         #     y_composed = transform_stationary(y_transf_save.iloc[-FORECASTDAYS*24:].reset_index(drop=True), y_composed, invert=True)
@@ -1587,9 +1614,14 @@ for inputs in X_all:
        
 if CROSSVALIDATION:
     log("Join all decomposed y predictions")
-    y_composed = composeSeasonal(decomposePred, model=MODEL)
+    y_composed = composeSeasonal(decomposePred, model=MODE)
+    if MINMAXSCALER:
+        for i in range(len(y_composed)):
+            log("Inverse MinMaxScaler transformation")
+            # y_composed[i] = sc1.inverse_transform(y_composed[i])
+            y_composed[i] = sc1.inverse_transform(y_composed[i].reshape(y_out.shape[0],1))
     if BOXCOX:
-        for i in range(len(y_composed)):                    
+        for i in range(len(y_composed)):
             log("Inverse Box-Cox transformation")
             y_composed[i] = special.inv_boxcox(y_composed[i], lambda_boxcox)                     
             if min_y <= 0: 
@@ -1618,8 +1650,8 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 # seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
 # remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
 
-# for imf in y_decomposed_list:
-#     imf.to_csv(path+f'/{imf.columns[0]}_2015-2018.csv', index = None, header=True)
+#for imf in y_decomposed_list:
+#    imf.to_csv(path+f'/{imf.columns[0]}_2015-2018.csv', index = None, header=True)
 
 
 # Close logging handlers to release the log file

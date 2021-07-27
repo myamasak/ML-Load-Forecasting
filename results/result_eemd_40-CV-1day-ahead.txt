@@ -1,0 +1,74 @@
+EEMD - best - MinMaxScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86913 (+- 0.12932)
+> rmse: 605.14817 (+- 281.47635)
+> mae: 495.24439 (+- 242.61758)
+> mape: 16.89596 (+- 3.54535)
+> smape: 16.50499 (+- 3.51821)
+
+
+StandardScaler + MinMaxScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86862 (+- 0.13242)
+> rmse: 605.19466 (+- 282.54969)
+> mae: 495.99687 (+- 244.08352)
+> mape: 16.90215 (+- 3.54306)
+> smape: 16.50788 (+- 3.51645)
+
+
+StandardScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86723 (+- 0.13275)
+> rmse: 609.32872 (+- 286.36557)
+> mae: 500.14855 (+- 249.55756)
+> mape: 3.72439 (+- 1.88589)
+> smape: 3.70989 (+- 1.86717)
+
+StandardScaler # No BoxCox
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86934 (+- 0.12056)
+> rmse: 618.69662 (+- 266.21735)
+> mae: 513.12127 (+- 219.23868)
+> mape: 3.82489 (+- 1.63897)
+> smape: 3.81229 (+- 1.64181)
+
+BoxCox + StandardScaler + MinMaxScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86822 (+- 0.13222)
+> rmse: 606.97307 (+- 284.47866)
+> mae: 498.24402 (+- 247.10104)
+> mape: 16.90489 (+- 3.55135)
+> smape: 16.50811 (+- 3.52173)
+
+
+
+
+100 trials
+BoxCox + StandardScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.85380 (+- 0.14800)
+> rmse: 641.00824 (+- 296.87893)
+> mae: 530.98127 (+- 256.13635)
+> mape: 16.99535 (+- 3.62136)
+> smape: 16.57404 (+- 3.54619)
+
+
+500 trials
+BoxCox + StandardScaler
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.87290 (+- 0.12013)
+> rmse: 602.03947 (+- 268.37823)
+> mae: 492.14106 (+- 218.65919)
+> mape: 16.95654 (+- 3.62913)
+> smape: 16.54586 (+- 3.55539)
+
+lambda_boxcox
+-0.09823825239641361
+
