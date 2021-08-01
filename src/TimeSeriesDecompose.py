@@ -51,11 +51,11 @@ KFOLD = 40
 OFFSET = 365*24
 FORECASTDAYS = 1
 NMODES = 5
-MODE = 'eemd'
+MODE = 'ceemdan'
 BOXCOX = True
 MINMAXSCALER = True
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -1326,12 +1326,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     
     def do_eemd():
         if LOAD_DECOMPOSED:
-            all_files = glob.glob(path + r'/datasets/ISONewEngland/custom/EEMD*IMF*.csv')
+            all_files = glob.glob(path + r'/datasets/ISONewEngland/custom/eemd_IMF*.csv')
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
             for filename in all_files:
-                if (filename.find("IMF") != -1) and (filename.find("EEMD") != -1):
+                if (filename.find("IMF") != -1) and (filename.find(MODE) != -1):
                     df = pd.read_csv(filename, index_col=None, header=0)
                     df = df.values.ravel()
                     IMFs.append(df)
@@ -1354,10 +1354,20 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         return IMFs
 
     def do_ceemdan():
+        if LOAD_DECOMPOSED:
+            all_files = glob.glob(path + r'/datasets/ISONewEngland/custom/ceemdan_IMF*.csv')
+            # Initialize dataset list
+            IMFs = []
+            # Read all csv files and concat them
+            for filename in all_files:
+                if (filename.find("IMF") != -1) and (filename.find(MODE) != -1):
+                    df = pd.read_csv(filename, index_col=None, header=0)
+                    df = df.values.ravel()
+                    IMFs.append(df)
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        ceemdan = CEEMDAN(trials = 50)
+        ceemdan = CEEMDAN(trials = 500)
         ceemdan.noise_seed(42)
-        IMFs = ceemdan(y_series,max_imf = Nmodes)
+        IMFs = ceemdan(y_series,max_imf = Nmodes) 
         return IMFs
 
     def do_ewt():
@@ -1650,8 +1660,9 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 # seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
 # remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
 
-#for imf in y_decomposed_list:
-#    imf.to_csv(path+f'/{imf.columns[0]}_2015-2018.csv', index = None, header=True)
+if not LOAD_DECOMPOSED and MODE != 'none':
+    for imf in y_decomposed_list:
+        imf.to_csv(path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
 
 
 # Close logging handlers to release the log file

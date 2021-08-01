@@ -1,0 +1,71 @@
+50 trials - epsilon=0.01
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.77954 (+- 0.26297)
+> rmse: 771.98535 (+- 365.99413)
+> mae: 635.25064 (+- 310.55701)
+> mape: 16.68095 (+- 3.57786)
+> smape: 16.29457 (+- 3.37792)
+
+50 trials - epsilon=0.05
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.82278 (+- 0.20577)
+> rmse: 677.64525 (+- 308.40302)
+> mae: 562.17079 (+- 258.20477)
+> mape: 16.85682 (+- 3.44390)
+> smape: 16.47129 (+- 3.38646)
+
+50 trials - epsilon=0.1
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.84082 (+- 0.16192)
+> rmse: 661.61681 (+- 322.57585)
+> mae: 549.13452 (+- 286.16279)
+> mape: 17.00179 (+- 3.64109)
+> smape: 16.63241 (+- 3.61341)
+
+50 trials - epsilon=0.5
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.85035 (+- 0.18371)
+> rmse: 643.46020 (+- 300.60146)
+> mae: 523.39647 (+- 244.21612)
+> mape: 16.96463 (+- 3.64947)
+> smape: 16.58200 (+- 3.61276)
+
+50 trials - epsilon=1
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.85332 (+- 0.14961)
+> rmse: 662.13896 (+- 321.33904)
+> mae: 533.52694 (+- 267.19142)
+> mape: 16.91119 (+- 3.79581)
+> smape: 16.57048 (+- 3.75209)
+
+50 trials - epsilon=1.1
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.85207 (+- 0.14881)
+> rmse: 666.39882 (+- 311.40066)
+> mae: 538.80071 (+- 261.86952)
+> mape: 16.87964 (+- 3.76215)
+> smape: 16.52385 (+- 3.72857)
+
+500 trials - epsilon=1.1
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.85542 (+- 0.14039)
+> rmse: 661.43774 (+- 307.56767)
+> mae: 546.80095 (+- 271.14539)
+> mape: 17.05497 (+- 3.74417)
+> smape: 16.65590 (+- 3.67226)
+
+500 trials - epsilon=0.01
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.80244 (+- 0.20830)
+> rmse: 712.30192 (+- 339.65465)
+> mae: 588.27374 (+- 297.57504)
+> mape: 16.79685 (+- 3.60962)
+> smape: 16.38794 (+- 3.57083)
