@@ -1,3 +1,4 @@
+stl-a
 Average scores for all folds:
 > r2_score_train: 0.00000 (+- 0.00000)
 > r2_score_test: 0.87066 (+- 0.13483)
@@ -5,3 +6,21 @@ Average scores for all folds:
 > mae: 503.50292 (+- 243.03442)
 > mape: 17.10279 (+- 3.61220)
 > smape: 16.73517 (+- 3.58919)
+
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86953 (+- 0.13382)
+> rmse: 619.23541 (+- 283.35120)
+> mae: 506.96866 (+- 246.44639)
+> mape: 17.11187 (+- 3.62968)
+> smape: 16.74066 (+- 3.59673)
+
+
+stl-m
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.87167 (+- 0.12409)
+> rmse: 615.88491 (+- 265.45970)
+> mae: 503.61666 (+- 225.57828)
+> mape: 17.15229 (+- 3.58753)
+> smape: 16.79072 (+- 3.54407)

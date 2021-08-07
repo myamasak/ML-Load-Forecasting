@@ -69,3 +69,12 @@ Average scores for all folds:
 > mae: 588.27374 (+- 297.57504)
 > mape: 16.79685 (+- 3.60962)
 > smape: 16.38794 (+- 3.57083)
+
+500 trials - epsilon=0.001
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.80201 (+- 0.20977)
+> rmse: 714.41936 (+- 336.10841)
+> mae: 589.70556 (+- 295.00894)
+> mape: 16.81063 (+- 3.62240)
+> smape: 16.40917 (+- 3.58622)

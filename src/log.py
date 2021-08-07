@@ -12,8 +12,8 @@ elif path.find('src') != -1:
 logging.basicConfig(filename=path+logname,
                     format='%(asctime)s %(message)s',
                     datefmt='[%m/%d/%Y %H:%M:%S]',
-                    filemode='a')
-                    # level=logging.INFO)
+                    filemode='a',
+                    level=logging.INFO)
 
 def log(message):
     logging.info(message)

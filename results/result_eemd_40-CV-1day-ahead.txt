@@ -69,6 +69,14 @@ Average scores for all folds:
 > mape: 16.95654 (+- 3.62913)
 > smape: 16.54586 (+- 3.55539)
 
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.87115 (+- 0.12218)
+> rmse: 606.95246 (+- 269.96342)
+> mae: 497.04653 (+- 222.48720)
+> mape: 16.97059 (+- 3.62700)
+> smape: 16.55411 (+- 3.54790)
+
 lambda_boxcox
 -0.09823825239641361
 

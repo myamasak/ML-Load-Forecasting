@@ -51,11 +51,11 @@ KFOLD = 40
 OFFSET = 365*24
 FORECASTDAYS = 1
 NMODES = 5
-MODE = 'ceemdan'
+MODE = 'eemd'
 BOXCOX = True
 MINMAXSCALER = True
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -496,7 +496,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         except KeyError:
             pass # ignore it
     try:
-        if y.columns.str.find("SUBSYSTEM") != -1:
+        if y.columns.str.find("SUBSYSTEM") != -1 and y.columns[0] is not None:
             y = y.drop(['SUBSYSTEM'], axis=1)
         else:
             pass
@@ -1036,6 +1036,14 @@ def composeSeasonal(decomposePred, model='stl-a'):
             finalPred = decomposePred[1] + decomposePred[2] + decomposePred[3]
         elif model == 'stl-a':
             finalPred = [sum(x) for x in zip(*[decomposePred[0],decomposePred[1],decomposePred[2]])]
+        elif model == 'stl-m':
+            finalPred = []
+            for x in zip(*[decomposePred[0],decomposePred[1],decomposePred[2]]):
+                fold = []
+                for i in range(len(x[0])):
+                    prod = x[0][i] * x[1][i] * x[2][i]
+                    fold.append(prod)
+                finalPred.append(np.array(fold))
         else:
             finalPred = [sum(x) for x in zip(*decomposePred)]
     return finalPred
@@ -1365,7 +1373,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     df = df.values.ravel()
                     IMFs.append(df)
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        ceemdan = CEEMDAN(trials = 500)
+        ceemdan = CEEMDAN(trials = 500, epsilon=0.01)
         ceemdan.noise_seed(42)
         IMFs = ceemdan(y_series,max_imf = Nmodes) 
         return IMFs
@@ -1452,12 +1460,15 @@ def get_lagged_y(X_, y_, forecastDays=FORECASTDAYS):
     log("Use lagged y (demand) to include as input in X")
     label = y_.columns[0]
     y_lag = y_.shift(-int(forecastDays*24))
-    y_lag.rename(columns={label:'DEMAND_LAG'})
+    try:
+        y_lag = y_lag.rename(columns={label:'DEMAND_LAG'})
+    except TypeError:
+        y_lag = pd.DataFrame({'DEMAND_LAG':y_lag.ravel()})
     concatlist = [X_, y_lag]
     X_ = pd.concat(concatlist,axis=1)
     # Drop null/NaN values    
     # First save indexes to drop in y
-    drop = X_[X_[label].isnull()].index.values
+    drop = X_[X_['DEMAND_LAG'].isnull()].index.values
     # Drop X
     X_ = X_.dropna()
     # Drop y
@@ -1542,7 +1553,7 @@ for inputs in X_all:
     
     if MINMAXSCALER:            
         label = y_transf.columns[0]
-        # sc1 = MinMaxScaler(feature_range=(-1,1))
+#        sc1 = MinMaxScaler(feature_range=(1,2))
         sc1 = preprocessing.StandardScaler()
         y_transf = sc1.fit_transform(y_transf)
         try:
@@ -1566,7 +1577,10 @@ for inputs in X_all:
     #     if y_decomposed2.columns[0].find('Observed') != -1:
     #         y_decomposed_list = emd_decompose(y_decomposed2, Nmodes=NMODES, dataset_name=DATASET_NAME)
     #         break
+        
     for y_decomposed in y_decomposed_list:
+        if type(y_decomposed) is not type(pd.DataFrame()):
+            y_decomposed = pd.DataFrame({y_decomposed.name:y_decomposed.values})
         # if y_decomposed.columns[0].find("IMF_1") == -1:           
         #     continue
             
