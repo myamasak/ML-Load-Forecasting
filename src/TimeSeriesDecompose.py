@@ -14,7 +14,9 @@ import glob
 import seaborn as sns
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import holidays
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score, learning_curve, train_test_split
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score, train_test_split
+# from sklearn.experimental import enable_halving_search_cv
+# from sklearn.model_selection import HalvingGridSearchCV
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -29,13 +31,16 @@ from PyEMD import EMD, EEMD, CEEMDAN
 import ewtpy
 from sklearn import linear_model, cross_decomposition
 from sklearn import svm
-from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor
+from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor, AdaBoostRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
-from RobustSTL import RobustSTL
+from sklearn.cross_decomposition import PLSRegression
+from skgarden import RandomForestQuantileRegressor, ExtraTreesQuantileRegressor
+#from RobustSTL import RobustSTL
 from sklearn.preprocessing import MinMaxScaler, normalize
 import nni
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
@@ -51,11 +56,11 @@ KFOLD = 40
 OFFSET = 365*24
 FORECASTDAYS = 1
 NMODES = 5
-MODE = 'eemd'
+MODE = 'ewt'
 BOXCOX = True
 MINMAXSCALER = True
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -131,7 +136,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
         dataset['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
         dataset = dataset.sort_values(by='DATE', ascending=True)
     
-    dataset = dataset.iloc[:-24*60,:]
+    # dataset = dataset.iloc[:-24*60,:]
     return dataset
 
 def dataCleaning(dataset, dataset_name='ONS'):
@@ -337,11 +342,11 @@ def decomposeSeasonal(y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
         result.seasonal.reset_index(drop=True, inplace=True)
         result.resid.reset_index(drop=True, inplace=True)
         result.observed.reset_index(drop=True, inplace=True)
-        result.trend.columns = ['Trend']
-        result.seasonal.columns = ['Seasonal']
-        result.resid.columns = ['Residual']
-        result.observed.columns = ['Observed']
-        decomposeList = [result.trend, result.seasonal, result.resid, result.observed]
+        result.trend.name = 'Trend'
+        result.seasonal.name = 'Seasonal'
+        result.resid.name = 'Residual'
+        result.observed.name = 'Observed'
+        decomposeList = [result.trend, result.seasonal, result.resid]
 
         # Select one component for seasonal decompose
         # REMOVE FOR NOW
@@ -665,22 +670,144 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # regressors.append(('linear', linear_model.LinearRegression()))
             # meta_learner = linear_model.ARDRegression() # 0.88415
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-                
+            
+#            tscv = TimeSeriesSplit(n_splits=5)
+
+#             if y.columns[0].find('Trend') != -1:
+#                 model = ExtraTreesRegressor()
+#             elif y.columns[0].find('Seasonal') != -1:
+#                 model = GradientBoostingRegressor()
+#             elif y.columns[0].find('Residual') != -1:
+#                 model = GradientBoostingRegressor()
+
+#             # Choose one model for each IMF
+            if y.columns[0].find('IMF_0') != -1:
+                model = ExtraTreesRegressor(
+                                            # n_estimators=1000,
+                                            # criterion="mse",
+                                            # max_depth=128,
+                                            # min_samples_split=2,
+                                            # min_samples_leaf=32,
+                                            # min_weight_fraction_leaf=0,
+                                            # max_features="auto",
+                                            # min_impurity_decrease=0,
+                                            # bootstrap=True,
+                                            # warm_start=True,
+                                            # ccp_alpha=0
+                                            )
+            elif y.columns[0].find('IMF_1') != -1:
+                model = xgboost.XGBRegressor(
+                                            colsample_bytree=0.75,
+                                            gamma=0.08,
+                                            learning_rate=1,
+                                            max_depth=13,
+                                            min_child_weight=17,
+                                            n_estimators=1600,
+                                            reg_alpha=0.05,
+                                            reg_lambda=0.31,
+                                            subsample=0.9400000000000001,
+                                            seed=42
+                                            )
+                model = xgboost.XGBRegressor()
                 
 
+#             elif y.columns[0].find('IMF_2') != -1:
+#                 model = GradientBoostingRegressor()
+#             elif y.columns[0].find('IMF_3') != -1:
+#                 model = GradientBoostingRegressor()
+            elif y.columns[0].find('IMF_4') != -1:
+                model = GradientBoostingRegressor(
+                                                    loss="ls",
+                                                    learning_rate=0.0009633219347502185,
+                                                    n_estimators=22000,
+                                                    subsample=0.168718268093578,
+                                                    criterion="mse",
+                                                    min_samples_split=4,
+                                                    min_weight_fraction_leaf=0,
+                                                    max_depth=28,
+                                                    min_impurity_decrease=0,
+                                                    max_features="sqrt",
+                                                    alpha=0.1,
+                                                    warm_start="True",
+                                                    validation_fraction=1,
+                                                    tol=0.000001810181307798231,
+                                                    ccp_alpha=0
+                                                )
+                model = GradientBoostingRegressor()
+#                 model = ExtraTreesQuantileRegressor(
+#                                                     n_estimators=1610,
+#                                                     criterion="mae",
+#                                                     max_depth=256,
+#                                                     min_samples_split=10,
+#                                                     min_samples_leaf=8,
+#                                                     min_weight_fraction_leaf=0,
+#                                                     max_features="auto",
+#                                                     bootstrap=True,
+#                                                     warm_start=False,
+#                                                     random_state=42
+#                                                     )
+#                 # model = AdaBoostRegressor()
+# #                regressors = list()
+# #                regressors.append(('extratreesq',ExtraTreesQuantileRegressor()))
+# #                regressors.append(('gbm',GradientBoostingRegressor()))
+# #                regressors.append(('pls',PLSRegression()))
+# #                regressors.append(('svr',svm.SVR()))
+# #                meta_learner = linear_model.ARDRegression() # 0.88415
+# #                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            elif y.columns[0].find('IMF_5') != -1:
+                model = GradientBoostingRegressor(  
+#                                                   loss="lad",
+#                                                   learning_rate=0.005713111629093579,
+#                                                   n_estimators=5250,
+#                                                   subsample=0.0013874269369021587,
+#                                                   criterion="friedman_mse",
+#                                                   min_samples_split=8,
+#                                                   min_weight_fraction_leaf=0,
+#                                                   max_depth=10,
+#                                                   min_impurity_decrease=0.8,
+#                                                   max_features="sqrt",
+#                                                   alpha=0.9,
+#                                                   warm_start=True,
+#                                                   validation_fraction=0.30000000000000004,
+#                                                   tol=0.000001004846729035755,
+#                                                   ccp_alpha=0,
+#                                                       random_state=42
+                                                )
+            # elif y.columns[0].find('IMF_6') != -1:
+            #     model = GradientBoostingRegressor()
    
         else: # nni enabled
             # model = xgboost.XGBRegressor(
             #                             colsample_bytree=params['colsample_bytree'],
-            #                             gamma=params['gamma'],                 
+            #                             gamma=params['gamma'],
             #                             learning_rate=params['learning_rate'],
-            #                             max_depth=params['max_depth'],
-            #                             min_child_weight=params['min_child_weight'],
-            #                             n_estimators=params['n_estimators'],                                                                    
+            #                             max_depth=int(params['max_depth']),
+            #                             min_child_weight=int(params['min_child_weight']),
+            #                             n_estimators=int(params['n_estimators']),
             #                             reg_alpha=params['reg_alpha'],
             #                             reg_lambda=params['reg_lambda'],
             #                             subsample=params['subsample'],
             #                             seed=42)
+
+
+            # # Choose one model for each IMF
+            # if y.columns[0].find('IMF_0') != -1:
+            #     model_choosen = params['model']
+            # elif y.columns[0].find('IMF_1') != -1:
+                
+            # elif y.columns[0].find('IMF_2') != -1:
+                
+            # elif y.columns[0].find('IMF_3') != -1:
+               
+            # elif y.columns[0].find('IMF_4') != -1:
+
+            # elif y.columns[0].find('IMF_5') != -1:
+
+            # elif y.columns[0].find('IMF_6') != -1:
+
+            # elif y.columns[0].find('IMF_7') != -1:
+                
+                
             if params['warm_start'] == "True":
                 warm_start = True
             elif params['warm_start'] == "False":
@@ -708,6 +835,45 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                                               tol=params['tol'],
                                               ccp_alpha=params['ccp_alpha'],
                                               random_state=42)
+            # if params['min_samples_split'] > 1:
+            #     min_samples_split=int(params['min_samples_split'])
+            # else:
+            #     min_samples_split=float(params['min_samples_split'])
+                            
+            
+            # if params['bootstrap'] == "True":
+            #     bootstrap = True
+            # else:
+            #     bootstrap = False
+            # if params['warm_start'] == "True":
+            #     warm_start = True
+            # elif params['warm_start'] == "False":
+            #     warm_start = False
+            
+
+            # model = ExtraTreesRegressor(
+            #                             n_estimators=int(params['n_estimators']),
+            #                             criterion=params['criterion'],
+            #                             max_depth=None if params['max_depth']=="None" else params['max_depth'],
+            #                             min_samples_split=min_samples_split,
+            #                             min_samples_leaf=params['min_samples_leaf'],
+            #                             min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
+            #                             max_features=params['max_features'],
+            #                             min_impurity_decrease=params['min_impurity_decrease'],
+            #                             bootstrap=bootstrap,
+            #                             warm_start=warm_start,
+            #                             ccp_alpha=params['ccp_alpha'],
+            #                             random_state=42)
+            # model = ExtraTreesQuantileRegressor(
+            #                             n_estimators=int(params['n_estimators']),
+            #                             criterion=params['criterion'],
+            #                             max_depth=None if params['max_depth']=="None" else params['max_depth'],
+            #                             min_samples_split=min_samples_split,
+            #                             min_samples_leaf=params['min_samples_leaf'],
+            #                             min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
+            #                             max_features=params['max_features'],
+            #                             bootstrap=bootstrap,
+            #                             random_state=42)
 
         i=0
         
@@ -837,22 +1003,25 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
 
             # Calculate feature importances
-            importances = model.feature_importances_
-            # Sort feature importances in descending order
-            indices = np.argsort(importances)[::-1]
-            # Rearrange feature names so they match the sorted feature importances
-            names = [X.columns[i] for i in indices]
-            #plot_feature_importances(importances,Xdata.columns)
-            # Create plot
-            plt.figure()
-            # Create plot title
-            plt.title(f"Feature Importance - {y.columns[0]}")
-            # Add bars
-            plt.bar(range(X.shape[1]), importances[indices])
-            # Add feature names as x-axis labels
-            plt.xticks(range(X.shape[1]), names, rotation=0)
-            # Show plot
-            plt.show()
+            try:
+                importances = model.feature_importances_
+                # Sort feature importances in descending order
+                indices = np.argsort(importances)[::-1]
+                # Rearrange feature names so they match the sorted feature importances
+                names = [X.columns[i] for i in indices]
+                #plot_feature_importances(importances,Xdata.columns)
+                # Create plot
+                plt.figure()
+                # Create plot title
+                plt.title(f"Feature Importance - {y.columns[0]}")
+                # Add bars
+                plt.bar(range(X.shape[1]), importances[indices])
+                # Add feature names as x-axis labels
+                plt.xticks(range(X.shape[1]), names, rotation=0)
+                # Show plot
+                plt.show()
+            except:
+                pass
 
         # Print the results: average per fold
         results[r].printResults()
@@ -1020,9 +1189,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 def composeSeasonal(decomposePred, model='stl-a'):
     if not CROSSVALIDATION:
         if model == 'stl-a':
-            finalPred = decomposePred[0] + decomposePred[1] + decomposePred[2]
+            finalPred = sum(decomposePred)
         elif model == 'stl-m':
-            finalPred = decomposePred[0] * decomposePred[1] * decomposePred[2]
+            finalPred = np.prod(decomposePred)
         elif model=='emd' or model=='eemd' or model=='vmd' or model=='ceemdan' or model=='ewt':
             finalPred = sum(decomposePred)
         elif model=='none':
@@ -1035,10 +1204,10 @@ def composeSeasonal(decomposePred, model='stl-a'):
         elif model=='robust-stl':
             finalPred = decomposePred[1] + decomposePred[2] + decomposePred[3]
         elif model == 'stl-a':
-            finalPred = [sum(x) for x in zip(*[decomposePred[0],decomposePred[1],decomposePred[2]])]
+            finalPred = [sum(x) for x in zip(*decomposePred)]
         elif model == 'stl-m':
             finalPred = []
-            for x in zip(*[decomposePred[0],decomposePred[1],decomposePred[2]]):
+            for x in zip(*decomposePred):
                 fold = []
                 for i in range(len(x[0])):
                     prod = x[0][i] * x[1][i] * x[2][i]
@@ -1493,6 +1662,11 @@ dataset = datasetImport(selectDatasets, dataset_name=DATASET_NAME)
 X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data 
 X_all, y_all = featureEngineering(dataset, X, y, selectDatasets, dataset_name=DATASET_NAME)
+
+y_testset = y_all[0][-24*60:]
+X_testset = X_all[0][-24*60:]
+X_all[0] = X_all[0][:-24*60]
+y_all[0] = y_all[0][:-24*60]
 # Outlier removal
 i=0
 for y_ in y_all:
@@ -1553,7 +1727,7 @@ for inputs in X_all:
     
     if MINMAXSCALER:            
         label = y_transf.columns[0]
-#        sc1 = MinMaxScaler(feature_range=(1,2))
+        # sc1 = MinMaxScaler(feature_range=(1,2))
         sc1 = preprocessing.StandardScaler()
         y_transf = sc1.fit_transform(y_transf)
         try:
@@ -1581,15 +1755,15 @@ for inputs in X_all:
     for y_decomposed in y_decomposed_list:
         if type(y_decomposed) is not type(pd.DataFrame()):
             y_decomposed = pd.DataFrame({y_decomposed.name:y_decomposed.values})
-        # if y_decomposed.columns[0].find("IMF_1") == -1:           
-        #     continue
+        # if y_decomposed.columns[0].find("IMF_4") == -1:
+          #   continue
             
         results.append(Results()) # Start new Results instance every loop step
         
         if MINMAXSCALER and False:            
             label = y_decomposed.columns[0]
             sc = MinMaxScaler(feature_range=(-1,1))
-#            sc = preprocessing.StandardScaler()
+            # sc = preprocessing.StandardScaler()
             try:
                 y_decomposed = sc.fit_transform(y_decomposed)
             except ValueError:
@@ -1640,16 +1814,16 @@ if CROSSVALIDATION:
     log("Join all decomposed y predictions")
     y_composed = composeSeasonal(decomposePred, model=MODE)
     if MINMAXSCALER:
-        for i in range(len(y_composed)):
-            log("Inverse MinMaxScaler transformation")
+        log("Inverse MinMaxScaler transformation")
+        for i in range(len(y_composed)):            
             # y_composed[i] = sc1.inverse_transform(y_composed[i])
             y_composed[i] = sc1.inverse_transform(y_composed[i].reshape(y_out.shape[0],1))
     if BOXCOX:
-        for i in range(len(y_composed)):
-            log("Inverse Box-Cox transformation")
+        log("Inverse Box-Cox transformation")
+        for i in range(len(y_composed)):            
             y_composed[i] = special.inv_boxcox(y_composed[i], lambda_boxcox)                     
             if min_y <= 0: 
-                log("Restore shifted values from positive to negative + offset -1")
+                # log("Restore shifted values from positive to negative + offset -1")
                 y_composed[i] = y_composed[i] - abs(min_y)-1
     log("Print and plot the results")    
     plotResults(X_=inputs, y_=y_all[0], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
@@ -1676,7 +1850,9 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 
 if not LOAD_DECOMPOSED and MODE != 'none':
     for imf in y_decomposed_list:
-        imf.to_csv(path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+        if type(imf) is not type(pd.DataFrame()):
+            imf = pd.DataFrame({imf.name:imf.values})
+        imf.to_csv(path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
 
 
 # Close logging handlers to release the log file

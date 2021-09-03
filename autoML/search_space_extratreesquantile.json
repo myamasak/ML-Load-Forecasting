@@ -1,0 +1,11 @@
+{  
+    "n_estimators":{"_type":"quniform", "_value":[10,2500,50]},
+    "criterion":{"_type":"choice", "_value": ["mse", "mae"]},
+    "max_depth":{"_type":"choice","_value":["None",16,32,64,128,256]},
+    "min_samples_split":{"_type":"quniform", "_value":[1,10,1]},
+    "min_samples_leaf":{"_type":"choice","_value":[1,2,4,8,16,32,48,64]},
+    "min_weight_fraction_leaf":{"_type":"quniform", "_value":[0,0.5,0.1]},
+    "max_features": {"_type":"choice", "_value": ["auto","sqrt","log2"]},
+    "bootstrap": {"_type":"choice", "_value": ["False","True"]},
+    "warm_start": {"_type":"choice", "_value": ["False"]}
+}

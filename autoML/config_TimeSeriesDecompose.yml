@@ -1,8 +1,8 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_GradientBoosting
+experimentName: TimeSeriesDecompose_GBM_EWT_IMF_4
 trialConcurrency: 1
 maxExecDuration: 999999h
-maxTrialNum: 9999
+maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space_gradientboosting.json

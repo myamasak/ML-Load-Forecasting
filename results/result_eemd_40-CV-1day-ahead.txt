@@ -80,3 +80,79 @@ Average scores for all folds:
 lambda_boxcox
 -0.09823825239641361
 
+
+
+after nni
+
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.87208 (+- 0.11181)
+> rmse: 630.33465 (+- 370.39185)
+> mae: 554.95867 (+- 364.20737)
+> mape: 16.83352 (+- 3.89480)
+> smape: 16.45097 (+- 3.65762)
+
+
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86724 (+- 0.20468)
+> rmse: 608.80037 (+- 319.93169)
+> mae: 493.88751 (+- 272.44717)
+> mape: 16.77339 (+- 3.60497)
+> smape: 16.40442 (+- 3.31744)
+
+
+
+IMF_0
+Average scores for all folds:
+> r2_score_train: 0.27255 (+- 0.06766)
+> r2_score_test: 0.24270 (+- 0.19792)
+> rmse: 0.03159 (+- 0.00564)
+> mae: 0.02552 (+- 0.00456)
+> mape: 179.85857 (+- 98.03882)
+> smape: 153.83790 (+- 5.67518)
+
+IMF_1
+Average scores for all folds:
+> r2_score_train: 0.95971 (+- 0.02122)
+> r2_score_test: 0.63665 (+- 0.23501)
+> rmse: 0.02975 (+- 0.00922)
+> mae: 0.02427 (+- 0.00746)
+> mape: 431.66411 (+- 569.83447)
+> smape: 144.37304 (+- 4.16119)
+
+IMF_2
+Average scores for all folds:
+> r2_score_train: 0.96804 (+- 0.00807)
+> r2_score_test: 0.88799 (+- 0.08556)
+> rmse: 0.06561 (+- 0.02394)
+> mae: 0.05289 (+- 0.01854)
+> mape: 565.71195 (+- 1240.67441)
+> smape: 136.20551 (+- 2.80188)
+
+IMF_3
+Average scores for all folds:
+> r2_score_train: 0.98966 (+- 0.00401)
+> r2_score_test: 0.96319 (+- 0.02483)
+> rmse: 0.08845 (+- 0.03199)
+> mae: 0.07513 (+- 0.02755)
+> mape: 371.87277 (+- 414.22796)
+> smape: 132.09520 (+- 1.90407)
+
+IMF_4
+Average scores for all folds:
+> r2_score_train: 0.84150 (+- 0.03644)
+> r2_score_test: 0.56860 (+- 0.42092)
+> rmse: 0.05763 (+- 0.02424)
+> mae: 0.04962 (+- 0.02153)
+> mape: 2065.44446 (+- 9317.23662)
+> smape: 136.63294 (+- 5.16558)
+
+IMF_5
+Average scores for all folds:
+> r2_score_train: 0.64463 (+- 0.15517)
+> r2_score_test: -15.18509 (+- 25.71227)
+> rmse: 0.18293 (+- 0.11956)
+> mae: 0.16772 (+- 0.11914)
+> mape: 123.37283 (+- 264.69971)
+> smape: 62.19258 (+- 53.01973)

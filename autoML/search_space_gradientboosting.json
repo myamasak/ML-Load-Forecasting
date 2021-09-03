@@ -1,7 +1,7 @@
 {  
     "loss":{"_type":"choice", "_value":["ls", "lad", "huber", "quantile"]},
     "learning_rate":{"_type":"loguniform", "_value":[1e-5,1]},
-    "n_estimators":{"_type":"quniform", "_value":[100,15000,250]},
+    "n_estimators":{"_type":"quniform", "_value":[100,40000,250]},
     "subsample":{"_type":"loguniform", "_value":[1e-5,1]},
     "criterion":{"_type":"choice", "_value":["friedman_mse", "mse", "mae"]},
     "min_samples_split":{"_type":"quniform", "_value":[1,10,1]},

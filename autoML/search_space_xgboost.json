@@ -1,11 +1,11 @@
 {  
-    "colsample_bytree":{"_type":"choice", "_value":[0.1,0.4,0.6,0.8]},
-    "gamma":{"_type":"choice", "_value":[0,0.03,0.1,0.3,0.7]},    
-    "learning_rate":{"_type":"choice", "_value":[1,0.9,0.7,0.5,0.3,0.2,0.1,0.05,0.01,0.001]},
-    "max_depth":{"_type":"choice", "_value":[3,5,7,12,20]},
-    "min_child_weight":{"_type":"choice", "_value":[1,1.5,6,10,15,20]},
-    "n_estimators":{"_type":"choice", "_value":[250,500,750,1000,2000,4000,6000]},
-    "reg_alpha":{"_type":"choice", "_value":[0,1e-7,1e-5,0.01,0.1,0.3,0.75,1]},
-    "reg_lambda":{"_type":"choice", "_value":[0,1e-5,0.01,0.1,0.2,0.45,1]},
-    "subsample":{"_type":"choice", "_value":[0.1,0.3,0.6,0.95,0.99,1]}
+    "colsample_bytree":{"_type":"quniform", "_value":[0,1,0.05]},
+    "gamma":{"_type":"quniform", "_value":[0,2,0.01]},
+    "learning_rate":{"_type":"quniform", "_value":[0,1,0.01]},
+    "max_depth":{"_type":"quniform", "_value":[3,24,1]},
+    "min_child_weight":{"_type":"quniform", "_value":[1,24,1]},
+    "n_estimators":{"_type":"quniform", "_value":[200,4000,100]},
+    "reg_alpha":{"_type":"quniform", "_value":[0,1,0.05]},
+    "reg_lambda":{"_type":"quniform", "_value":[0,1,0.01]},
+    "subsample":{"_type":"quniform", "_value":[0,1,0.01]}
 }
