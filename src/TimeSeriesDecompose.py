@@ -53,14 +53,18 @@ plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
 KFOLD = 40
-OFFSET = 365*24
+OFFSET = 0
 FORECASTDAYS = 1
-NMODES = 5
-MODE = 'ewt'
+NMODES = 6
+MODE = 'emd'
 BOXCOX = True
-MINMAXSCALER = True
+MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
+# Selection of year
+#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
+selectDatasets = ["2015","2016","2017","2018"]
+# selectDatasets = ["2015"]
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -81,10 +85,6 @@ if path.find('autoML') != -1:
 elif path.find('src') != -1:
     path = r'%s' % path.replace('/src','')
 
-# Selection of year
-#selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
-selectDatasets = ["2015","2016","2017","2018"]
-#selectDatasets = ["2015"]
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
 log(f"CrossValidation: {CROSSVALIDATION}")
@@ -671,108 +671,119 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # meta_learner = linear_model.ARDRegression() # 0.88415
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             
-#            tscv = TimeSeriesSplit(n_splits=5)
+        #    tscv = TimeSeriesSplit(n_splits=5)
 
-#             if y.columns[0].find('Trend') != -1:
-#                 model = ExtraTreesRegressor()
-#             elif y.columns[0].find('Seasonal') != -1:
-#                 model = GradientBoostingRegressor()
-#             elif y.columns[0].find('Residual') != -1:
-#                 model = GradientBoostingRegressor()
+        #     if y.columns[0].find('Trend') != -1:
+        #         model = ExtraTreesRegressor()
+        #     elif y.columns[0].find('Seasonal') != -1:
+        #         model = GradientBoostingRegressor()
+        #     elif y.columns[0].find('Residual') != -1:
+        #         model = GradientBoostingRegressor()
 
-#             # Choose one model for each IMF
-            if y.columns[0].find('IMF_0') != -1:
-                model = ExtraTreesRegressor(
-                                            # n_estimators=1000,
-                                            # criterion="mse",
-                                            # max_depth=128,
-                                            # min_samples_split=2,
-                                            # min_samples_leaf=32,
-                                            # min_weight_fraction_leaf=0,
-                                            # max_features="auto",
-                                            # min_impurity_decrease=0,
-                                            # bootstrap=True,
-                                            # warm_start=True,
-                                            # ccp_alpha=0
-                                            )
-            elif y.columns[0].find('IMF_1') != -1:
-                model = xgboost.XGBRegressor(
-                                            colsample_bytree=0.75,
-                                            gamma=0.08,
-                                            learning_rate=1,
-                                            max_depth=13,
-                                            min_child_weight=17,
-                                            n_estimators=1600,
-                                            reg_alpha=0.05,
-                                            reg_lambda=0.31,
-                                            subsample=0.9400000000000001,
-                                            seed=42
-                                            )
-                model = xgboost.XGBRegressor()
-                
 
-#             elif y.columns[0].find('IMF_2') != -1:
-#                 model = GradientBoostingRegressor()
-#             elif y.columns[0].find('IMF_3') != -1:
-#                 model = GradientBoostingRegressor()
-            elif y.columns[0].find('IMF_4') != -1:
-                model = GradientBoostingRegressor(
-                                                    loss="ls",
-                                                    learning_rate=0.0009633219347502185,
-                                                    n_estimators=22000,
-                                                    subsample=0.168718268093578,
-                                                    criterion="mse",
-                                                    min_samples_split=4,
-                                                    min_weight_fraction_leaf=0,
-                                                    max_depth=28,
-                                                    min_impurity_decrease=0,
-                                                    max_features="sqrt",
-                                                    alpha=0.1,
-                                                    warm_start="True",
-                                                    validation_fraction=1,
-                                                    tol=0.000001810181307798231,
-                                                    ccp_alpha=0
-                                                )
-                model = GradientBoostingRegressor()
-#                 model = ExtraTreesQuantileRegressor(
-#                                                     n_estimators=1610,
-#                                                     criterion="mae",
-#                                                     max_depth=256,
-#                                                     min_samples_split=10,
-#                                                     min_samples_leaf=8,
-#                                                     min_weight_fraction_leaf=0,
-#                                                     max_features="auto",
-#                                                     bootstrap=True,
-#                                                     warm_start=False,
-#                                                     random_state=42
-#                                                     )
-#                 # model = AdaBoostRegressor()
-# #                regressors = list()
-# #                regressors.append(('extratreesq',ExtraTreesQuantileRegressor()))
-# #                regressors.append(('gbm',GradientBoostingRegressor()))
-# #                regressors.append(('pls',PLSRegression()))
-# #                regressors.append(('svr',svm.SVR()))
-# #                meta_learner = linear_model.ARDRegression() # 0.88415
-# #                model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-            elif y.columns[0].find('IMF_5') != -1:
-                model = GradientBoostingRegressor(  
-#                                                   loss="lad",
-#                                                   learning_rate=0.005713111629093579,
-#                                                   n_estimators=5250,
-#                                                   subsample=0.0013874269369021587,
-#                                                   criterion="friedman_mse",
-#                                                   min_samples_split=8,
-#                                                   min_weight_fraction_leaf=0,
-#                                                   max_depth=10,
-#                                                   min_impurity_decrease=0.8,
-#                                                   max_features="sqrt",
-#                                                   alpha=0.9,
-#                                                   warm_start=True,
-#                                                   validation_fraction=0.30000000000000004,
-#                                                   tol=0.000001004846729035755,
-#                                                   ccp_alpha=0,
-#                                                       random_state=42
-                                                )
+            model = GradientBoostingRegressor()
+            # Choose one model for each IMF
+            # if y.columns[0].find('IMF_0') != -1:
+            #     model = ExtraTreesRegressor(
+            #                                 n_estimators=1000,
+            #                                 criterion="mse",
+            #                                 max_depth=128,
+            #                                 min_samples_split=2,
+            #                                 min_samples_leaf=32,
+            #                                 min_weight_fraction_leaf=0,
+            #                                 max_features="auto",
+            #                                 min_impurity_decrease=0,
+            #                                 bootstrap=True,
+            #                                 warm_start=True,
+            #                                 ccp_alpha=0
+            #                                 )
+            # elif y.columns[0].find('IMF_1') != -1:
+            #     model = xgboost.XGBRegressor(
+            #                                 # colsample_bytree=0.75,
+            #                                 # gamma=0.08,
+            #                                 # learning_rate=1,
+            #                                 # max_depth=13,
+            #                                 # min_child_weight=17,
+            #                                 # n_estimators=1600,
+            #                                 # reg_alpha=0.05,
+            #                                 # reg_lambda=0.31,
+            #                                 # subsample=0.9400000000000001,
+
+            #                                 colsample_bytree=0.65,
+            #                                 gamma=0.01,
+            #                                 learning_rate=0.07,
+            #                                 max_depth=21,
+            #                                 min_child_weight=5,
+            #                                 n_estimators=3200,
+            #                                 reg_alpha=0,
+            #                                 reg_lambda=0.36,
+            #                                 subsample=0.78,
+            #                                 seed=42
+            #                                 )
+            #     model = xgboost.XGBRegressor()
+            # elif y.columns[0].find('IMF_2') != -1:
+            #     model = GradientBoostingRegressor()
+            # elif y.columns[0].find('IMF_3') != -1:
+            #     model = GradientBoostingRegressor()
+            # elif y.columns[0].find('IMF_4') != -1:
+            #     # model = GradientBoostingRegressor(
+            #     #                                     loss="ls",
+            #     #                                     learning_rate=0.0009633219347502185,
+            #     #                                     n_estimators=22000,
+            #     #                                     subsample=0.168718268093578,
+            #     #                                     criterion="mse",
+            #     #                                     min_samples_split=4,
+            #     #                                     min_weight_fraction_leaf=0,
+            #     #                                     max_depth=28,
+            #     #                                     min_impurity_decrease=0,
+            #     #                                     max_features="sqrt",
+            #     #                                     alpha=0.1,
+            #     #                                     warm_start="True",
+            #     #                                     validation_fraction=1,
+            #     #                                     tol=0.000001810181307798231,
+            #     #                                     ccp_alpha=0
+            #     #                                 )
+            #     model = ExtraTreesQuantileRegressor(
+            #                                         n_estimators=1610,
+            #                                         criterion="mae",
+            #                                         max_depth=256,
+            #                                         min_samples_split=10,
+            #                                         min_samples_leaf=8,
+            #                                         min_weight_fraction_leaf=0,
+            #                                         max_features="auto",
+            #                                         bootstrap=True,
+            #                                         warm_start=False,
+            #                                         random_state=42
+            #                                         )
+            #     model = GradientBoostingRegressor()
+            #     # model = AdaBoostRegressor()
+            #     # regressors = list()
+            #     # regressors.append(('extratreesq',ExtraTreesQuantileRegressor()))
+            #     # regressors.append(('gbm',GradientBoostingRegressor()))
+            #     # regressors.append(('pls',PLSRegression()))
+            #     # regressors.append(('svr',svm.SVR()))
+            #     # meta_learner = linear_model.ARDRegression() # 0.88415
+            #     # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            # elif y.columns[0].find('IMF_5') != -1:
+            #     model = GradientBoostingRegressor(  
+            #                                       loss="lad",
+            #                                       learning_rate=0.005713111629093579,
+            #                                       n_estimators=5250,
+            #                                       subsample=0.0013874269369021587,
+            #                                       criterion="friedman_mse",
+            #                                       min_samples_split=8,
+            #                                       min_weight_fraction_leaf=0,
+            #                                       max_depth=10,
+            #                                       min_impurity_decrease=0.8,
+            #                                       max_features="sqrt",
+            #                                       alpha=0.9,
+            #                                       warm_start=True,
+            #                                       validation_fraction=0.30000000000000004,
+            #                                       tol=0.000001004846729035755,
+            #                                       ccp_alpha=0,
+            #                                           random_state=42
+            #                                     )
+            #     model = GradientBoostingRegressor()
             # elif y.columns[0].find('IMF_6') != -1:
             #     model = GradientBoostingRegressor()
    
@@ -892,7 +903,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # Generate a print
             log('------------------------------------------------------------------------')
             log(f'Training for fold {fold_no} ...')
-
+            
             model.fit(X_train, y_train.ravel())
             y_pred = model.predict(X_test)            
             
@@ -1180,10 +1191,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         #     else:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
         #     ax.figure.show()
-        log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
+        # log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
 
-    return y_pred, testSize, kfoldPred
     log("\n--- \t{:0.3f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
+    return y_pred, testSize, kfoldPred, model
     
 
 def composeSeasonal(decomposePred, model='stl-a'):
@@ -1495,9 +1506,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     tic = time.time()  
     
     def do_emd():        
-        emd = EMD(trials = 50)
-        emd.MAX_ITERATION = 2000
-        emd.noise_seed(42)
+        emd = EMD()
+        emd.FIXE_H = 8
+        emd.nbsym = 6
+        emd.spline_kind = 'cubic'
         IMFs = emd.emd(y_series, max_imf=Nmodes)
         return IMFs
     
@@ -1627,8 +1639,9 @@ def transform_stationary(y_, y_diff=0, invert=False):
 
 def get_lagged_y(X_, y_, forecastDays=FORECASTDAYS):
     log("Use lagged y (demand) to include as input in X")
-    label = y_.columns[0]
+    label = y_.columns[0]    
     y_lag = y_.shift(-int(forecastDays*24))
+    
     try:
         y_lag = y_lag.rename(columns={label:'DEMAND_LAG'})
     except TypeError:
@@ -1641,8 +1654,161 @@ def get_lagged_y(X_, y_, forecastDays=FORECASTDAYS):
     # Drop X
     X_ = X_.dropna()
     # Drop y
-    y_ = y_.drop(index=drop)
+    try:
+        y_ = y_.drop(index=drop)
+    except KeyError:
+        pass
     return X_, y_
+
+def finalTest(model, X_test, y_test, X_, y_, testSize):
+    log(f"Final test with test data - Forecast {FORECASTDAYS} day(s)")
+    if len(df) != len(y_):
+        y_ = y_[:len(df)]
+    if len(df) != len(X_):
+        X_ = X_[:len(df)]
+
+    # Drop subsystem and date columns
+    if DATASET_NAME.find('ONS') != -1:
+        try:
+            X_test = X_test.drop(['SUBSYSTEM', 'DATE'], axis=1)
+        except KeyError:
+            pass 
+    elif DATASET_NAME.find('ISONewEngland') != -1:
+        try:
+            X_test = X_test.drop(['DATE'], axis=1)
+        except KeyError:
+            pass # ignore it
+    try:
+        if y_test.columns.str.find("SUBSYSTEM") != -1 and y_test.columns[0] is not None:
+            y_test = y_test.drop(['SUBSYSTEM'], axis=1)
+        else:
+            pass
+    except AttributeError:
+        pass
+
+    # Limit the sizing of test set
+    # X_test_1 = X_test[:FORECASTDAYS*24].reset_index(drop=True)
+    # y_test_1 = y_test[:FORECASTDAYS*24].reset_index(drop=True)    
+    # y_lagged = y_[-FORECASTDAYS*24:].reset_index(drop=True)
+    
+    # Normalize the signal
+    if BOXCOX:        
+        min_y = min(y_)
+        if min_y <= 0:           
+            log("Shift negative to positive values + offset 1")
+            y_transf = y_+abs(min_y)+1
+        else:
+            y_transf = y_
+        log("Box-Cox transformation")
+        if len(y_transf.shape) > 1:
+            y_transf = y_transf.reshape(y_transf.shape[0])
+        y_transf, lambda_boxcox = stats.boxcox(y_transf)
+        y_transf = pd.DataFrame({'DEMAND':y_transf})
+        # log("Plot Histogram after Box-Cox Transformation")
+        # plot_histogram(y_transf, xlabel='Box-Cox')
+    else:
+        y_transf = y_
+    
+    if MINMAXSCALER:            
+        label = y_transf.columns[0]
+        # sc1 = MinMaxScaler(feature_range=(1,2))
+        sc1 = preprocessing.StandardScaler()
+        y_transf = sc1.fit_transform(y_transf)
+        try:
+            y_transf = pd.DataFrame({label:y_transf})
+        except ValueError:
+            y_transf = pd.DataFrame({label:y_transf.ravel()})
+        except AttributeError:
+            y_transf = pd.DataFrame({label:y_transf.values.ravel()})
+    
+    # Decompose the test set signal
+    y_decomposed_list = decomposeSeasonal(y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+    
+    # List of predictions (IMF_0, IMF_1, ...)
+    decomposePred = []
+
+    # Forecast the decomposed signals
+    for (model, y_decomposed) in zip(models, y_decomposed_list):
+        # Get the y lag
+        y_lagged = y_decomposed[-FORECASTDAYS*24:].reset_index(drop=True)
+        y_lagged = y_lagged.rename(columns={y_lagged.columns[0]:'DEMAND_LAG'})
+        
+        # Limit the sizing of test set
+        X_test_1 = pd.concat([X_test[:FORECASTDAYS*24].reset_index(drop=True), y_lagged], axis=1)
+        y_test_1 = y_test[:FORECASTDAYS*24].reset_index(drop=True)
+        
+        try:
+            y_pred = model.predict(X_test_1.values)
+        except ValueError:
+            y_pred = model.predict(X_test_1)
+        decomposePred.append(y_pred)
+
+    # Compose the signal
+    log("Join all decomposed y predictions")
+    y_composed = composeSeasonal(decomposePred, model=MODE)
+
+    # Invert normalization
+    if MINMAXSCALER:
+        log("Inverse MinMaxScaler transformation")
+        try:
+            y_composed= sc1.inverse_transform(y_composed)
+        except AttributeError:
+            y_composed = sc1.inverse_transform(y_composed.reshape(y_out.shape[0],1))
+    if BOXCOX:
+        log("Inverse Box-Cox transformation")        
+        y_composed = special.inv_boxcox(y_composed, lambda_boxcox)                     
+        if min_y <= 0: 
+            # log("Restore shifted values from positive to negative + offset -1")
+            y_composed = y_composed - abs(min_y)-1
+    
+    
+    ### Evaluate results ###
+    
+    # Change y variable
+    y_final = y_composed
+
+    # Split original series into train and test data
+    X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
+    # Prepare for plotting
+    rows = X_test.index
+    df2 = df.iloc[rows[0]:]
+    if plot:
+        plt.figure()
+        try:
+            plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
+            plt.plot(df2,y_final, label = f'Predicted data - {y_.columns[0]}')
+        except AttributeError:
+            plt.plot(df,y_, label = f'Real data')
+            plt.plot(df2,y_final, label = f'Predicted data')
+        plt.title(f'{DATASET_NAME} dataset Prediction')
+        plt.xlabel('Date')
+        plt.ylabel('Load [MW]')
+        plt.legend()
+        plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
+        plt.show()
+    
+    r2test = r2_score(y_test, y_final)
+    log("The R2 score on the Test set is:\t{:0.3f}".format(r2test))
+    n = len(X_test)
+    p = X_test.shape[1]
+    adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
+    log("The Adjusted R2 score on the Test set is:\t{:0.3f}".format(adjr2_score))
+    
+    rmse = np.sqrt(mean_squared_error(y_test, y_final))
+    log("RMSE: %f" % (rmse))
+    
+    mae = mean_absolute_error(y_test, y_final)
+    log("MAE: %f" % (mae))
+    
+    try:
+        y_test = y_test.values.reshape(y_test.shape[0])
+        mape = mean_absolute_percentage_error(y_test, y_final)
+        smape = symmetric_mape(y_test, y_final)
+    except AttributeError:
+        mape = mean_absolute_percentage_error(y_test, y_final)
+        smape = symmetric_mape(y_test, y_final)
+    log("MAPE: %.2f%%" % (mape))
+    log("sMAPE: %.2f%%" % (smape))
 
 ################
 # MAIN PROGRAM
@@ -1663,10 +1829,14 @@ X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data 
 X_all, y_all = featureEngineering(dataset, X, y, selectDatasets, dataset_name=DATASET_NAME)
 
+# Split the test data from training/validation data
 y_testset = y_all[0][-24*60:]
 X_testset = X_all[0][-24*60:]
 X_all[0] = X_all[0][:-24*60]
 y_all[0] = y_all[0][:-24*60]
+
+# Redefine df
+df = X_all[0]['DATE']
 # Outlier removal
 i=0
 for y_ in y_all:
@@ -1696,7 +1866,7 @@ list_IMFs = []
 # Prediction list of different components of decomposition to be assemble in the end
 decomposePred = []
 listOfDecomposePred = []
-
+models = []
 
 
 for inputs in X_all:
@@ -1778,12 +1948,14 @@ for inputs in X_all:
                 
 #        test_stationarity(y_decomposed)
         # Load Forecasting
-        y_out, testSize, kfoldPred = loadForecast(X=inputs, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
-        
-        if MINMAXSCALER and False:            
-            y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
-            for j in range(len(kfoldPred)):
-                kfoldPred[j] = sc.inverse_transform(kfoldPred[j].reshape(kfoldPred[j].shape[0],1))
+        y_out, testSize, kfoldPred, model = loadForecast(X=inputs, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)        
+        # Save the current model for further usage
+        models.append(model)
+
+        # if MINMAXSCALER and False:            
+        #     y_out = sc.inverse_transform(y_out.reshape(y_out.shape[0],1))
+        #     for j in range(len(kfoldPred)):
+        #         kfoldPred[j] = sc.inverse_transform(kfoldPred[j].reshape(kfoldPred[j].shape[0],1))
                 
         if CROSSVALIDATION:
             decomposePred.append(kfoldPred)
@@ -1797,6 +1969,10 @@ for inputs in X_all:
         # if DIFF:
         #     log("Invert differential")
         #     y_composed = transform_stationary(y_transf_save.iloc[-FORECASTDAYS*24:].reset_index(drop=True), y_composed, invert=True)
+        if MINMAXSCALER:
+            log("Inverse MinMaxScaler transformation")       
+            # y_composed[i] = sc1.inverse_transform(y_composed[i])
+            y_composed = sc1.inverse_transform(y_composed.reshape(y_out.shape[0],1))
         if BOXCOX:
             log("Inverse Box-Cox transformation")
             y_composed = special.inv_boxcox(y_composed, lambda_boxcox)                     
@@ -1807,6 +1983,7 @@ for inputs in X_all:
         log("Print and plot the results")
         finalResults.append(Results())
         plotResults(X_=inputs, y_=y_all[i], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
+        finalTest(model=models, X_test=X_testset, y_test=y_testset, X_=inputs, y_=y_all[0], testSize=testSize)
 
     i+=1 # y_all[i]
        
@@ -1827,6 +2004,7 @@ if CROSSVALIDATION:
                 y_composed[i] = y_composed[i] - abs(min_y)-1
     log("Print and plot the results")    
     plotResults(X_=inputs, y_=y_all[0], y_pred=y_composed, testSize=testSize, dataset_name=DATASET_NAME)
+    finalTest(model=models, X_test=X_testset, y_test=y_testset, X_=inputs, y_=y_all[0], testSize=testSize)
         
 if enable_nni:
     log("Publish the results on AutoML nni")
@@ -1847,7 +2025,7 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 # trend.to_csv(path+f'/robust-stl_trend_{selectDatasets[0]}.csv', index = None, header=True)
 # seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
 # remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
-
+#
 if not LOAD_DECOMPOSED and MODE != 'none':
     for imf in y_decomposed_list:
         if type(imf) is not type(pd.DataFrame()):

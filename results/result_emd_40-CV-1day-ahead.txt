@@ -1,0 +1,347 @@
+EMD-6 modes
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+selectDatasets = ["2015"]
+
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.76204 (+- 0.23780)
+> rmse: 892.65611 (+- 441.02982)
+> mae: 715.87641 (+- 368.14239)
+> mape: 4.98993 (+- 2.61122)
+> smape: 4.97153 (+- 2.56373)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.199 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.849
+The Adjusted R2 score on the Test set is:       0.732
+RMSE: 484.367346
+MAE: 356.264270
+MAPE: 3.26%
+sMAPE: 3.36%
+
+---     11.801 seconds --- the end of the file.
+
+emd.MAX_ITERATION = 2000
+emd.FIXE_H = 5
+emd.nbsym = 2
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.73971 (+- 0.22837)
+> rmse: 943.99607 (+- 414.08338)
+> mae: 770.14705 (+- 341.21153)
+> mape: 5.34814 (+- 2.36789)
+> smape: 5.34903 (+- 2.37378)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.247 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.858
+The Adjusted R2 score on the Test set is:       0.749
+RMSE: 469.197366
+MAE: 388.096555
+MAPE: 3.44%
+sMAPE: 3.50%
+
+---     12.164 seconds --- the end of the file.
+
+emd.MAX_ITERATION = 2000
+emd.FIXE_H = 4
+emd.nbsym = 2
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.77253 (+- 0.23105)
+> rmse: 867.57590 (+- 435.84031)
+> mae: 702.73485 (+- 355.81956)
+> mape: 4.91229 (+- 2.49254)
+> smape: 4.93428 (+- 2.56448)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.224 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.856
+The Adjusted R2 score on the Test set is:       0.745
+RMSE: 473.086897
+MAE: 367.011374
+MAPE: 3.31%
+sMAPE: 3.39%
+
+
+emd.MAX_ITERATION = 2000
+emd.FIXE_H = 3
+emd.nbsym = 2
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.77313 (+- 0.26578)
+> rmse: 866.94222 (+- 452.23175)
+> mae: 710.68143 (+- 377.16808)
+> mape: 4.95953 (+- 2.63161)
+> smape: 4.96461 (+- 2.71545)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.203 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.875
+The Adjusted R2 score on the Test set is:       0.779
+RMSE: 439.603776
+MAE: 340.854693
+MAPE: 3.10%
+sMAPE: 3.19%
+
+---     12.021 seconds --- the end of the file.
+
+emd.MAX_ITERATION = 2000
+emd.FIXE_H = 2
+emd.nbsym = 2
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.79051 (+- 0.20485)
+> rmse: 841.43231 (+- 367.20460)
+> mae: 679.56029 (+- 296.69955)
+> mape: 4.72405 (+- 2.14829)
+> smape: 4.70810 (+- 2.22678)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.192 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.892
+The Adjusted R2 score on the Test set is:       0.809
+RMSE: 408.901744
+MAE: 367.141405
+MAPE: 3.15%
+sMAPE: 3.15%
+
+---     11.999 seconds --- the end of the file.
+
+emd.FIXE_H = 2
+emd.nbsym = 4
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.78785 (+- 0.20757)
+> rmse: 844.95978 (+- 370.58590)
+> mae: 685.82334 (+- 300.59834)
+> mape: 4.76708 (+- 2.18688)
+> smape: 4.74717 (+- 2.25905)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+0.185 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.902
+The Adjusted R2 score on the Test set is:       0.827
+RMSE: 389.692154
+MAE: 297.011750
+MAPE: 2.69%
+sMAPE: 2.75%
+
+---     11.926 seconds --- the end of the file.
+
+
+
+
+
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+selectDatasets = ["2015","2016","2017","2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.81885 (+- 0.20800)
+> rmse: 787.19284 (+- 501.39355)
+> mae: 650.95255 (+- 398.17500)
+> mape: 4.43881 (+- 2.43768)
+> smape: 4.44489 (+- 2.44347)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+3.079 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.894
+The Adjusted R2 score on the Test set is:       0.826
+RMSE: 485.577596
+MAE: 395.161215
+MAPE: 3.13%
+sMAPE: 3.20%
+
+---     30.220 seconds --- the end of the file.
+
+emd.FIXE_H = 6
+emd.nbsym = 4
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.87827 (+- 0.11575)
+> rmse: 671.73385 (+- 462.22132)
+> mae: 572.68094 (+- 394.11744)
+> mape: 3.88369 (+- 2.11855)
+> smape: 3.94622 (+- 2.26598)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+2.835 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.877
+The Adjusted R2 score on the Test set is:       0.799
+RMSE: 522.638121
+MAE: 475.976510
+MAPE: 3.73%
+sMAPE: 3.81%
+
+---     30.318 seconds --- the end of the file.
+
+
+emd.FIXE_H = 7
+emd.nbsym = 4
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86808 (+- 0.15301)
+> rmse: 654.19722 (+- 356.76566)
+> mae: 559.60058 (+- 326.85879)
+> mape: 3.88364 (+- 2.12478)
+> smape: 3.92801 (+- 2.20388)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+3.658 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.952
+The Adjusted R2 score on the Test set is:       0.922
+RMSE: 325.629707
+MAE: 267.071926
+MAPE: 2.17%
+sMAPE: 2.20%
+
+---     32.582 seconds --- the end of the file.
+
+
+
+emd.FIXE_H = 7
+emd.nbsym = 6
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86956 (+- 0.15320)
+> rmse: 649.61206 (+- 355.74164)
+> mae: 555.36461 (+- 325.45866)
+> mape: 3.85539 (+- 2.12211)
+> smape: 3.89968 (+- 2.20017)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+3.504 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.952
+The Adjusted R2 score on the Test set is:       0.921
+RMSE: 328.107584
+MAE: 264.830969
+MAPE: 2.13%
+sMAPE: 2.17%
+
+---     31.843 seconds --- the end of the file.
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+selectDatasets = ["2015","2016","2017","2018"]
+
+emd.FIXE_H = 8
+emd.nbsym = 6
+emd.spline_kind = 'cubic'
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.00000 (+- 0.00000)
+> r2_score_test: 0.86245 (+- 0.20769)
+> rmse: 627.25524 (+- 380.02445)
+> mae: 531.11386 (+- 339.56743)
+> mape: 3.71267 (+- 2.27101)
+> smape: 3.74589 (+- 2.37344)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Box-Cox transformation
+Empirical Mode Decomposition (EMD) has been started
+8.240 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:        0.958
+The Adjusted R2 score on the Test set is:       0.931
+RMSE: 306.657520
+MAE: 249.724271
+MAPE: 1.92%
+sMAPE: 1.91%
+
+---     35.402 seconds --- the end of the file.
+
+
+
+
+
+
