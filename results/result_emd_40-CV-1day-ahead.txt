@@ -345,3 +345,162 @@ sMAPE: 1.91%
 
 
 
+
+EMD 
+Dataset: ISONewEngland
+Years: ['2015', '2016', '2017', '2018']
+CrossValidation: True
+KFOLD: 40
+OFFSET: 0
+FORECASTDAYS: 1
+NMODES: 6
+MODE: emd
+BOXCOX: True
+MINMAXSCALER: False
+
+# IMF_0
+r2_score_train: 0.86954 (+- 0.09243)
+r2_score_test: 0.37954 (+- 1.19547)
+rmse: 0.00855 (+- 0.00636)
+mae: 0.00719 (+- 0.00582)
+mape: 411.49469 (+- 763.24876)
+smape: 137.37349 (+- 12.30639)
+
+# IMF_1
+r2_score_train: 0.94294 (+- 0.03127)
+r2_score_test: 0.19840 (+- 3.72475)
+rmse: 0.01779 (+- 0.01318)
+mae: 0.01514 (+- 0.01172)
+mape: 318.75992 (+- 502.31238)
+smape: 137.02908 (+- 8.08347)
+
+# IMF_2
+r2_score_train: 0.86787 (+- 0.06059)
+r2_score_test: -4.18673 (+- 10.01651)
+rmse: 0.01634 (+- 0.01330)
+mae: 0.01421 (+- 0.01186)
+mape: 326.25638 (+- 245.68877)
+smape: 147.20976 (+- 15.68207)
+
+# IMF_3
+r2_score_train: 0.92147 (+- 0.03218)
+r2_score_test: -50.14206 (+- 221.21210)
+rmse: 0.01197 (+- 0.01137)
+mae: 0.01088 (+- 0.01071)
+mape: 312.25010 (+- 291.48388)
+smape: 131.16840 (+- 35.33430)
+
+# IMF_4
+r2_score_train: 0.96887 (+- 0.01998)
+r2_score_test: -22.13113 (+- 30.27773)
+rmse: 0.01156 (+- 0.00679)
+mae: 0.01092 (+- 0.00668)
+mape: 186.46442 (+- 258.46997)
+smape: 117.78348 (+- 63.94972)
+
+# IMF_5
+r2_score_train: 0.99187 (+- 0.00472)
+r2_score_test: -1453.00460 (+- 8696.62413)
+rmse: 0.00860 (+- 0.00837)
+mae: 0.00823 (+- 0.00825)
+mape: 126.23796 (+- 204.57963)
+smape: 86.42261 (+- 60.29872)
+
+# IMF_6
+r2_score_train: 0.99920 (+- 0.00069)
+r2_score_test: -37.35694 (+- 72.73713)
+rmse: 0.00402 (+- 0.00505)
+mae: 0.00387 (+- 0.00499)
+mape: 0.06447 (+- 0.07996)
+smape: 0.06451 (+- 0.08013)
+
+# Composed
+r2_score_train: 0.00000 (+- 0.00000)
+r2_score_test: 0.86245 (+- 0.20769)
+rmse: 627.25524 (+- 380.02445)
+mae: 531.11386 (+- 339.56743)
+mape: 3.71267 (+- 2.27101)
+smape: 3.74589 (+- 2.37344)
+
+# Final test - Forecast 1 day
+r2_score_train: 0.958
+r2_score_test: 0.931
+rmse: 306.657520
+mae: 249.724271
+mape: 1.92%
+smape: 1.91%
+
+
+
+---- After code fix -----
+IMF_0
+Average scores for all folds:
+> r2_score_train: 0.9430 (+- 0.0449)
+> r2_score_test: 0.6357 (+- 0.8942)
+> rmse: 0.0058 (+- 0.0027)
+> mae: 0.0045 (+- 0.0020)
+> mape: 426.3356 (+- 543.8522)
+> smape: 134.4759 (+- 8.2095)
+
+IMF_1
+Average scores for all folds:
+> r2_score_train: 0.9903 (+- 0.0060)
+> r2_score_test: 0.9545 (+- 0.0723)
+> rmse: 0.0060 (+- 0.0039)
+> mae: 0.0049 (+- 0.0033)
+> mape: 465.6226 (+- 652.3631)
+> smape: 133.0268 (+- 5.2697)
+
+IMF_2
+Average scores for all folds:
+> r2_score_train: 0.9888 (+- 0.0032)
+> r2_score_test: 0.8409 (+- 0.2007)
+> rmse: 0.0040 (+- 0.0035)
+> mae: 0.0033 (+- 0.0028)
+> mape: 362.2498 (+- 386.1866)
+> smape: 123.4333 (+- 23.5657)
+
+
+IMF_3
+Average scores for all folds:
+> r2_score_train: 0.9972 (+- 0.0023)
+> r2_score_test: 0.9070 (+- 0.1067)
+> rmse: 0.0017 (+- 0.0020)
+> mae: 0.0015 (+- 0.0017)
+> mape: 509.7906 (+- 1227.6920)
+> smape: 90.2532 (+- 38.8189)
+
+IMF_4
+Average scores for all folds:
+> r2_score_train: 0.9995 (+- 0.0003)
+> r2_score_test: -1.4037 (+- 13.4615)
+> rmse: 0.0011 (+- 0.0025)
+> mae: 0.0010 (+- 0.0022)
+> mape: 185.8308 (+- 295.6568)
+> smape: 59.9987 (+- 49.9959)
+
+IMF_5
+Average scores for all folds:
+> r2_score_train: 0.9989 (+- 0.0017)
+> r2_score_test: -35.4276 (+- 226.1839)
+> rmse: 0.0006 (+- 0.0007)
+> mae: 0.0005 (+- 0.0006)
+> mape: 106.0310 (+- 138.2266)
+> smape: 47.0488 (+- 46.4561)
+
+IMF_6
+Average scores for all folds:
+> r2_score_train: 0.9995 (+- 0.0006)
+> r2_score_test: -210.1249 (+- 1180.0190)
+> rmse: 0.0011 (+- 0.0014)
+> mae: 0.0010 (+- 0.0013)
+> mape: 0.0296 (+- 0.0257)
+> smape: 0.0296 (+- 0.0257)
+
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8793 (+- 0.0572)
+> rmse: 670.3954 (+- 127.3716)
+> mae: 530.4017 (+- 126.5717)
+> mape: 3.8524 (+- 0.5409)
+> smape: 3.8483 (+- 0.5431)
