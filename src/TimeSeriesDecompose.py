@@ -40,6 +40,7 @@ from skgarden import RandomForestQuantileRegressor, ExtraTreesQuantileRegressor
 from sklearn.preprocessing import MinMaxScaler, normalize
 import nni
 from pandas.plotting import register_matplotlib_converters
+import math
 
 register_matplotlib_converters()
 sys.path.append('../')
@@ -56,15 +57,17 @@ KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 1
 NMODES = 6
-MODE = 'emd'
+MODE = 'eemd'
 BOXCOX = True
 MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
+RECURSIVE = True
+PREVIOUS = True
 # Selection of year
 #selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]
 selectDatasets = ["2015","2016","2017","2018"]
-# selectDatasets = ["2015"]
+# selectDatasets = ["2017","2018"]
 # Set algorithm
 ALGORITHM = 'ensemble'
 # Seasonal component to be analyzed
@@ -513,7 +516,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         # uniqueYears = X['Year'].unique()
         # test_size = round((X.shape[0]/uniqueYears.size)/12/2)
         test_size = round(forecastDays*24)
-        train_size = round((len(inputs)/kfold) - test_size)
+        train_size = math.floor((len(inputs)/kfold) - test_size)
         
         # Offset on Forecast window        
         # offset = test_size*3
@@ -522,7 +525,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             log(f'Offset has been set by {offset/24} days')
             # test_size = round((X.shape[0]-offset)/uniqueYears.size/12/2)
             test_size = round(forecastDays*24)
-            train_size = round(((len(inputs)-offset)/kfold) - test_size)
+            train_size = math.floor(((len(inputs)-offset)/kfold) - test_size)
     
 
         train_index = np.arange(0,train_size+offset)
@@ -646,8 +649,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         #     elif y.columns[0].find('Residual') != -1:
         #         model = GradientBoostingRegressor()
 
-
-            model = GradientBoostingRegressor()
             # Choose one model for each IMF
             # if y.columns[0].find('IMF_0') != -1:
             #     model = ExtraTreesRegressor(
@@ -867,11 +868,30 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 
 
             # Generate a print
-            log('------------------------------------------------------------------------')
+            # log('------------------------------------------------------------------------')
             log(f'Training for fold {fold_no} ...')
-                        
+
+            # Learn         
             model.fit(X_train, y_train.ravel())
-            y_pred = model.predict(X_test)
+
+            if RECURSIVE:
+                # Store predicted values
+                y_pred = np.zeros(len(y_test))
+                # Recursive predictions
+                for j in range(len(y_test)):
+                    # Next inputs for prediction
+                    if j > 0:
+                        X_test_final = np.concatenate([X_test[j], np.array([y_lag])])
+                    else:
+                        X_test_final = X_test[0]
+                        X_test = np.delete(X_test, 8, 1)
+                                    
+                    # Predict
+                    y_pred[j] = model.predict(X_test_final.reshape(-1,X_test_final.shape[0]))
+                    # Save prediction
+                    y_lag = y_pred[j]
+            else:
+                y_pred = model.predict(X_test)
             
             # Save y_pred
             kfoldPred.append(y_pred)
@@ -889,7 +909,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 #                         y=y_pred,
                 #                         name='Predicted Load (fold='+str(i+1)+")",
                 #                         mode='lines'))
-                plt.plot(df2, y_pred, label='Predicted Load (fold='+str(i+1)+")")        
+                plt.plot(df2, y_pred, label=f'Predicted Load (fold={fold_no}')
 
             y_pred_train = model.predict(X_train)
             y_pred_train = np.float64(y_pred_train)
@@ -955,6 +975,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # Increase indexes            
             # train_index = np.concatenate((train_index, test_index), axis=0)
             train_index = np.arange(train_index[-1] + 1, train_index[-1] + 1 + train_size + test_size)
+            # train_index = np.arange(0, train_index[-1] + 1 + train_size + test_size)
                 
             test_index = test_index + train_size + test_size
 
@@ -1299,7 +1320,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         
         # Forecast X days
         test_size = round(FORECASTDAYS*24)
-        train_size = round((len(inputs)/KFOLD) - test_size)
+        train_size = math.floor((len(inputs)/KFOLD) - test_size)
         
         # Offset on Forecast window        
         # offset = test_size*3
@@ -1308,7 +1329,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             log(f'OFFSET has been set by {OFFSET/24} days')
             # test_size = round((X.shape[0]-OFFSET)/uniqueYears.size/12/2)
             test_size = round(FORECASTDAYS*24)
-            train_size = round(((len(inputs)-OFFSET)/KFOLD) - test_size)
+            train_size = math.floor(((len(inputs)-OFFSET)/KFOLD) - test_size)
     
 
         train_index = np.arange(0,train_size+OFFSET)
@@ -1340,7 +1361,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 #                         y=y_pred[i],
                 #                         name='Predicted Load (fold='+str(i+1)+")",
                 #                         mode='lines'))
-                plt.plot(df2, y_pred[i], label='Predicted Load (fold='+str(i+1)+")")
+                plt.plot(df2, y_pred[i], label=f'Predicted Load (fold={i})')
 
         
             r2test = r2_score(y_test, y_pred[i])
@@ -1473,8 +1494,13 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     
     def do_emd():        
         emd = EMD()
+        # 4 years
         emd.FIXE_H = 8
         emd.nbsym = 6
+        # 1 year
+        # emd.FIXE = 1
+        # emd.FIXE_H = 1
+        # emd.nbsym = 1
         emd.spline_kind = 'cubic'
         IMFs = emd.emd(y_series, max_imf=Nmodes)
         return IMFs
@@ -1604,7 +1630,7 @@ def transform_stationary(y_, y_diff=0, invert=False):
         assert False
 
 def get_lagged_y(X_, y_, n_steps=1):
-    log("Use lagged y (demand) to include as input in X")
+    # log("Use lagged y (demand) to include as input in X")
     label = y_.columns[0]    
     y_lag = y_.shift(int(n_steps))
     
@@ -1649,16 +1675,18 @@ def data_cleaning_columns(X, y):
 
     return X, y
 
-def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_models=False):
+def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*FORECASTDAYS, previous_models=PREVIOUS):
     log(f"Final test with test data - Forecast {FORECASTDAYS} day(s)")
-    
+    global df
     if len(df) != len(y_):
         # y_ = y_[:len(df)]
         y_ = y_[1:]
     if len(df) != len(X_):
         # X_ = X_[:len(df)]
         X_ = X_.drop(index=0).reset_index(drop=True)
-
+    
+    X_test_copy = X_test
+    y_test_copy = y_test
     # Sanity check and drop unused columns
     X_test, y_test = data_cleaning_columns(X_test, y_test)
 
@@ -1677,7 +1705,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
     X_all = pd.concat([X_,X_test], axis=0)
 
     # Normalize the signal
-    y_transf, lambda_boxcox, sc1, min_y = data_transformation(y_all)
+    y_transf, lambda_boxcox, sc1, min_y = data_transformation(y_)
     
     # Data decompose
     y_decomposed_list = decomposeSeasonal(y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
@@ -1686,50 +1714,56 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
     decomposePred = []
 
     if previous_models:
-        pass
-    #     # Forecast the decomposed signals
-    #     for (model, y_decomposed) in zip(models, y_decomposed_list):
-    #         # Keep the index of testset for easy data manipulation
-    #         y_decomposed = y_decomposed.set_index(y_test.index.values)
-    #         # Get the y lag
-    #         X_lagged, y_lagged = get_lagged_y(X_test, y_decomposed[0], forecastDays=1)
-    #         # y_lagged = y_lagged.rename(columns={y_lagged.columns[0]:'DEMAND_LAG'})
-            
-    #         # Limit the sizing of test set
-    #         X_test_1 = pd.concat([X_test[:FORECASTDAYS*24], y_lagged], axis=1)
-    #         y_test_1 = y_test[:FORECASTDAYS*24].reset_index(drop=True)
-            
-    #         try:
-    #             y_pred = model.predict(X_test_1.values)
-    #         except ValueError:
-    #             y_pred = model.predict(X_test_1)
-    #         decomposePred.append(y_pred)
-    else:
-        for y_decomposed in y_decomposed_list:
-            X_all_lag, y_all_lag = get_lagged_y(X_all, y_decomposed, n_steps=1)
-            X_train = X_all_lag[:len(X_)]
-            y_train = y_all_lag[:len(y_)]
-            model = GradientBoostingRegressor()
-            model.fit(X_train, y_train.values.ravel())
-
+        for (model, y_decomposed) in zip(models, y_decomposed_list):
+            X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
+            train_size = round(len(X_)/KFOLD)
+            X_train = X_lagged[-train_size:]
+            y_train = y_lagged[-train_size:]
             
             # Store predicted values
-            y_pred = []
+            y_pred = np.zeros(n_steps)
             # Recursive predictions
             for i in range(n_steps):
                 if i > 0:
                     X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
                 else:
-                    X_test_final = X_test.iloc[0].append(pd.Series(X_all_lag['DEMAND_LAG'][0]))
+                    X_test_final = X_test.iloc[0].append(pd.Series(X_lagged['DEMAND_LAG'][0]))
                 
                 # Rename
                 X_test_final = X_test_final.rename({0:'DEMAND_LAG'})
-                # Reshape
-                X_test_final = X_test_final.values.reshape(-1,X_test_final.shape[0])
                 # Predict
-                y_pred.append(model.predict(X_test_final))
+                y_pred[i] = model.predict(X_test_final.values.reshape(-1,X_test_final.shape[0]))
                 # Save prediction
                 y_lag = y_pred[i]
+            
+            decomposePred.append(y_pred)
+    else:
+        for y_decomposed in y_decomposed_list:
+            # X_all_lag, y_all_lag = get_lagged_y(X_all, y_decomposed, n_steps=1)
+            X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
+            train_size = round(len(X_)/KFOLD)
+            X_train = X_lagged[-train_size:]
+            y_train = y_lagged[-train_size:]
+            model = GradientBoostingRegressor()
+            model.fit(X_train, y_train.values.ravel())
+            
+            # Store predicted values
+            y_pred = np.zeros(n_steps)
+            # Recursive predictions
+            for i in range(n_steps):
+                if i > 0:
+                    X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                else:
+                    X_test_final = X_test.iloc[0].append(pd.Series(X_lagged['DEMAND_LAG'][0]))
+                
+                # Rename
+                X_test_final = X_test_final.rename({0:'DEMAND_LAG'})
+                # Predict
+                y_pred[i] = model.predict(X_test_final.values.reshape(-1,X_test_final.shape[0]))
+                # Save prediction
+                y_lag = y_pred[i]
+            
+            decomposePred.append(y_pred)
 
 
     # Compose the signal
@@ -1746,20 +1780,29 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
 
     # Change y variable
     y_final = y_composed
+    
+    # Crop y_test
+    y_test = y_test[:-1]
 
     # Split original series into train and test data
-    X_train, X_test, y_train, y_test = train_test_split(X_, y_, test_size = testSize, random_state = 0, shuffle = False)
+    # X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size = testSize, random_state = 0, shuffle = False)
     # Prepare for plotting
-    rows = X_test.index
-    df2 = df.iloc[rows[0]:]
+    # rows = X_test.index
+    # df2 = df.iloc[rows[0]:]
+    # rows = X_test_copy.index.values
+    df2 = X_test_copy['DATE'][:n_steps]
+    df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1])
+    # df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1] - 24*FORECASTDAYS+1)
+    
+    df = pd.concat([pd.DataFrame(df), df2], axis=0)
+    
+    y_all = y_all[:len(y_)+len(y_final)]
+    # y_all = y_all[:-24*FORECASTDAYS]
+    
     if plot:
         plt.figure()
-        try:
-            plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
-            plt.plot(df2,y_final, label = f'Predicted data - {y_.columns[0]}')
-        except AttributeError:
-            plt.plot(df,y_, label = f'Real data')
-            plt.plot(df2,y_final, label = f'Predicted data')
+        plt.plot(df,y_all, label = f'Real data')
+        plt.plot(df2,y_final, label = f'Predicted data')
         plt.title(f'{DATASET_NAME} dataset Prediction')
         plt.xlabel('Date')
         plt.ylabel('Load [MW]')

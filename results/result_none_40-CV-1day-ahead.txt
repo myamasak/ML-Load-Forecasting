@@ -1,3 +1,65 @@
+After code fix
+
+
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8259 (+- 0.0872)
+> rmse: 796.1723 (+- 176.9059)
+> mae: 656.1056 (+- 167.2942)
+> mape: 4.6622 (+- 1.0673)
+> smape: 4.6935 (+- 1.0935)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.7397
+The Adjusted R2 score on the Test set is:	0.6096
+RMSE: 980.647825
+MAE: 718.298071
+MAPE: 6.49%
+sMAPE: 6.15%
+
+--- 	13.202 seconds --- the end of the file.
+
+
+
+
+
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8433 (+- 0.0873)
+> rmse: 755.6912 (+- 242.3218)
+> mae: 613.0752 (+- 227.0026)
+> mape: 4.3819 (+- 1.1604)
+> smape: 4.3859 (+- 1.1650)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.7478
+The Adjusted R2 score on the Test set is:	0.6218
+RMSE: 965.203440
+MAE: 726.651920
+MAPE: 6.52%
+sMAPE: 6.18%
+
+
+
+
+
+
+
+
+
+
+
 Average scores for all folds:
 > r2_score_train: 0.00000 (+- 0.00000)
 > r2_score_test: 0.85889 (+- 0.15425)

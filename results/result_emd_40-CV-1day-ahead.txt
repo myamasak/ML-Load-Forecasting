@@ -1,3 +1,114 @@
+
+After code fix
+
+previous_models = True
+
+7 days final test
+
+Final test with test data - Forecast 1 day(s)
+The R2 score on the Test set is:	0.8897
+The Adjusted R2 score on the Test set is:	0.8842
+RMSE: 610.929385
+MAE: 501.870029
+MAPE: 4.03%
+sMAPE: 4.00%
+
+previous_models = False
+The R2 score on the Test set is:	0.8722
+The Adjusted R2 score on the Test set is:	0.8658
+RMSE: 657.649984
+MAE: 540.565790
+MAPE: 4.20%
+sMAPE: 4.31%
+
+--- 	42.598 seconds --- the end of the file.
+
+
+
+
+
+
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7695 (+- 0.1891)
+> rmse: 915.2325 (+- 443.8485)
+> mae: 743.1307 (+- 375.1760)
+> mape: 5.2574 (+- 2.1604)
+> smape: 5.2241 (+- 2.0792)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Mode Decomposition (EMD) has been started
+9.630 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.8963
+The Adjusted R2 score on the Test set is:	0.8445
+RMSE: 618.929112
+MAE: 543.080307
+MAPE: 4.30%
+sMAPE: 4.33%
+
+--- 	42.175 seconds --- the end of the file.
+
+
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7695 (+- 0.1891)
+> rmse: 915.2325 (+- 443.8485)
+> mae: 743.1307 (+- 375.1760)
+> mape: 5.2574 (+- 2.1604)
+> smape: 5.2241 (+- 2.0792)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Mode Decomposition (EMD) has been started
+9.286 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.8820
+The Adjusted R2 score on the Test set is:	0.8230
+RMSE: 660.357505
+MAE: 563.654252
+MAPE: 4.39%
+sMAPE: 4.45%
+
+--- 	40.908 seconds --- the end of the file.
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = True
+# Selection of year
+selectDatasets = ["2015","2016","2017","2018"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 EMD-6 modes
 # Configuration for Forecasting
 CROSSVALIDATION = True
