@@ -1,0 +1,177 @@
+emd.FIXE_H = 1
+emd.nbsym = 2
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7938 (+- 0.1813)
+> r2_score_test_adj: 0.7036 (+- 0.2606)
+> rmse: 1924.5125 (+- 762.4891)
+> mae: 1609.1701 (+- 682.6670)
+> mape: 4.1928 (+- 1.5940)
+> smape: 4.2533 (+- 1.6971)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	0.0993
+The Adjusted R2 score on the Test set is:	-0.2009
+RMSE: 2804.289266
+MAE: 1902.752018
+MAPE: 5.88%
+sMAPE: 6.30%
+
+
+7 days
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7938 (+- 0.1813)
+> r2_score_test_adj: 0.7036 (+- 0.2606)
+> rmse: 1924.5125 (+- 762.4891)
+> mae: 1609.1701 (+- 682.6670)
+> mape: 4.1928 (+- 1.5940)
+> smape: 4.2533 (+- 1.6971)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	0.7140
+The Adjusted R2 score on the Test set is:	0.7034
+RMSE: 2238.507113
+MAE: 1739.126492
+MAPE: 4.95%
+sMAPE: 5.14%
+
+
+
+
+
+---
+
+emd.FIXE_H = 1
+emd.nbsym = 3
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7938 (+- 0.2125)
+> r2_score_test_adj: 0.7037 (+- 0.3055)
+> rmse: 1905.1697 (+- 808.0415)
+> mae: 1598.6400 (+- 719.6935)
+> mape: 4.1833 (+- 1.7219)
+> smape: 4.2376 (+- 1.8471)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-1.9226
+The Adjusted R2 score on the Test set is:	-2.8968
+RMSE: 5051.496456
+MAE: 3581.614966
+MAPE: 11.13%
+sMAPE: 12.58%
+
+
+emd.FIXE_H = 1
+emd.nbsym = 1
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8040 (+- 0.1565)
+> r2_score_test_adj: 0.7182 (+- 0.2250)
+> rmse: 1891.4076 (+- 658.0688)
+> mae: 1579.0212 (+- 590.0891)
+> mape: 4.1132 (+- 1.3551)
+> smape: 4.1629 (+- 1.4169)
+------------------
+The R2 score on the Test set is:	-3.1690
+The Adjusted R2 score on the Test set is:	-4.5587
+RMSE: 6033.297825
+MAE: 4833.480218
+MAPE: 13.55%
+sMAPE: 15.11%
+
+
+emd.FIXE_H = 2
+emd.nbsym = 1
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7892 (+- 0.1526)
+> r2_score_test_adj: 0.6970 (+- 0.2193)
+> rmse: 1968.1970 (+- 657.9871)
+> mae: 1626.0362 (+- 561.9574)
+> mape: 4.2603 (+- 1.2905)
+> smape: 4.3119 (+- 1.3935)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-16.7666
+The Adjusted R2 score on the Test set is:	-22.6888
+RMSE: 12454.897832
+MAE: 11724.660421
+MAPE: 34.05%
+sMAPE: 41.95%
+
+emd.FIXE_H = 2
+emd.nbsym = 2
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7910 (+- 0.1571)
+> r2_score_test_adj: 0.6995 (+- 0.2258)
+> rmse: 1952.8071 (+- 673.7326)
+> mae: 1610.7889 (+- 575.2576)
+> mape: 4.2171 (+- 1.3110)
+> smape: 4.2714 (+- 1.4195)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-0.2050
+The Adjusted R2 score on the Test set is:	-0.6066
+RMSE: 3243.586481
+MAE: 2767.344256
+MAPE: 8.26%
+sMAPE: 8.23%
+
+
+emd.FIXE_H = 2
+emd.nbsym = 3
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7315 (+- 0.3724)
+> r2_score_test_adj: 0.6140 (+- 0.5353)
+> rmse: 2097.1238 (+- 1171.2059)
+> mae: 1757.1636 (+- 1017.7864)
+> mape: 4.5505 (+- 2.3102)
+> smape: 4.6505 (+- 2.5641)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-2.9556
+The Adjusted R2 score on the Test set is:	-4.2741
+RMSE: 5876.827784
+MAE: 5218.063287
+MAPE: 15.74%
+sMAPE: 17.59%
+
+
+emd.FIXE_H = 2
+emd.nbsym = 3
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7966 (+- 0.1668)
+> r2_score_test_adj: 0.7076 (+- 0.2398)
+> rmse: 1925.5329 (+- 676.8031)
+> mae: 1598.7223 (+- 599.9242)
+> mape: 4.1980 (+- 1.3586)
+> smape: 4.2417 (+- 1.4576)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-0.1483
+The Adjusted R2 score on the Test set is:	-0.5311
+RMSE: 3166.459986
+MAE: 2636.518903
+MAPE: 7.94%
+sMAPE: 8.12%
+
+emd.FIXE_H = 3
+emd.nbsym = 3
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7312 (+- 0.2309)
+> r2_score_test_adj: 0.6136 (+- 0.3320)
+> rmse: 2192.2146 (+- 925.6755)
+> mae: 1841.1657 (+- 833.6035)
+> mape: 4.7784 (+- 1.9234)
+> smape: 4.8828 (+- 2.1031)
+------------------------------------------------------------------------
+The R2 score on the Test set is:	-0.8749
+The Adjusted R2 score on the Test set is:	-1.4999
+RMSE: 4046.040908
+MAE: 3131.226611
+MAPE: 9.48%
+sMAPE: 9.98%

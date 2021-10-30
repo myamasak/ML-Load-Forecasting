@@ -1,0 +1,64 @@
+PREVIOUS = False
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8131 (+- 0.1486)
+> r2_score_test_adj: 0.7313 (+- 0.2137)
+> rmse: 1855.0980 (+- 646.0254)
+> mae: 1517.9839 (+- 553.9006)
+> mape: 3.9780 (+- 1.2908)
+> smape: 4.0528 (+- 1.3907)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.3588
+The Adjusted R2 score on the Test set is:	0.1450
+RMSE: 2366.148701
+MAE: 2069.692697
+MAPE: 6.07%
+sMAPE: 6.00%
+
+
+
+---------
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'none'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = True
+PREVIOUS = True
+# Selection of year
+selectDatasets = ["2015","2016","2017","2018"]
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8131 (+- 0.1486)
+> r2_score_test_adj: 0.7313 (+- 0.2137)
+> rmse: 1855.0980 (+- 646.0254)
+> mae: 1517.9839 (+- 553.9006)
+> mape: 3.9780 (+- 1.2908)
+> smape: 4.0528 (+- 1.3907)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.1940
+The Adjusted R2 score on the Test set is:	-0.0747
+RMSE: 2652.813463
+MAE: 2431.152513
+MAPE: 7.14%
+sMAPE: 7.04%
+
+--- 	12.478 seconds --- the end of the file.

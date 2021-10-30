@@ -88,3 +88,45 @@ nnictl update trialnum --id s08bPjXQ --value 865
 nnictl experiment export s08bPjXQ --filename C:\Users\marko\code\ML-Load-Forecasting\results\trial_s08bPjXQ --type json
 
 ```
+
+---
+
+
+
+
+
+
+##
+Sugiro ler partes das seguintes teses (pode te ajudar na escrita de objetivos e contribuições):
+https://dr.ntu.edu.sg/bitstream/10356/136779/2/Thesis.pdf
+
+https://ses.library.usyd.edu.au/bitstream/handle/2123/21248/zheng_zw_thesis.pdf?sequence=2&isAllowed=y
+
+---
+## 19/10/2021
+
+O que na minha visão da pra melhorar:
+
+- 2 - Revisão da literatura
+    - [ ] Adicionar o estado-da-arte para os trabalhos que contém Decomposição + Load forecasting, com os devidos métodos de avaliação de performance (MAPE, R², etc.)
+    - [ ] Explicar melhor os conceitos básicos de forecasting time series + machine learning
+    - [ ] Explicar sobre outros métodos de decomposição (EWT, EEMD, CEEMDAN, etc.)
+- 4 - Machine learning methods
+    - [ ] Melhorar a explicação sobre XGBoosting
+    - [ ] Melhorar a explicação sobre Gradient boosting
+    - [ ] Adicionar Extra Trees, KNN e SVR (talvez não, caso não use)
+- 5 - Resultados
+    - [ ] Mais texto explicando os detalhes de implementação e resultados
+    - [ ] Mais gráficos dos testes
+    - [ ] Testes statisticos
+    - [ ] E adicionar resultados do 2o dataset (ONS)
+
+-----
+.
+
+## Revisão do Leandro
+- [ ] 1.3 refs para cada método? EMD, VMD, EEMD, etc.
+- [ ] 1.6 incluir uma figura ilustrativa com o fluxo
+
+
+

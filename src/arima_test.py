@@ -100,18 +100,17 @@ X = X.drop(['DEMAND','DA_DEMD','DA_LMP','DA_EC','DA_CC','DA_MLC','DATE','HOUR','
 y = dataset.iloc[:, 3]
 
 # Taking care of missing data
-if (dataset['DEMAND'].eq(0).sum() > 0):    
+if (dataset['DEMAND'].eq(0).sum() > 0
+    or dataset['DEMAND'].isnull().any()):    
+    print(dataset['DEMAND'][dataset['DEMAND'].isnull()])
+    # Save the NaN indexes
+    nanIndex = dataset[dataset['DEMAND'].isnull()].index.values
     # Replace zero values by NaN
-    dataset['DEMAND'].replace(0, np.nan, inplace= True)
-    # Save y column (output)
-    y = dataset.iloc[:, 3]
-    # Replace NaN values by meaningful values
-    from sklearn.preprocessing import Imputer
-    y_matrix = y.as_matrix()
-    y_matrix = y_matrix.reshape(y_matrix.shape[0],1)
-    imputer = Imputer(missing_values="NaN", strategy="mean", axis=0)
-    imputer = imputer.fit(y_matrix)
-    y =  imputer.transform(y_matrix)
+    dataset['DEMAND'].replace(0, np.nan, inplace=True)
+    #convert to float
+    y = dataset['DEMAND'].astype(float)
+    y = y.interpolate(method='linear', axis=0).ffill().bfill()
+    print(y.iloc[nanIndex])
 
 
 
@@ -193,7 +192,7 @@ plt.title('Rolling Mean & Rolling Standard Deviation')
 plt.show()
 
 
-result2 = adfuller(data.iloc[:,0].values, regression='ct', maxlag=360)
+result2 = adfuller(data.iloc[:,0].values, regression='ct', maxlag=168)
 print('ADF Statistic: {}'.format(result2[0]))
 print('p-value: {}'.format(result2[1]))
 pvalue = result2[1]
@@ -214,6 +213,13 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 # from scipy import stats
 # seasonal_test = stats.kruskal(data.iloc[:,0].values)
 
+def mean_confidence_interval(data, confidence=0.95):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
+    return m, m-h, m+h
+
 
 print("ACF plot of demand series")
 plt.rcParams.update({'figure.figsize':(9,3), 'figure.dpi':120})
@@ -222,7 +228,25 @@ fig, axes = plt.subplots(2, 1, sharex=True)
 axes[0].plot(pd.DataFrame(y)); axes[0].set_title('Demand')
 axes[1].set(ylim=(-0.5,1.2))
 #axes[1].set(xlim=(-10,100))
-plot_acf(pd.DataFrame(y).dropna(), ax=axes[1], lags=np.arange(len(y)))
+plot_acf(pd.DataFrame(y).dropna(), ax=axes[1], lags=24*15)
+plt.show()
+
+sns.set_palette(palette='deep')
+sns_c = sns.color_palette(palette='deep')
+
+
+import scipy
+m, lower, upper = mean_confidence_interval()
+
+from matplotlib.collections import PolyCollection, LineCollection
+
+fig, ax = plt.subplots()
+plot_pacf(y, lags=24*7, ax=ax, method="ywm", use_vlines=True, marker='', vlines_kwargs={'color': 'black', 'linewidth': 0.5})
+for item in ax.collections:
+    #change the color of the CI 
+    if type(item)==PolyCollection:
+        item.set_facecolor('red')
+        item.set_alpha(1)
 plt.show()
 
 # ACF plot of 1st differenced series

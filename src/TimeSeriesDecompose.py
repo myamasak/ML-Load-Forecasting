@@ -53,18 +53,18 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 20
+KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'emd'
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
 RECURSIVE = False
-PREVIOUS = True
+PREVIOUS = False
 # Selection of year
 selectDatasets = ["2015","2016","2017","2018"]
 # selectDatasets = ["2017","2018"]
@@ -285,7 +285,6 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
 
     return X, y
 
-
 def mean_absolute_percentage_error(y_true, y_pred): 
     """Calculates MAPE given y_true and y_pred"""
     y_true, y_pred = np.array(y_true), np.array(y_pred)
@@ -293,6 +292,24 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 def symmetric_mape(y_true, y_pred):
     return 100 * np.mean(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
+
+def calc_r2score(y_true, y_pred):
+    y_true = np.array([y_true])
+    y_pred = np.array([y_pred])
+    
+    try:
+        if y_true.size != y_pred.size:        
+            raise Exception('y_true length is different than y_pred' )
+        elif y_true.size == 1 and y_pred.size == 1:
+            return 1-abs(y_true-y_pred)/y_true
+    except (AttributeError, ValueError, TypeError) as e:
+        raise e
+    
+
+    RSS = sum(np.power((y_true - y_pred), 2))
+    TSS = sum(np.power((y_true - np.mean(y_true)), 2))
+    result = 1 - (RSS/TSS)
+    return result
 
 def decomposeSeasonal(y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
     tic = time.time()
@@ -386,12 +403,12 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     clf = LocalOutlierFactor(n_neighbors=25)
 
     y_pred = clf.fit_predict(pd.DataFrame(y_))
-#    outliers_train = y_train.loc[y_pred_train == -1]
+    # outliers_train = y_train.loc[y_pred_train == -1]
     
     negativeOutlierFactor = clf.negative_outlier_factor_
     outliers = y_.loc[negativeOutlierFactor < (negativeOutlierFactor.mean() - negativeOutlierFactor.std()-1)]
     
-#    outliers.reindex(list(range(outliers.index.min(),outliers.index.max()+1)),fill_value=0)
+    # outliers.reindex(list(range(outliers.index.min(),outliers.index.max()+1)),fill_value=0)
     
 
     outliers_reindex = outliers.reindex(list(range(df.index.min(),df.index.max()+1)))
@@ -660,14 +677,14 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # meta_learner = linear_model.ARDRegression() # 0.88415
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             
-        #    tscv = TimeSeriesSplit(n_splits=5)
+            # tscv = TimeSeriesSplit(n_splits=5)
 
-        #     if y.columns[0].find('Trend') != -1:
-        #         model = ExtraTreesRegressor()
-        #     elif y.columns[0].find('Seasonal') != -1:
-        #         model = GradientBoostingRegressor()
-        #     elif y.columns[0].find('Residual') != -1:
-        #         model = GradientBoostingRegressor()
+            # if y.columns[0].find('Trend') != -1:
+            #     model = ExtraTreesRegressor()
+            # elif y.columns[0].find('Seasonal') != -1:
+            #     model = GradientBoostingRegressor()
+            # elif y.columns[0].find('Residual') != -1:
+            #     model = GradientBoostingRegressor()
 
             # Choose one model for each IMF
             if False:
@@ -1015,21 +1032,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             test_index = test_index + train_size + test_size
 
         if plot:
-            # fig.update_layout(
-            #     font=dict(size=12),
-            #     legend=dict(
-            #     yanchor="top",
-            #     y=0.99,
-            #     xanchor="left",
-            #     x=0.01,
-            #     font=dict(
-            #     size=12)
-            # ))
-            # fig.show()
-            # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
             # plt.legend()
             plt.show()
+            plt.tight_layout()
             if BOXCOX:
                 plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
             else:
@@ -1037,22 +1043,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Calculate feature importances
             try:
-                importances = model.feature_importances_
-                # Sort feature importances in descending order
-                indices = np.argsort(importances)[::-1]
-                # Rearrange feature names so they match the sorted feature importances
-                names = [X.columns[i] for i in indices]
-                #plot_feature_importances(importances,Xdata.columns)
-                # Create plot
-                plt.figure()
-                # Create plot title
-                plt.title(f"Feature Importance - {y.columns[0]}")
-                # Add bars
-                plt.bar(range(X.shape[1]), importances[indices])
-                # Add feature names as x-axis labels
-                plt.xticks(range(X.shape[1]), names, rotation=0)
-                # Show plot
-                plt.show()
+                plotFeatureImportance(X, model)
             except:
                 pass
 
@@ -1170,7 +1161,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
             else:
                 plt.savefig(path+f'/results/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
-            plt.show()
+            plt.show()        
+            plt.tight_layout()
         
         y_pred_train = model.predict(X_train)
         r2train = r2_score(y_train, y_pred_train)
@@ -1223,7 +1215,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
     log("\n--- \t{:0.4f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost)) 
     return y_pred, testSize, kfoldPred, model
     
-
 def composeSeasonal(decomposePred, model='stl-a'):
     if not CROSSVALIDATION:
         if model == 'stl-a':
@@ -1254,7 +1245,6 @@ def composeSeasonal(decomposePred, model='stl-a'):
         else:
             finalPred = [sum(x) for x in zip(*decomposePred)]
     return finalPred
-
 
 def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
@@ -1287,9 +1277,9 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             try:
                 plt.plot(df,y_, label = f'Real data - {y_.columns[0]}')
                 plt.plot(df2,y_pred, label = f'Predicted data - {y_.columns[0]}')
-    #        except AttributeError:
-    #            plt.plot(df,y_, label = f'Real data - {y_.name}')
-    #            plt.plot(df2,y_pred, label = f'Predicted data - {y_.name}')
+            # except AttributeError:
+            #     plt.plot(df,y_, label = f'Real data - {y_.name}')
+            #     plt.plot(df2,y_pred, label = f'Predicted data - {y_.name}')
             except AttributeError:
                 plt.plot(df,y_, label = f'Real data')
                 plt.plot(df2,y_pred, label = f'Predicted data')
@@ -1299,6 +1289,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.legend()
             plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
             plt.show()
+            plt.tight_layout()
         
         r2test = r2_score(y_test, y_pred)
         log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
@@ -1409,18 +1400,18 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
         
             r2test = r2_score(y_test, y_pred[i])
-#            log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
-#            log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
+        #    log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
+        #    log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
             n = len(X_test)
             p = X_test.shape[1]
             adjr2_score= 1-((1-r2test)*(n-1)/(n-p-1))
-#            log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(adjr2_score))
+        #    log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(adjr2_score))
 
             rmse = np.sqrt(mean_squared_error(y_test, y_pred[i]))
-#            log("RMSE: %f" % (rmse))
+           # log("RMSE: %f" % (rmse))
 
             mae = mean_absolute_error(y_test, y_pred[i])
-#            log("MAE: %f" % (mae))
+           # log("MAE: %f" % (mae))
             
             # Fix shape
             if len(y_pred[i]) > 1:
@@ -1433,8 +1424,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             # MAPE and sMAPE
             mape = mean_absolute_percentage_error(y_test, y_pred[i])
             smape = symmetric_mape(y_test, y_pred[i])
-#            log("MAPE: %.2f%%" % (mape))
-#            log("sMAPE: %.2f%%" % (smape))
+        #    log("MAPE: %.2f%%" % (mape))
+        #    log("sMAPE: %.2f%%" % (smape))
             
             
             finalResults[0].r2train_per_fold.append(0)
@@ -1470,6 +1461,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
             plt.show()
+            plt.tight_layout()
             plt.savefig(path+f'/results/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
 
 
@@ -1511,6 +1503,7 @@ def fast_fourier_transform(y_):
             plt.plot(xf, 2.0/N * np.abs(yf[0:N//2]))
             plt.ylim(0,max(2.0/N * np.abs(yf[0:N//2])))
             plt.show()
+            plt.tight_layout()
     else:    
         xseries = np.array(y_)
         if xseries.shape[1] == 1:
@@ -1525,7 +1518,7 @@ def fast_fourier_transform(y_):
         plt.plot(xf, 2.0/N * np.abs(yf[0:N//2]))
         plt.ylim(0,max(2.0/N * np.abs(yf[0:N//2])))
         plt.show()
-
+        plt.tight_layout()
 
 def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):    
     if mode=='emd':
@@ -1651,9 +1644,7 @@ def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastD
     X_train[X_train['Month'] == X_test['Month']]
     X_train[X_train['Day'] == X_test['Day']]
     X_train[X_train['Hour'] == X_test['Hour']]
-    
-
-    
+     
 def plot_histogram(y_, xlabel):
     if plot:
         plt.figure()
@@ -1709,7 +1700,6 @@ def get_lagged_y(X_, y_, n_steps=1):
         pass
     return X_, y_
 
-
 def data_cleaning_columns(X, y):
     # Drop subsystem and date columns
     if DATASET_NAME.find('ONS') != -1:
@@ -1732,8 +1722,8 @@ def data_cleaning_columns(X, y):
 
     return X, y
 
-def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*1, previous_models=PREVIOUS):
-    log(f"Final test with test data - Forecast {FORECASTDAYS} day(s)")
+def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_models=PREVIOUS):
+    log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
     global df
     if len(df) != len(y_):
         # y_ = y_[:len(df)]
@@ -1863,7 +1853,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*1, previous_mo
         plt.legend()
         plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
-    
+    plt.tight_layout()
     r2test = r2_score(y_test, y_final)
     log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
     n = len(X_test)
@@ -1891,7 +1881,40 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*1, previous_mo
     log("MAPE: %.2f%%" % (mape))
     log("sMAPE: %.2f%%" % (smape))
 
-
+    if True:
+        plt.figure()
+        plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
+        plt.xlabel('Time [h]')
+        plt.ylabel('R2 score')
+        xaxis = np.arange(0, n_steps, n_steps/10)
+        
+        if False:
+            r2scores = []
+            for i in range(len(y_final)):
+                #if i == 0:
+                r2test = 1-abs(y_test[i]-y_final[i])/y_test[i]
+                #else:
+                    #r2test = r2_score(y_test[:i], y_final[:i])
+                # r2test = calc_r2score(y_test[:i],y_final[:i])
+                r2scores.append(r2test)
+            
+            plt.plot(r2scores)
+            plt.xticks(xaxis)
+            plt.show()
+            plt.tight_layout()
+        
+        rmse = np.zeros(len(y_final))
+        for i in range(len(y_final)):
+            if i == 0:
+                rmse[i] = abs(y_test[i] - y_final[i])
+            else:
+                rmse[i] = np.sqrt(mean_squared_error(y_test[:i+1], y_final[:i+1]))
+                
+                
+        plt.plot(rmse)
+        plt.xticks(xaxis)
+        plt.show()
+        plt.tight_layout()
 
 def data_transformation(y):
     sc1 = None
@@ -1981,6 +2004,30 @@ def data_transformation_inverse(y_composed, lambda_boxcox, sc1, minmax, min_y, c
                 y_composed = y_composed - abs(min_y)-1
 
     return y_composed
+
+def plotFeatureImportance(X, model):
+    # Calculate feature importances
+    importances = model.feature_importances_    
+    # Sort feature importances in descending order
+    indices = np.argsort(importances)[::]    
+    # Rearrange feature names so they match the sorted feature importances
+    names = [X.columns[i] for i in indices]
+    # make a plot with the feature importance
+    # plt.figure(figsize=(12,14), dpi= 80, facecolor='w', edgecolor='k')
+    plt.figure()
+    # plt.grid()
+    plt.title('Feature Importances')
+    plt.barh(range(len(indices)), importances[indices], height=0.2, align='center')
+    # plt.axvline(x=0.03)
+    plt.yticks(range(len(indices)), list(names))
+    plt.xlabel('Relative Importance')   
+    plt.show()
+    plt.tight_layout()
+    plt.savefig(path+f'/results/{DATASET_NAME}_{MODE}_feature_importance.pdf')
+    
+    # featImportance = pd.concat([pd.DataFrame({'Features':names}),
+    #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
+
 ################
 # MAIN PROGRAM
 ################
@@ -2001,10 +2048,10 @@ X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 X, y = featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False, demand_lag=True, dataset_name=DATASET_NAME)
 
 # Split the test data from training/validation data
-y_testset = y[(-24*60):]
-X_testset = X[(-24*60):]
-X = X[:(-24*60)]
-y = y[:(-24*60)]
+y_testset = y[(-24*80):]
+X_testset = X[(-24*80):]
+X = X[:(-24*80)]
+y = y[:(-24*80)]
 
 # Redefine df
 df = X['DATE']
@@ -2018,6 +2065,7 @@ if plot and True:
     plt.ylabel('Load [MW]')
     plt.plot(df, y)
     plt.show()
+    plt.tight_layout()
     plt.savefig(path+f'/results/{DATASET_NAME}_after_outlierClean.pdf')
 # List of results
 results = []

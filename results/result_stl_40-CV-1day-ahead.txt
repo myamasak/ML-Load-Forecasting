@@ -1,4 +1,48 @@
 stl-a
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'stl-a'
+BOXCOX = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = True
+PREVIOUS = False
+# Selection of year
+selectDatasets = ["2015","2016","2017","2018"]
+
+Average scores for all folds:
+r2_score_train: 0.0000 (+- 0.0000)
+r2_score_test: 0.8078 (+- 0.1222)
+rmse: 860.4871 (+- 302.8525)
+mae: 698.3252 (+- 268.7726)
+mape: 4.8266 (+- 1.2335)
+smape: 4.7992 (+- 1.1978)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Seasonal and Trend decomposition using Loess (STL) Decomposition has been started
+0.006 seconds - Seasonal and Trend decomposition using Loess (STL) Decomposition has finished.
+Join all decomposed y predictions
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.6679
+The Adjusted R2 score on the Test set is:	0.5019
+RMSE: 1107.626756
+MAE: 789.348522
+MAPE: 7.39%
+sMAPE: 6.84%
+
+
+
+
+
+
+stl-a
 Average scores for all folds:
 > r2_score_train: 0.00000 (+- 0.00000)
 > r2_score_test: 0.87066 (+- 0.13483)

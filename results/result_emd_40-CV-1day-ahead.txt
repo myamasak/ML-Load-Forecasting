@@ -1,7 +1,240 @@
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+PREVIOUS = True
+# Selection of year
+selectDatasets = ["2015","2016","2017","2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8891 (+- 0.0481)
+> r2_score_test_adj: 0.8828 (+- 0.0509)
+> rmse: 703.8339 (+- 150.9273)
+> mae: 556.1271 (+- 126.9640)
+> mape: 4.1046 (+- 0.6160)
+> smape: 4.0954 (+- 0.6145)
+------------------------------------------------------------------------
+Final test with test data - Forecast 7 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Mode Decomposition (EMD) has been started
+9.768 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9286
+The Adjusted R2 score on the Test set is:	0.8929
+RMSE: 513.643196
+MAE: 418.876323
+MAPE: 3.72%
+sMAPE: 3.63%
+
+--- 	44.543 seconds --- the end of the file.
+
+
+
+
+
 
 After code fix
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 1
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = True
+PREVIOUS = True
+# Selection of year
+selectDatasets = ["2015","2016","2017","2018"]
+
+IMF_0
+r2_score_train: 0.9433 (+- 0.0456)
+r2_score_test: 0.2147 (+- 1.6703)
+r2_score_test_adj: -0.2042 (+- 2.5611)
+rmse: 0.1476 (+- 0.0805)
+mae: 0.1159 (+- 0.0661)
+mape: 263.2046 (+- 794.0925)
+smape: 75.6691 (+- 40.1884)
+IMF_1
+r2_score_train: 0.9903 (+- 0.0061)
+r2_score_test: 0.3986 (+- 1.6728)
+r2_score_test_adj: 0.0778 (+- 2.5649)
+rmse: 0.2814 (+- 0.2234)
+mae: 0.2244 (+- 0.1768)
+mape: 153.2972 (+- 390.3668)
+smape: 60.5743 (+- 33.8250)
+IMF_2
+r2_score_train: 0.9887 (+- 0.0031)
+r2_score_test: -22.0429 (+- 96.8675)
+r2_score_test_adj: -34.3324 (+- 148.5301)
+rmse: 0.2906 (+- 0.2411)
+mae: 0.2441 (+- 0.2029)
+mape: 488.8894 (+- 661.5140)
+smape: 140.2251 (+- 38.0317)
+IMF_3
+r2_score_train: 0.9972 (+- 0.0023)
+r2_score_test: -3.5256 (+- 2.9931)
+r2_score_test_adj: -5.9393 (+- 4.5894)
+rmse: 0.1716 (+- 0.1523)
+mae: 0.1505 (+- 0.1305)
+mape: 378.1657 (+- 409.8742)
+smape: 122.1391 (+- 59.8187)
+IMF_4
+r2_score_train: 0.9997 (+- 0.0002)
+r2_score_test: -3.5542 (+- 3.0625)
+r2_score_test_adj: -5.9831 (+- 4.6959)
+rmse: 0.1000 (+- 0.0765)
+mae: 0.0873 (+- 0.0661)
+mape: 210.2152 (+- 595.4294)
+smape: 62.6686 (+- 50.4405)
+IMF_5
+r2_score_train: 0.9999 (+- 0.0000)
+r2_score_test: -3.4614 (+- 3.6224)
+r2_score_test_adj: -5.8408 (+- 5.5543)
+rmse: 0.0436 (+- 0.0361)
+mae: 0.0376 (+- 0.0326)
+mape: 124.9918 (+- 270.0034)
+smape: 34.7429 (+- 38.1634)
+IMF_6
+r2_score_train: 1.0000 (+- 0.0000)
+r2_score_test: -4.7756 (+- 5.4328)
+r2_score_test_adj: -7.8559 (+- 8.3303)
+rmse: 0.0294 (+- 0.0267)
+mae: 0.0256 (+- 0.0231)
+mape: 11.8873 (+- 25.6397)
+smape: 13.1928 (+- 29.9045)
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7684 (+- 0.2106)
+> r2_score_test_adj: 0.6195 (+- 0.3459)
+> rmse: 940.6780 (+- 512.8236)
+> mae: 774.8805 (+- 456.3762)
+> mape: 5.2245 (+- 2.1919)
+> smape: 5.2121 (+- 2.2108)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Mode Decomposition (EMD) has been started
+9.318 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9466
+The Adjusted R2 score on the Test set is:	0.9199
+RMSE: 444.032370
+MAE: 394.025552
+MAPE: 3.32%
+sMAPE: 3.28%
+
+--- 	43.612 seconds --- the end of the file.
+
+
+
+
+---------
+
+
+
+
+
+
+
+
+IMF_0
+> r2_score_train: 0.9432 (+- 0.0461)
+> r2_score_test: 0.2123 (+- 1.6771)
+> rmse: 0.0114 (+- 0.0062)
+> mae: 0.0089 (+- 0.0051)
+> mape: 391.6307 (+- 654.5843)
+> smape: 138.9497 (+- 9.0520)
+IMF_1
+> r2_score_train: 0.9903 (+- 0.0060)
+> r2_score_test: 0.3962 (+- 1.6730)
+> rmse: 0.0218 (+- 0.0173)
+> mae: 0.0174 (+- 0.0137)
+> mape: 290.9616 (+- 302.9326)
+> smape: 137.5150 (+- 8.8881)
+IMF_2
+> r2_score_train: 0.9888 (+- 0.0031)
+> r2_score_test: -21.8422 (+- 96.7651)
+> rmse: 0.0225 (+- 0.0187)
+> mae: 0.0190 (+- 0.0157)
+> mape: 586.5213 (+- 866.8438)
+> smape: 149.4085 (+- 27.6256)
+IMF_3
+> r2_score_train: 0.9972 (+- 0.0023)
+> r2_score_test: -3.7063 (+- 3.1553)
+> rmse: 0.0134 (+- 0.0119)
+> mae: 0.0118 (+- 0.0102)
+> mape: 375.7751 (+- 381.8888)
+> smape: 125.2123 (+- 57.2083)
+IMF_4
+> r2_score_train: 0.9995 (+- 0.0003)
+> r2_score_test: -4.0590 (+- 2.9392)
+> rmse: 0.0082 (+- 0.0060)
+> mae: 0.0072 (+- 0.0052)
+> mape: 216.1439 (+- 591.7902)
+> smape: 69.3137 (+- 54.3187)
+IMF_5
+> r2_score_train: 0.9989 (+- 0.0017)
+> r2_score_test: -6.1641 (+- 9.7877)
+> rmse: 0.0036 (+- 0.0031)
+> mae: 0.0032 (+- 0.0028)
+> mape: 128.9970 (+- 269.3945)
+> smape: 37.9320 (+- 39.2412)
+IMF_6
+> r2_score_train: 0.9995 (+- 0.0006)
+> r2_score_test: -77.4385 (+- 184.7268)
+> rmse: 0.0034 (+- 0.0025)
+> mae: 0.0031 (+- 0.0023)
+> mape: 0.0499 (+- 0.0373)
+> smape: 0.0499 (+- 0.0373)
+Composed
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7664 (+- 0.2131)
+> rmse: 943.0206 (+- 515.0422)
+> mae: 779.7178 (+- 455.7684)
+> mape: 5.2676 (+- 2.2009)
+> smape: 5.2616 (+- 2.2401)
 
 previous_models = True
+The R2 score on the Test set is:	0.9150
+The Adjusted R2 score on the Test set is:	0.8726
+RMSE: 560.226988
+MAE: 481.352345
+MAPE: 3.86%
+sMAPE: 3.87%
+
+previous_models = False
+The R2 score on the Test set is:	0.8809
+The Adjusted R2 score on the Test set is:	0.8214
+RMSE: 663.232525
+MAE: 577.529718
+MAPE: 4.46%
+sMAPE: 4.55%
+
+
+
+
 
 7 days final test
 
