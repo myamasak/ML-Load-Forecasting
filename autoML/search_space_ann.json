@@ -4,5 +4,6 @@
     "hidden_layers":{"_type":"choice","_value":[2,4,8,16,32]},    
     "activation":{"_type":"choice","_value":["selu","elu","relu","LeakyReLU_0.01","LeakyReLU_0.05","LeakyReLU_0.1"]},
     "batch_size": {"_type":"choice", "_value": [6,12,24,48,72]},
-    "dropout": {"_type":"choice", "_value": ["True","False"]}
+    "dropout": {"_type":"choice", "_value": [true,false]},
+    "random_state":{"_type":"choice", "_value":[42]}
 }

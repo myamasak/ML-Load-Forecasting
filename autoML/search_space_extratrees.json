@@ -7,7 +7,8 @@
     "min_weight_fraction_leaf":{"_type":"quniform", "_value":[0,0.5,0.1]},
     "max_features": {"_type":"choice", "_value": ["auto","sqrt","log2"]},
     "min_impurity_decrease":{"_type":"quniform", "_value":[0,1,0.1]},
-    "bootstrap": {"_type":"choice", "_value": ["False","True"]},
-    "warm_start":{"_type":"choice", "_value":["False","True"]},
-    "ccp_alpha":{"_type":"quniform", "_value":[0,1,0.1]}
+    "bootstrap": {"_type":"choice", "_value": [false,true]},
+    "warm_start":{"_type":"choice", "_value":[false,true]},
+    "ccp_alpha":{"_type":"quniform", "_value":[0,1,0.1]},
+    "random_state":{"_type":"choice", "_value":[42]}
 }

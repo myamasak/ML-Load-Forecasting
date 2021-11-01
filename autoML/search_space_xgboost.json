@@ -7,5 +7,6 @@
     "n_estimators":{"_type":"quniform", "_value":[200,4000,100]},
     "reg_alpha":{"_type":"quniform", "_value":[0,1,0.05]},
     "reg_lambda":{"_type":"quniform", "_value":[0,1,0.01]},
-    "subsample":{"_type":"quniform", "_value":[0,1,0.01]}
+    "subsample":{"_type":"quniform", "_value":[0,1,0.01]},
+    "random_state":{"_type":"choice", "_value":[42]}
 }

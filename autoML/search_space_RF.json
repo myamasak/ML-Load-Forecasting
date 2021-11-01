@@ -6,5 +6,6 @@
     "max_features": {"_type":"choice", "_value": ["auto","sqrt","log2"]},
     "max_leaf_nodes": {"_type":"choice", "_value": ["None",8,16,32,64,128,256]},
     "min_impurity_decrease": {"_type":"choice", "_value": [0,0.001,0.01,0.05,0.1]},
-    "bootstrap": {"_type":"choice", "_value": ["False","True"]}
+    "bootstrap": {"_type":"choice", "_value": [false,true]},
+    "random_state":{"_type":"choice", "_value":[42]}
 }

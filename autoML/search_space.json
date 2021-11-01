@@ -5,5 +5,6 @@
     "activation":{"_type":"choice","_value":["relu","LeakyReLU_0.01","LeakyReLU_0.05","LeakyReLU_0.1"]},
     "batch_normalization":{"_type":"choice","_value":["BatchNorm","none"]},
     "batch_size": {"_type":"choice", "_value": [10,20,30]},
-    "epochs":{"_type":"choice","_value":[20,60]}
+    "epochs":{"_type":"choice","_value":[20,60]},
+    "random_state":{"_type":"choice", "_value":[42]}
 }

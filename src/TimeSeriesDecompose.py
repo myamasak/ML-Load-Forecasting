@@ -610,7 +610,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
 
         if not enable_nni:
-            # model = xgboost.XGBRegressor()
+            model = xgboost.XGBRegressor()
             #                             colsample_bytree=0.8,
             #                             gamma=0.3,
             #                             learning_rate=0.03,
@@ -660,142 +660,45 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
-            model = xgboost.XGBRegressor()
-            # loss="ls",
-            # learning_rate=0.0023509843102651725,
-            # n_estimators=10000,
-            # subsample=0.0065259491955755415,
-            # criterion="mse",
-            # min_samples_split=8,
-            # min_weight_fraction_leaf=0,
-            # max_depth=23,
-            # min_impurity_decrease=0.5,
-            # max_features="log2",
-            # alpha=0.9,
-            # warm_start=True,
-            # validation_fraction=0.5,
-            # tol=0.00009659717194630799,
-            # ccp_alpha=0.7000000000000001,
-            # random_state=42)
-            # if y.columns[0].find('mode_0') != -1:
-            # Best configuration so far: gbr; metalearner=ARDR
-            # regressors = list()
-            # regressors.append(('xgboost', xgboost.XGBRegressor()))
-            # regressors.append(('gbr', GradientBoostingRegressor()))
-            # regressors.append(('knn', KNeighborsRegressor()))
-            # regressors.append(('cart', DecisionTreeRegressor()))
-            # regressors.append(('rf', RandomForestRegressor()))
-            # regressors.append(('svr', svm.SVR()))
-            # regressors.append(('extratrees', ExtraTreesRegressor()))
-            # regressors.append(('ridge', linear_model.Ridge()))
-            # regressors.append(('pls', cross_decomposition.PLSRegression()))
-            # regressors.append(('sgd', linear_model.SGDRegressor()))
-            # regressors.append(('bayes'  , linear_model.BayesianRidge()))
-            # regressors.append(('lasso', linear_model.LassoLars()))
-            # regressors.append(('ard', linear_model.ARDRegression()))
-            # regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
-            # regressors.append(('theilsen', linear_model.TheilSenRegressor()))
-            # regressors.append(('linear', linear_model.LinearRegression()))
-            # meta_learner = linear_model.ARDRegression() # 0.88415
-            # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-
-            # tscv = TimeSeriesSplit(n_splits=5)
-
-            # if y.columns[0].find('Trend') != -1:
-            #     model = ExtraTreesRegressor()
-            # elif y.columns[0].find('Seasonal') != -1:
-            #     model = GradientBoostingRegressor()
-            # elif y.columns[0].find('Residual') != -1:
-            #     model = GradientBoostingRegressor()
-
+           
             # Choose one model for each IMF
             if True:
                 if y.columns[0].find('IMF_0') != -1:
-                    params = open_json('ET','IMF_0')
                     model = ExtraTreesRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'ET','IMF_0')
                 elif y.columns[0].find('IMF_1') != -1:
-                    params = open_json('XGB','IMF_1')
                     model = xgboost.XGBRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'XGB','IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
-                    params = open_json('XGB','IMF_1')
                     model = xgboost.XGBRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'XGB','IMF_1')
                 elif y.columns[0].find('IMF_3') != -1:
-                    params = open_json('GBR','IMF_3')
                     model = GradientBoostingRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'GBR','IMF_3')
                 elif y.columns[0].find('IMF_4') != -1:
-                    params = open_json('GBR','IMF_4')
                     model = GradientBoostingRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'GBR','IMF_4')
                 elif y.columns[0].find('IMF_5') != -1:
-                    params = open_json('GBR','IMF_5')
                     model = GradientBoostingRegressor()
-                    model.set_params(**params)
+                    local_params = open_json(model,'GBR','IMF_5')
                 elif y.columns[0].find('IMF_6') != -1:
-                    params = open_json('GBR','IMF_6')
                     model = GradientBoostingRegressor()
-                    model.set_params(**params)
-
+                    local_params = open_json(model,'GBR','IMF_6')
+                model.set_params(**local_params)
         else:  # nni enabled
-            # model = xgboost.XGBRegressor(
-            #                             colsample_bytree=params['colsample_bytree'],
-            #                             gamma=params['gamma'],
-            #                             learning_rate=params['learning_rate'],
-            #                             max_depth=int(params['max_depth']),
-            #                             min_child_weight=int(params['min_child_weight']),
-            #                             n_estimators=int(params['n_estimators']),
-            #                             reg_alpha=params['reg_alpha'],
-            #                             reg_lambda=params['reg_lambda'],
-            #                             subsample=params['subsample'],
-            #                             seed=42)
-
-            # # Choose one model for each IMF
-            # if y.columns[0].find('IMF_0') != -1:
-            #     model_choosen = params['model']
-            # elif y.columns[0].find('IMF_1') != -1:
-
-            # elif y.columns[0].find('IMF_2') != -1:
-
-            # elif y.columns[0].find('IMF_3') != -1:
-
-            # elif y.columns[0].find('IMF_4') != -1:
-
-            # elif y.columns[0].find('IMF_5') != -1:
-
-            # elif y.columns[0].find('IMF_6') != -1:
-
-            # elif y.columns[0].find('IMF_7') != -1:
-
-            if params['warm_start'] == "True":
-                warm_start = True
-            elif params['warm_start'] == "False":
-                warm_start = False
+            # if params['warm_start'] == "True":
+            #     warm_start = True
+            # elif params['warm_start'] == "False":
+            #     warm_start = False
 
             if params['min_samples_split'] > 1:
                 min_samples_split = int(params['min_samples_split'])
             else:
                 min_samples_split = float(params['min_samples_split'])
 
-            model = GradientBoostingRegressor(
-                loss=params['loss'],
-                learning_rate=params['learning_rate'],
-                n_estimators=int(params['n_estimators']),
-                subsample=params['subsample'],
-                criterion=params['criterion'],
-                min_samples_split=min_samples_split,
-                min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
-                max_depth=int(params['max_depth']),
-                min_impurity_decrease=params['min_impurity_decrease'],
-                max_features=params['max_features'],
-                alpha=params['alpha'],
-                warm_start=warm_start,
-                validation_fraction=params['validation_fraction'],
-                tol=params['tol'],
-                ccp_alpha=params['ccp_alpha'],
-                random_state=42)
+            model = GradientBoostingRegressor()
+            model.set_params(**params)
+
             # if params['min_samples_split'] > 1:
             #     min_samples_split=int(params['min_samples_split'])
             # else:
@@ -809,30 +712,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #     warm_start = True
             # elif params['warm_start'] == "False":
             #     warm_start = False
-
-            # model = ExtraTreesRegressor(
-            #                             n_estimators=int(params['n_estimators']),
-            #                             criterion=params['criterion'],
-            #                             max_depth=None if params['max_depth']=="None" else params['max_depth'],
-            #                             min_samples_split=min_samples_split,
-            #                             min_samples_leaf=params['min_samples_leaf'],
-            #                             min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
-            #                             max_features=params['max_features'],
-            #                             min_impurity_decrease=params['min_impurity_decrease'],
-            #                             bootstrap=bootstrap,
-            #                             warm_start=warm_start,
-            #                             ccp_alpha=params['ccp_alpha'],
-            #                             random_state=42)
-            # model = ExtraTreesQuantileRegressor(
-            #                             n_estimators=int(params['n_estimators']),
-            #                             criterion=params['criterion'],
-            #                             max_depth=None if params['max_depth']=="None" else params['max_depth'],
-            #                             min_samples_split=min_samples_split,
-            #                             min_samples_leaf=params['min_samples_leaf'],
-            #                             min_weight_fraction_leaf=params['min_weight_fraction_leaf'],
-            #                             max_features=params['max_features'],
-            #                             bootstrap=bootstrap,
-            #                             random_state=42)
 
         i = 0
 
@@ -2014,16 +1893,18 @@ def plotFeatureImportance(X, model):
     #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
 
 
-def open_json(algorithm, imf):
+def open_json(model, algorithm, imf):
     filePath = path + f'/src/params/{algorithm}_params_{imf}_{MODE.upper()}.json'
     try:
         # Opening JSON file
         fp = open(filePath)
-        params = json.load(fp)
-    except (OSError, FileNotFoundError, IOError, AttributeError) as e:
+        local_params = json.load(fp)
+    except (OSError, IOError, AttributeError) as e:
         log('Error on trying to open json parameters file')
         raise e
-    return params
+    except (FileNotFoundError) as e:
+        local_params = model.get_params()
+    return local_params
 
 
 ################
