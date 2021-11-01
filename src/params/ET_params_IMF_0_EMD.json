@@ -1,0 +1,13 @@
+{    
+    "n_estimators":1000,
+    "criterion":"mse",
+    "max_depth":128,
+    "min_samples_split":2,
+    "min_samples_leaf":32,
+    "min_weight_fraction_leaf":0,
+    "max_features":"auto",
+    "min_impurity_decrease":0,
+    "bootstrap":true,
+    "warm_start":true,
+    "ccp_alpha":0
+}

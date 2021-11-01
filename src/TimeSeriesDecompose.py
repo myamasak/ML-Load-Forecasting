@@ -20,6 +20,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 import xgboost
 import plotly.io as pio
 import plotly.graph_objects as go
+import matplotlib
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score, train_test_split
@@ -30,6 +31,7 @@ import glob
 import os
 import numpy as np
 import pandas as pd
+import json
 """
 Time-Series Decomposition
 Author: Marcos Yamasaki
@@ -59,7 +61,7 @@ KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'none'
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -67,6 +69,8 @@ DIFF = False
 LOAD_DECOMPOSED = False
 RECURSIVE = False
 PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -78,6 +82,8 @@ pio.renderers.default = 'browser'
 #pio.kaleido.scope.default_height = 720
 # Use seaborn style defaults and set the default figure size
 sns.set(rc={'figure.figsize': (14, 6)})
+sns.set_palette(palette='deep')
+sns_c = sns.color_palette(palette='deep')
 # Set path to import dataset and export figures
 path = os.path.realpath(__file__)
 path = r'%s' % path.replace(
@@ -653,8 +659,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # model = VotingRegressor(estimators=regressors)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
-            model = GradientBoostingRegressor()
-            # model = xgboost.XGBRegressor()
+            # model = GradientBoostingRegressor()
+            model = xgboost.XGBRegressor()
             # loss="ls",
             # learning_rate=0.0023509843102651725,
             # n_estimators=10000,
@@ -703,113 +709,35 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #     model = GradientBoostingRegressor()
 
             # Choose one model for each IMF
-            if False:
+            if True:
                 if y.columns[0].find('IMF_0') != -1:
-                    # model = ExtraTreesRegressor()
-                    model = GradientBoostingRegressor()
-                    # model = ExtraTreesRegressor(
-                    # n_estimators=1000,
-                    # criterion="mse",
-                    # max_depth=128,
-                    # min_samples_split=2,
-                    # min_samples_leaf=32,
-                    # min_weight_fraction_leaf=0,
-                    # max_features="auto",
-                    # min_impurity_decrease=0,
-                    # bootstrap=True,
-                    # warm_start=True,
-                    # ccp_alpha=0
-                    # )
-                elif y.columns[0].find('IMF_1') != -1:
-                    # model = xgboost.XGBRegressor(
-                                                # colsample_bytree=0.75,
-                                                # gamma=0.08,
-                                                # learning_rate=1,
-                                                # max_depth=13,
-                                                # min_child_weight=17,
-                                                # n_estimators=1600,
-                                                # reg_alpha=0.05,
-                                                # reg_lambda=0.31,
-                                                # subsample=0.9400000000000001,
-
-                                                # colsample_bytree=0.65,
-                                                # gamma=0.01,
-                                                # learning_rate=0.07,
-                                                # max_depth=21,
-                                                # min_child_weight=5,
-                                                # n_estimators=3200,
-                                                # reg_alpha=0,
-                                                # reg_lambda=0.36,
-                                                # subsample=0.78,
-                                                # seed=42
-                                                # )
-                    model = GradientBoostingRegressor()
+                    params = open_json('ET','IMF_0')
                     model = ExtraTreesRegressor()
+                    model.set_params(**params)
+                elif y.columns[0].find('IMF_1') != -1:
+                    params = open_json('XGB','IMF_1')
+                    model = xgboost.XGBRegressor()
+                    model.set_params(**params)
                 elif y.columns[0].find('IMF_2') != -1:
-                    model = GradientBoostingRegressor()
+                    params = open_json('XGB','IMF_1')
+                    model = xgboost.XGBRegressor()
+                    model.set_params(**params)
                 elif y.columns[0].find('IMF_3') != -1:
+                    params = open_json('GBR','IMF_3')
                     model = GradientBoostingRegressor()
+                    model.set_params(**params)
                 elif y.columns[0].find('IMF_4') != -1:
-                    # model = GradientBoostingRegressor(
-                    #                                     loss="ls",
-                    #                                     learning_rate=0.0009633219347502185,
-                    #                                     n_estimators=22000,
-                    #                                     subsample=0.168718268093578,
-                    #                                     criterion="mse",
-                    #                                     min_samples_split=4,
-                    #                                     min_weight_fraction_leaf=0,
-                    #                                     max_depth=28,
-                    #                                     min_impurity_decrease=0,
-                    #                                     max_features="sqrt",
-                    #                                     alpha=0.1,
-                    #                                     warm_start="True",
-                    #                                     validation_fraction=1,
-                    #                                     tol=0.000001810181307798231,
-                    #                                     ccp_alpha=0
-                    #                                 )
-                    # model = ExtraTreesQuantileRegressor(
-                                                        # n_estimators=1610,
-                                                        # criterion="mae",
-                                                        # max_depth=256,
-                                                        # min_samples_split=10,
-                                                        # min_samples_leaf=8,
-                                                        # min_weight_fraction_leaf=0,
-                                                        # max_features="auto",
-                                                        # bootstrap=True,
-                                                        # warm_start=False,
-                                                        # random_state=42
-                                                        # )
+                    params = open_json('GBR','IMF_4')
                     model = GradientBoostingRegressor()
-                    # model = AdaBoostRegressor()
-                    # regressors = list()
-                    # regressors.append(('extratreesq',ExtraTreesQuantileRegressor()))
-                    # regressors.append(('gbm',GradientBoostingRegressor()))
-                    # regressors.append(('pls',PLSRegression()))
-                    # regressors.append(('svr',svm.SVR()))
-                    # meta_learner = linear_model.ARDRegression() # 0.88415
-                    # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+                    model.set_params(**params)
                 elif y.columns[0].find('IMF_5') != -1:
-                    model = GradientBoostingRegressor(
-                        #   loss="lad",
-                        #   learning_rate=0.005713111629093579,
-                        #   n_estimators=5250,
-                        #   subsample=0.0013874269369021587,
-                        #   criterion="friedman_mse",
-                        #   min_samples_split=8,
-                        #   min_weight_fraction_leaf=0,
-                        #   max_depth=10,
-                        #   min_impurity_decrease=0.8,
-                        #   max_features="sqrt",
-                        #   alpha=0.9,
-                        #   warm_start=True,
-                        #   validation_fraction=0.30000000000000004,
-                        #   tol=0.000001004846729035755,
-                        #   ccp_alpha=0,
-                        #   random_state=42
-                    )
+                    params = open_json('GBR','IMF_5')
                     model = GradientBoostingRegressor()
+                    model.set_params(**params)
                 elif y.columns[0].find('IMF_6') != -1:
+                    params = open_json('GBR','IMF_6')
                     model = GradientBoostingRegressor()
+                    model.set_params(**params)
 
         else:  # nni enabled
             # model = xgboost.XGBRegressor(
@@ -1722,7 +1650,7 @@ def get_lagged_y(X_, y_, n_steps=1):
     X_ = pd.concat(concatlist, axis=1)
     # Drop null/NaN values
     # First save indexes to drop in y
-    drop = X_[X_['DEMAND_LAG'].isnull()].index.values
+    drop = X_[X_['DEMAND_LAG'].isnull()].index.values 
     # Drop X
     X_ = X_.dropna().reset_index(drop=True)
     # Drop y
@@ -2055,6 +1983,8 @@ def data_transformation_inverse(y_composed, lambda_boxcox, sc1, minmax, min_y, c
 
 
 def plotFeatureImportance(X, model):
+    # Font size
+    FONT_SIZE = 18
     # Calculate feature importances
     importances = model.feature_importances_
     # Sort feature importances in descending order
@@ -2065,18 +1995,35 @@ def plotFeatureImportance(X, model):
     # plt.figure(figsize=(12,14), dpi= 80, facecolor='w', edgecolor='k')
     plt.figure()
     # plt.grid()
-    plt.title('Feature Importances')
+    # plt.rcParams['font.size'] = '22'
+    # plt.rcParams.update({'font.size': 22})
+    # matplotlib.rcParams.update({'font.size': 22})
+    # plt.title('Feature Importances')
     plt.barh(range(len(indices)),
              importances[indices], height=0.2, align='center')
     # plt.axvline(x=0.03)
-    plt.yticks(range(len(indices)), list(names))
-    plt.xlabel('Relative Importance')
+    # plt.rc('font', size=18)
+    plt.yticks(range(len(indices)), list(names), fontsize=FONT_SIZE)
+    plt.xticks(fontsize=FONT_SIZE)
+    plt.xlabel('Relative Importance', fontsize=FONT_SIZE)
     plt.show()
     plt.tight_layout()
     plt.savefig(path+f'/results/{DATASET_NAME}_{MODE}_feature_importance.pdf')
 
     # featImportance = pd.concat([pd.DataFrame({'Features':names}),
     #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
+
+
+def open_json(algorithm, imf):
+    filePath = path + f'/src/params/{algorithm}_params_{imf}_{MODE.upper()}.json'
+    try:
+        # Opening JSON file
+        fp = open(filePath)
+        params = json.load(fp)
+    except (OSError, FileNotFoundError, IOError, AttributeError) as e:
+        log('Error on trying to open json parameters file')
+        raise e
+    return params
 
 
 ################
@@ -2151,8 +2098,11 @@ r = 0
 for y_decomposed in y_decomposed_list:
     if type(y_decomposed) is not type(pd.DataFrame()):
         y_decomposed = pd.DataFrame({y_decomposed.name: y_decomposed.values})
-    # if y_decomposed.columns[0].find("IMF_4") == -1:
-        #   continue
+    ######## This is for hyperparameter tuning #######
+    if HYPERPARAMETER_TUNING:
+        if y_decomposed.columns[0].find(HYPERPARAMETER_IMF) == -1:
+            continue
+    ##################################################
 
     results.append(Results())  # Start new Results instance every loop step
 
@@ -2195,7 +2145,7 @@ if CROSSVALIDATION:
 
 if enable_nni:
     log("Publish the results on AutoML nni")
-#    r2testResults = finalResults[0].r2test_per_fold
+    # r2testResults = finalResults[0].r2test_per_fold
     r2testResults = results[0].r2testadj_per_fold
     r2scoreAvg = np.mean(r2testResults)
     log(f"r2test = {r2scoreAvg}")
