@@ -1,3 +1,54 @@
+100 trials epsilon=0.01
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'ceemdan'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.6656 (+- 0.3174)
+> r2_score_test_adj: 0.6466 (+- 0.3355)
+> rmse: 1250.5067 (+- 840.5039)
+> mae: 1008.2897 (+- 718.4311)
+> mape: 6.9771 (+- 4.2851)
+> smape: 6.9412 (+- 4.3289)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN) has been started
+1130.907 seconds - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (CEEMDAN) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.7809
+The Adjusted R2 score on the Test set is:	0.6713
+RMSE: 904.587677
+MAE: 745.906985
+MAPE: 5.61%
+sMAPE: 5.40%
+
+--- 	2315.891 seconds --- the end of the file.
+
 50 trials - epsilon=0.01
 Average scores for all folds:
 > r2_score_train: 0.00000 (+- 0.00000)
