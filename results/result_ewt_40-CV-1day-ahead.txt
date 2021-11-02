@@ -1,3 +1,108 @@
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'ewt'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8288 (+- 0.1251)
+> r2_score_test_adj: 0.8191 (+- 0.1322)
+> rmse: 924.2249 (+- 522.6882)
+> mae: 726.2155 (+- 395.3374)
+> mape: 5.0108 (+- 2.2570)
+> smape: 5.0383 (+- 2.3144)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Wavelet Transform (EWT) has been started
+0.422 seconds - Empirical Wavelet Transform (EWT) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9457
+The Adjusted R2 score on the Test set is:	0.9186
+RMSE: 450.261098
+MAE: 399.171172
+MAPE: 3.14%
+sMAPE: 3.08%
+
+--- 	21.502 seconds --- the end of the file.
+
+
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'ewt'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = True
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8288 (+- 0.1251)
+> r2_score_test_adj: 0.8191 (+- 0.1322)
+> rmse: 924.2249 (+- 522.6882)
+> mae: 726.2155 (+- 395.3374)
+> mape: 5.0108 (+- 2.2570)
+> smape: 5.0383 (+- 2.3144)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Wavelet Transform (EWT) has been started
+0.442 seconds - Empirical Wavelet Transform (EWT) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9329
+The Adjusted R2 score on the Test set is:	0.8993
+RMSE: 500.647738
+MAE: 441.924759
+MAPE: 3.24%
+sMAPE: 3.30%
+
+--- 	22.019 seconds --- the end of the file.
+
+
+
+
+
 Average scores for all folds:
 > r2_score_train: 0.00000 (+- 0.00000)
 > r2_score_test: 0.85828 (+- 0.22815)

@@ -1,3 +1,56 @@
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'none'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8546 (+- 0.1141)
+> r2_score_test_adj: 0.8463 (+- 0.1205)
+> rmse: 804.6998 (+- 400.7382)
+> mae: 617.5178 (+- 271.6612)
+> mape: 4.2845 (+- 1.5320)
+> smape: 4.3183 (+- 1.6216)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9644
+The Adjusted R2 score on the Test set is:	0.9466
+RMSE: 364.613735
+MAE: 325.883136
+MAPE: 2.44%
+sMAPE: 2.46%
+
+--- 	11.865 seconds --- the end of the file.
+
+
+
+
+
+
 After code fix
 
 
