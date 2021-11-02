@@ -1,0 +1,14 @@
+{  
+    "n_estimators":{"_type":"choice", "_value":[200, 500, 800, 1000, 2000]},
+    "criterion":{"_type":"choice", "_value": ["mse", "mae"]},
+    "max_depth":{"_type":"choice","_value":["None", 16, 32, 64, 128, 256]},
+    "min_samples_split":{"_type":"choice", "_value":[1, 2, 3, 6, 8, 10]},
+    "min_samples_leaf":{"_type":"choice","_value":[1, 2, 4, 8, 16, 32, 48, 64]},
+    "min_weight_fraction_leaf":{"_type":"choice", "_value":[0, 0.1, 0.2, 0.3, 0.4, 0.5]},
+    "max_features": {"_type":"choice", "_value": ["auto","sqrt","log2"]},
+    "min_impurity_decrease":{"_type":"choice", "_value":[0.1, 0.2, 0.4, 0.6, 0.8, 1]},
+    "bootstrap": {"_type":"choice", "_value": [false, true]},
+    "warm_start":{"_type":"choice", "_value":[false, true]},
+    "ccp_alpha":{"_type":"choice", "_value":[0.1, 0.2, 0.4, 0.6, 0.8, 1]},
+    "random_state":{"_type":"choice", "_value":[42]}
+}
