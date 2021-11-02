@@ -12,19 +12,20 @@ class Results:
         self.name = []
 
         
-    def printResults(self):
+    def printResults(self, print_folds=False):
         # == Provide average scores ==
-        log('------------------------------------------------------------------------')
-        log(f'Score per fold - {self.name[0]}')
-        for i in range(0, len(self.r2test_per_fold)):
+        if print_folds:
             log('------------------------------------------------------------------------')
-            log(f'> Fold {i+1} - r2_score_train: {self.r2train_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - r2_score_test: {self.r2test_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - r2_score_test_adj: {self.r2testadj_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - rmse: {self.rmse_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - mae: {self.mae_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - mape: {self.mape_per_fold[i]:.4f}')
-            log(f'> Fold {i+1} - smape: {self.smape_per_fold[i]:.4f}')
+            log(f'Score per fold - {self.name[0]}')
+            for i in range(0, len(self.r2test_per_fold)):
+                log('------------------------------------------------------------------------')
+                log(f'> Fold {i+1} - r2_score_train: {self.r2train_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - r2_score_test: {self.r2test_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - r2_score_test_adj: {self.r2testadj_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - rmse: {self.rmse_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - mae: {self.mae_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - mape: {self.mape_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - smape: {self.smape_per_fold[i]:.4f}')
         log('------------------------------------------------------------------------')
         log('Average scores for all folds:')
         # log(f'> Loss: {np.mean{self.loss_per_fold):.4f}')
