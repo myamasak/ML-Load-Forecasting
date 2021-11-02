@@ -61,7 +61,7 @@ KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'emd'
+MODE = 'ewt'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -1626,7 +1626,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                     # Rename
                     X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final[i] = X_test.iloc[i]
+                    X_test_final = X_test.iloc[i]
 
                 # Predict
                 y_pred[i] = model.predict(
@@ -1663,7 +1663,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                     # Rename
                     X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final[i] = X_test.iloc[i]
+                    X_test_final = X_test.iloc[i]
                 # Predict
                 y_pred[i] = model.predict(
                     X_test_final.values.reshape(-1, X_test_final.shape[0]))
