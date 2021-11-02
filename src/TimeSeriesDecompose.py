@@ -549,7 +549,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         X, y = get_lagged_y(X, y, n_steps=1)
         if len(df) > len(y):
             # df = df[:len(y)]
-            df = df.drop(index=0).reset_index(drop=True)        
+            df = df.drop(index=0).reset_index(drop=True)
 
     # Drop unnecessary columns from X
     # if y.columns[0].find('IMF_0') != -1:
@@ -646,7 +646,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #                                               bootstrap=True,
             #                                               random_state=42,
             #                                               n_jobs=-1)))
-            regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            regressors.append(
+                ('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
             # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
@@ -661,18 +662,19 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # meta_learner = GradientBoostingRegressor() # 0.85873
             # meta_learner = ExtraTreesRegressor() # 0.85938
             # meta_learner = linear_model.TheilSenRegressor() # 0.87946
-            meta_learner = linear_model.ARDRegression() # 0.88415
+            meta_learner = linear_model.ARDRegression()  # 0.88415
             # meta_learner = LinearRegression() # 0.88037
             # meta_learner = linear_model.BayesianRidge() # 0.877
 
             # model = VotingRegressor(estimators=regressors)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
-            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            model = StackingRegressor(
+                estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
-           
+
             # model = xgboost.XGBRegressor()
             # model = GradientBoostingRegressor()
-            
+
             if LSTM_ENABLED:
                 # LSTM parameters
                 _batch = 24
@@ -683,59 +685,60 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 _dropout = False
                 _dropoutVal = 0.2
                 _activation = LeakyReLU(alpha=0.2)
-                
 
                 # LSTM Implementation
-                model = Sequential()                
+                model = Sequential()
                 model.add(LSTM(units=_neurons,
-                            activation=_activation,
-                            input_shape=[None,X.shape[1]],
-                            kernel_initializer="he_normal")
-                            )
+                               activation=_activation,
+                               input_shape=[None, X.shape[1]],
+                               kernel_initializer="he_normal")
+                          )
                 if _dropout:
                     model.add(Dropout(_dropoutVal))
                 # Adding the hidden layers
                 for i in range(_hidden_layers):
-                    model.add(Dense(_neurons, activation=_activation, kernel_initializer="he_normal"))
+                    model.add(Dense(_neurons, activation=_activation,
+                                    kernel_initializer="he_normal"))
                     if _dropout:
                         model.add(Dropout(_dropoutVal))
                 # Adding the output layer
-                model.add(Dense(1))                
+                model.add(Dense(1))
                 print(model.summary())
                 # Include loss and optimizer functions
                 model.compile(loss='mse', optimizer=_optimizer)
-                early_stop = EarlyStopping(monitor='loss', mode='min', patience=10, verbose=1)
+                early_stop = EarlyStopping(
+                    monitor='loss', mode='min', patience=10, verbose=1)
 
                 # history_lstm_model = model.fit(X_train, y_train,
-                #                         epochs=_epochs,        
+                #                         epochs=_epochs,
                 #                         batch_size=_batch,
                 #                         verbose=1,
                 #                         shuffle=False,
                 #                         callbacks = [early_stop])
-            
+
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
                 if y.columns[0].find('IMF_0') != -1:
                     model = ExtraTreesRegressor()
-                    local_params = open_json(model,'ET','IMF_0')
+                    local_params = open_json(model, 'ET', 'IMF_0')
                 elif y.columns[0].find('IMF_1') != -1:
                     model = xgboost.XGBRegressor()
-                    local_params = open_json(model,'XGB','IMF_1')
+                    local_params = open_json(model, 'XGB', 'IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
                     model = xgboost.XGBRegressor()
-                    local_params = open_json(model,'XGB','IMF_1')
+                    local_params = open_json(model, 'XGB', 'IMF_1')
                 elif y.columns[0].find('IMF_3') != -1:
                     model = GradientBoostingRegressor()
-                    local_params = open_json(model,'GBR','IMF_3')
+                    local_params = open_json(model, 'GBR', 'IMF_3')
                 elif y.columns[0].find('IMF_4') != -1:
                     model = GradientBoostingRegressor()
-                    local_params = open_json(model,'GBR','IMF_4')
+                    local_params = open_json(model, 'GBR', 'IMF_4')
                 elif y.columns[0].find('IMF_5') != -1:
                     model = GradientBoostingRegressor()
-                    local_params = open_json(model,'GBR','IMF_5')
+                    local_params = open_json(model, 'GBR', 'IMF_5')
                 elif y.columns[0].find('IMF_6') != -1:
                     model = GradientBoostingRegressor()
-                    local_params = open_json(model,'GBR','IMF_6')
+                    local_params = open_json(model, 'GBR', 'IMF_6')
                 model.set_params(**local_params)
         else:  # nni enabled
             # if params['warm_start'] == "True":
@@ -769,8 +772,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
         log(f'Training from {fold_no} to {kfold} folds ...')
         if LSTM_ENABLED:
-            inputs = inputs.reshape(inputs.shape[0],1,inputs.shape[1])
-                
+            inputs = inputs.reshape(inputs.shape[0], 1, inputs.shape[1])
+
         for i in range(0, kfold):
             X_train = inputs[train_index]
             y_train = targets[train_index]
@@ -788,13 +791,13 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Learn
             if LSTM_ENABLED:
-                
-                model.fit(  X_train, y_train,
-                            epochs=_epochs,
-                            batch_size=_batch,
-                            verbose=1,
-                            shuffle=False,
-                            callbacks=[early_stop])
+
+                model.fit(X_train, y_train,
+                          epochs=_epochs,
+                          batch_size=_batch,
+                          verbose=1,
+                          shuffle=False,
+                          callbacks=[early_stop])
             else:
                 model.fit(X_train, y_train.ravel())
 
@@ -1594,7 +1597,7 @@ def get_lagged_y(X_, y_, n_steps=1):
     X_ = pd.concat(concatlist, axis=1)
     # Drop null/NaN values
     # First save indexes to drop in y
-    drop = X_[X_['DEMAND_LAG'].isnull()].index.values 
+    drop = X_[X_['DEMAND_LAG'].isnull()].index.values
     # Drop X
     X_ = X_.dropna().reset_index(drop=True)
     # Drop y
@@ -1970,7 +1973,8 @@ def plotFeatureImportance(X, model):
 
 
 def open_json(model, algorithm, imf):
-    filePath = path + f'/src/params/{algorithm}_params_{imf}_{MODE.upper()}.json'
+    filePath = path + \
+        f'/src/params/{algorithm}_params_{imf}_{MODE.upper()}.json'
     try:
         # Opening JSON file
         fp = open(filePath)
