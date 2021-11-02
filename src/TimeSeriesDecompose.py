@@ -45,7 +45,7 @@ start_time = time.time()
 # from sklearn.model_selection import HalvingGridSearchCV
 # from vmdpy import VMD
 #from RobustSTL import RobustSTL
-
+plt.close("all")
 register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
@@ -61,7 +61,7 @@ KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'ewt'
+MODE = 'eemd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -69,10 +69,11 @@ DIFF = False
 LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
-PREVIOUS = True
+PREVIOUS = False
 HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
+TEST_DAYS = 29
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -329,11 +330,11 @@ def calc_r2score(y_true, y_pred):
     return result
 
 
-def decomposeSeasonal(y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
+def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
     tic = time.time()
     if mode == 'stl-a' or mode == 'stl-m':
         log('Seasonal and Trend decomposition using Loess (STL) Decomposition has been started')
-        data = pd.DataFrame(data=df)
+        data = pd.DataFrame(X_)
 
         if dataset_name.find('ONS') != -1:
             try:
@@ -1402,7 +1403,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     IMFs.append(df)
 
         else:
-            eemd = EEMD(trials=500, noise_width=0.15, DTYPE=np.float16)
+            eemd = EEMD(trials=100, noise_width=0.15, DTYPE=np.float16)
             eemd.MAX_ITERATION = 2000
             eemd.noise_seed(42)
             IMFs = eemd(y_series, max_imf=Nmodes)
@@ -1603,7 +1604,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     # Data decompose
     y_decomposed_list = decomposeSeasonal(
-        y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+        df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
 
     # List of predictions (IMF_0, IMF_1, ...)
     decomposePred = []
@@ -1644,7 +1645,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                 X_train = X_lagged[-train_size:]
                 y_train = y_lagged[-train_size:]
             else:
-                X_train = X_[-train_size]
+                X_train = X_[-train_size:]
                 y_train = y_decomposed[-train_size:]
 
             model = GradientBoostingRegressor()
@@ -1945,12 +1946,13 @@ X, y = featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=T
                           holiday_bridge=False, demand_lag=True, dataset_name=DATASET_NAME)
 
 # Split the test data from training/validation data
-y_testset = y[(-24*80):]
-X_testset = X[(-24*80):]
-X = X[:(-24*80)]
-y = y[:(-24*80)]
+y_testset = y[(-24*TEST_DAYS):]
+X_testset = X[(-24*TEST_DAYS):]
+X = X[:(-24*TEST_DAYS)]
+y = y[:(-24*TEST_DAYS)]
 
 # Redefine df
+global df
 df = X['DATE']
 # Outlier removal
 y = outlierCleaning(y, dataset_name=DATASET_NAME)
@@ -1988,7 +1990,7 @@ y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y)
 
 # Decompose data
 y_decomposed_list = decomposeSeasonal(
-    y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+    df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
 
 # Index for Results
 r = 0
