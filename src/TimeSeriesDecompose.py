@@ -11,6 +11,9 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor, AdaBoostRegressor
 from sklearn import svm
 from sklearn import linear_model, cross_decomposition
+from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.callbacks import EarlyStopping
 import ewtpy
 from PyEMD import EMD, EEMD, CEEMDAN
 import sys
@@ -57,11 +60,11 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 40
+KFOLD = 20
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'eemd'
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -74,6 +77,8 @@ HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = True
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -626,9 +631,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #                             subsample=0.95,
             #                             seed=42)
             # Best configuration so far: gbr; metalearner=ARDR
-            # regressors = list()
-            # regressors.append(('xgboost', xgboost.XGBRegressor()))
-            # regressors.append(('knn', KNeighborsRegressor()))
+            regressors = list()
+            regressors.append(('xgboost', xgboost.XGBRegressor()))
+            regressors.append(('knn', KNeighborsRegressor()))
             # regressors.append(('cart', DecisionTreeRegressor()))
             # regressors.append(('rf', RandomForestRegressor()))
             # regressors.append(('rf', RandomForestRegressor(n_estimators=750,
@@ -641,7 +646,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #                                               bootstrap=True,
             #                                               random_state=42,
             #                                               n_jobs=-1)))
-            # regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            regressors.append(('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
             # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
@@ -656,19 +661,60 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # meta_learner = GradientBoostingRegressor() # 0.85873
             # meta_learner = ExtraTreesRegressor() # 0.85938
             # meta_learner = linear_model.TheilSenRegressor() # 0.87946
-            # meta_learner = linear_model.ARDRegression() # 0.88415
+            meta_learner = linear_model.ARDRegression() # 0.88415
             # meta_learner = LinearRegression() # 0.88037
             # meta_learner = linear_model.BayesianRidge() # 0.877
 
             # model = VotingRegressor(estimators=regressors)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
-            # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
+            model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
            
-            model = xgboost.XGBRegressor()
+            # model = xgboost.XGBRegressor()
             # model = GradientBoostingRegressor()
+            
+            if LSTM_ENABLED:
+                # LSTM parameters
+                _batch = 24
+                _epochs = 50
+                _neurons = 128
+                _hidden_layers = 4
+                _optimizer = 'Adam'
+                _dropout = False
+                _dropoutVal = 0.2
+                _activation = LeakyReLU(alpha=0.2)
+                
+
+                # LSTM Implementation
+                model = Sequential()                
+                model.add(LSTM(units=_neurons,
+                            activation=_activation,
+                            input_shape=[None,X.shape[1]],
+                            kernel_initializer="he_normal")
+                            )
+                if _dropout:
+                    model.add(Dropout(_dropoutVal))
+                # Adding the hidden layers
+                for i in range(_hidden_layers):
+                    model.add(Dense(_neurons, activation=_activation, kernel_initializer="he_normal"))
+                    if _dropout:
+                        model.add(Dropout(_dropoutVal))
+                # Adding the output layer
+                model.add(Dense(1))                
+                print(model.summary())
+                # Include loss and optimizer functions
+                model.compile(loss='mse', optimizer=_optimizer)
+                early_stop = EarlyStopping(monitor='loss', mode='min', patience=10, verbose=1)
+
+                # history_lstm_model = model.fit(X_train, y_train,
+                #                         epochs=_epochs,        
+                #                         batch_size=_batch,
+                #                         verbose=1,
+                #                         shuffle=False,
+                #                         callbacks = [early_stop])
+            
             # Choose one model for each IMF
-            if False and MODE != 'none':
+            if MULTIMODEL and MODE != 'none':
                 if y.columns[0].find('IMF_0') != -1:
                     model = ExtraTreesRegressor()
                     local_params = open_json(model,'ET','IMF_0')
@@ -722,6 +768,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         i = 0
 
         log(f'Training from {fold_no} to {kfold} folds ...')
+        if LSTM_ENABLED:
+            inputs = inputs.reshape(inputs.shape[0],1,inputs.shape[1])
+                
         for i in range(0, kfold):
             X_train = inputs[train_index]
             y_train = targets[train_index]
@@ -738,7 +787,16 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # log(f'Training for fold {fold_no} ...')
 
             # Learn
-            model.fit(X_train, y_train.ravel())
+            if LSTM_ENABLED:
+                
+                model.fit(  X_train, y_train,
+                            epochs=_epochs,
+                            batch_size=_batch,
+                            verbose=1,
+                            shuffle=False,
+                            callbacks=[early_stop])
+            else:
+                model.fit(X_train, y_train.ravel())
 
             if RECURSIVE:
                 # Store predicted values
@@ -1432,7 +1490,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     df = df.values.ravel()
                     IMFs.append(df)
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        ceemdan = CEEMDAN(trials=500, epsilon=0.01)
+        ceemdan = CEEMDAN(trials=100, epsilon=0.01)
         ceemdan.noise_seed(42)
         IMFs = ceemdan(y_series, max_imf=Nmodes)
         return IMFs
