@@ -68,9 +68,11 @@ MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
 RECURSIVE = False
-PREVIOUS = False
+GET_LAGGED = False
+PREVIOUS = True
 HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -537,10 +539,11 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
     X, y = data_cleaning_columns(X, y)
 
     # Shift demand and drop null values
-    X, y = get_lagged_y(X, y, n_steps=1)
-    if len(df) > len(y):
-        # df = df[:len(y)]
-        df = df.drop(index=0).reset_index(drop=True)
+    if GET_LAGGED:
+        X, y = get_lagged_y(X, y, n_steps=1)
+        if len(df) > len(y):
+            # df = df[:len(y)]
+            df = df.drop(index=0).reset_index(drop=True)        
 
     # Drop unnecessary columns from X
     # if y.columns[0].find('IMF_0') != -1:
@@ -610,7 +613,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
 
         if not enable_nni:
-            model = xgboost.XGBRegressor()
+            # model = xgboost.XGBRegressor()
             #                             colsample_bytree=0.8,
             #                             gamma=0.3,
             #                             learning_rate=0.03,
@@ -661,8 +664,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # model = StackingRegressor(estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
            
+            model = xgboost.XGBRegressor()
+            # model = GradientBoostingRegressor()
             # Choose one model for each IMF
-            if True:
+            if False and MODE != 'none':
                 if y.columns[0].find('IMF_0') != -1:
                     model = ExtraTreesRegressor()
                     local_params = open_json(model,'ET','IMF_0')
@@ -1490,6 +1495,7 @@ def plot_histogram(y_, xlabel):
             plt.xlabel(xlabel)
         sns.histplot(y_)
         plt.legend()
+        plt.tight_layout()
         if xlabel.find('Box') != -1:
             plt.savefig(path+f'/results/{DATASET_NAME}_BoxCox_histogram.pdf')
         else:
@@ -1563,7 +1569,7 @@ def data_cleaning_columns(X, y):
     return X, y
 
 
-def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_models=PREVIOUS):
+def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
     log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
     global df
     if len(df) != len(y_):
@@ -1604,20 +1610,24 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
 
     if previous_models:
         for (model, y_decomposed) in zip(models, y_decomposed_list):
-            X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
+            if GET_LAGGED:
+                X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
 
             # Store predicted values
             y_pred = np.zeros(n_steps)
             # Recursive predictions
             for i in range(n_steps):
-                if i > 0:
-                    X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                if GET_LAGGED:
+                    if i > 0:
+                        X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                    else:
+                        X_test_final = X_test.iloc[0].append(
+                            pd.Series(X_lagged['DEMAND_LAG'][0]))
+                    # Rename
+                    X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final = X_test.iloc[0].append(
-                        pd.Series(X_lagged['DEMAND_LAG'][0]))
+                    X_test_final[i] = X_test.iloc[i]
 
-                # Rename
-                X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 # Predict
                 y_pred[i] = model.predict(
                     X_test_final.values.reshape(-1, X_test_final.shape[0]))
@@ -1627,11 +1637,16 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
             decomposePred.append(y_pred)
     else:
         for y_decomposed in y_decomposed_list:
-            # X_all_lag, y_all_lag = get_lagged_y(X_all, y_decomposed, n_steps=1)
-            X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
             train_size = round(len(X_)/(KFOLD))
-            X_train = X_lagged[-train_size:]
-            y_train = y_lagged[-train_size:]
+            if GET_LAGGED:
+                # X_all_lag, y_all_lag = get_lagged_y(X_all, y_decomposed, n_steps=1)
+                X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
+                X_train = X_lagged[-train_size:]
+                y_train = y_lagged[-train_size:]
+            else:
+                X_train = X_[-train_size]
+                y_train = y_decomposed[-train_size:]
+
             model = GradientBoostingRegressor()
             model.fit(X_train, y_train.values.ravel())
 
@@ -1639,14 +1654,16 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
             y_pred = np.zeros(n_steps)
             # Recursive predictions
             for i in range(n_steps):
-                if i > 0:
-                    X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                if GET_LAGGED:
+                    if i > 0:
+                        X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                    else:
+                        X_test_final = X_test.iloc[0].append(
+                            pd.Series(X_lagged['DEMAND_LAG'][0]))
+                    # Rename
+                    X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final = X_test.iloc[0].append(
-                        pd.Series(X_lagged['DEMAND_LAG'][0]))
-
-                # Rename
-                X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
+                    X_test_final[i] = X_test.iloc[i]
                 # Predict
                 y_pred[i] = model.predict(
                     X_test_final.values.reshape(-1, X_test_final.shape[0]))
@@ -1731,7 +1748,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=24*7, previous_mo
         plt.figure()
         plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
         plt.xlabel('Time [h]')
-        plt.ylabel('R2 score')
+        plt.ylabel('RMSE')
         xaxis = np.arange(0, n_steps, n_steps/10)
 
         if False:
@@ -1768,7 +1785,7 @@ def data_transformation(y):
     minmax = None
     lambda_boxcox = None
     log("Plot Histogram")
-    plot_histogram(y, xlabel='Load [MW]')
+    # plot_histogram(y, xlabel='Load [MW]')
     if BOXCOX:
         min_y = min(y)
         if min_y <= 0:
@@ -1782,7 +1799,7 @@ def data_transformation(y):
         y_transf, lambda_boxcox = stats.boxcox(y_transf)
         y_transf = pd.DataFrame({'DEMAND': y_transf})
         log("Plot Histogram after Box-Cox Transformation")
-        plot_histogram(y_transf, xlabel='Box-Cox')
+        # plot_histogram(y_transf, xlabel='Box-Cox')
     else:
         y_transf = y
         try:
@@ -1899,11 +1916,11 @@ def open_json(model, algorithm, imf):
         # Opening JSON file
         fp = open(filePath)
         local_params = json.load(fp)
-    except (OSError, IOError, AttributeError) as e:
-        log('Error on trying to open json parameters file')
-        raise e
-    except (FileNotFoundError) as e:
+    except (FileNotFoundError, OSError, IOError) as e:
+        log(f'Hyperparameters JSON file not found: {e}')
+        log(f'Use default params...')
         local_params = model.get_params()
+        pass
     return local_params
 
 
