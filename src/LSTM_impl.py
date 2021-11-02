@@ -19,6 +19,7 @@ import seaborn as sns
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import holidays
 from sklearn.model_selection import TimeSeriesSplit
+plt.close("all")
 
 
 print("The program has been started...")
@@ -33,15 +34,22 @@ pd.options.display.width=1000
 sns.set(rc={'figure.figsize':(11, 4)})
     
 
-# Importing the dataset
-path = r'%s' % os.getcwd().replace('\\','/')
-#path = path + '/code/ML-Load-Forecasting'
+# Set path to import dataset and export figures
+path = os.path.realpath(__file__)
+path = r'%s' % path.replace(
+    f'\\{os.path.basename(__file__)}', '').replace('\\', '/')
+if path.find('autoML') != -1:
+    path = r'%s' % path.replace('/autoML', '')
+elif path.find('src') != -1:
+    path = r'%s' % path.replace('/src', '')
 
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+# all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+all_files = glob.glob(
+            path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
 
-# Select datasets 
-selectDatasets = ["2011","2012","2013","2014","2015","2016","2017","2018","2019"]
+
+selectDatasets = ["2015", "2016", "2017", "2018"]
 
 # Initialize dataset list
 datasetList = []
@@ -107,14 +115,14 @@ if (dataset['DEMAND'].eq(0).sum() > 0
 # Decouple date and time from dataset
 # Then concat the decoupled date in different columns in X data
 date = pd.DataFrame() 
-date = pd.to_datetime(dataset.Date)
+date = pd.to_datetime(dataset.DATE)
 # dataset['DATE'] = pd.to_datetime(dataset.Date)
 
 # date = dataset.Date
 Year = pd.DataFrame({'Year':date.dt.year})
 Month = pd.DataFrame({'Month':date.dt.month})
 Day = pd.DataFrame({'Day':date.dt.day})
-Hour = pd.DataFrame({'HOUR':dataset.Hour})
+Hour = pd.DataFrame({'HOUR':dataset.HOUR})
 
 # Add weekday to X data
 Weekday = pd.DataFrame({'Weekday':date.dt.dayofweek})
