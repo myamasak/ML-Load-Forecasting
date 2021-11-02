@@ -60,11 +60,11 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 20
+KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'none'
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -685,36 +685,18 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 _dropout = False
                 _dropoutVal = 0.2
                 _activation = LeakyReLU(alpha=0.2)
-
+                lstm_params = {
+                                "optimizer":_optimizer,
+                                "neurons_width":_neurons,
+                                "hidden_layers":_hidden_layers,
+                                "activation":_activation,
+                                "batch_size":_batch,
+                                "epochs":_epochs,
+                                "dropout":_dropout,
+                                "dropout_val":_dropoutVal
+                               }
                 # LSTM Implementation
-                model = Sequential()
-                model.add(LSTM(units=_neurons,
-                               activation=_activation,
-                               input_shape=[None, X.shape[1]],
-                               kernel_initializer="he_normal")
-                          )
-                if _dropout:
-                    model.add(Dropout(_dropoutVal))
-                # Adding the hidden layers
-                for i in range(_hidden_layers):
-                    model.add(Dense(_neurons, activation=_activation,
-                                    kernel_initializer="he_normal"))
-                    if _dropout:
-                        model.add(Dropout(_dropoutVal))
-                # Adding the output layer
-                model.add(Dense(1))
-                print(model.summary())
-                # Include loss and optimizer functions
-                model.compile(loss='mse', optimizer=_optimizer)
-                early_stop = EarlyStopping(
-                    monitor='loss', mode='min', patience=10, verbose=1)
-
-                # history_lstm_model = model.fit(X_train, y_train,
-                #                         epochs=_epochs,
-                #                         batch_size=_batch,
-                #                         verbose=1,
-                #                         shuffle=False,
-                #                         callbacks = [early_stop])
+                # model, early_stop = init_lstm(lstm_params)
 
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
@@ -791,11 +773,11 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Learn
             if LSTM_ENABLED:
-
+                model, early_stop = init_lstm(X, lstm_params)
                 model.fit(X_train, y_train,
-                          epochs=_epochs,
-                          batch_size=_batch,
-                          verbose=1,
+                          epochs=lstm_params['epochs'],
+                          batch_size=lstm_params['batch_size'],
+                          verbose=0,
                           shuffle=False,
                           callbacks=[early_stop])
             else:
@@ -910,11 +892,13 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             fold_no = fold_no + 1
 
             # Increase indexes
-            # Sliding window
-            train_index = np.arange(
-                train_index[-1] + 1, train_index[-1] + 1 + train_size + test_size)
-            # Expanding window
-            # train_index = np.arange(0, train_index[-1] + 1 + train_size + test_size)
+            if not LSTM_ENABLED:
+                # Sliding window
+                train_index = np.arange(
+                    train_index[-1] + 1, train_index[-1] + 1 + train_size + test_size)
+            else:
+                # Expanding window
+                train_index = np.arange(0, train_index[-1] + 1 + train_size + test_size)
 
             test_index = test_index + train_size + test_size
 
@@ -1691,8 +1675,12 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                     X_test_final = X_test.iloc[i]
 
                 # Predict
-                y_pred[i] = model.predict(
-                    X_test_final.values.reshape(-1, X_test_final.shape[0]))
+                if LSTM_ENABLED:
+                    y_pred[i] = model.predict(
+                        X_test_final.values.reshape(1, 1, X_test_final.shape[0]))
+                else:
+                    y_pred[i] = model.predict(
+                        X_test_final.values.reshape(-1, X_test_final.shape[0]))
                 # Save prediction
                 y_lag = y_pred[i]
 
@@ -1986,6 +1974,37 @@ def open_json(model, algorithm, imf):
         pass
     return local_params
 
+
+def init_lstm(X, params):
+    model = Sequential()
+    model.add(LSTM(units=params['neurons_width'],
+                    activation=params['activation'],
+                    input_shape=[None, X.shape[1]],
+                    kernel_initializer="he_normal")
+                )
+    if params['dropout']:
+        model.add(Dropout(params['dropout_val']))
+    # Adding the hidden layers
+    for i in range(params['hidden_layers']):
+        model.add(Dense(params['neurons_width'], activation=params['activation'],
+                        kernel_initializer="he_normal"))
+        if params['dropout']:
+            model.add(Dropout(params['dropout_val']))
+    # Adding the output layer
+    model.add(Dense(1))
+    # print(model.summary())
+    # Include loss and optimizer functions
+    model.compile(loss='mse', optimizer=params['optimizer'])
+    early_stop = EarlyStopping(
+         monitor='loss', mode='min', patience=4, verbose=0)
+
+    # history_lstm_model = model.fit(X_train, y_train,
+    #                         epochs=_epochs,
+    #                         batch_size=_batch,
+    #                         verbose=1,
+    #                         shuffle=False,
+    #                         callbacks = [early_stop])
+    return model, early_stop
 
 ################
 # MAIN PROGRAM
