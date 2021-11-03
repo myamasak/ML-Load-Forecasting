@@ -72,12 +72,12 @@ DIFF = False
 LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
-PREVIOUS = False
-HYPERPARAMETER_TUNING = True
+PREVIOUS = True
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_1'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = True
+MULTIMODEL = False
 LSTM_ENABLED = False
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
@@ -1702,7 +1702,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                 X_train = X_[-train_size:]
                 y_train = y_decomposed[-train_size:]
 
-            model = GradientBoostingRegressor()
+            # model = GradientBoostingRegressor()
+            model = xgboost.XGBRegressor()
             model.fit(X_train, y_train.values.ravel())
 
             # Store predicted values
@@ -1718,10 +1719,14 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                     # Rename
                     X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final = X_test.iloc[i]
+                    X_test_final = X_test[i:i+1]
                 # Predict
-                y_pred[i] = model.predict(
+                try:
+                    y_pred[i] = model.predict(X_test_final)
+                except (ValueError, AttributeError) as e:
+                    y_pred[i] = model.predict(
                     X_test_final.values.reshape(-1, X_test_final.shape[0]))
+                    pass
                 # Save prediction
                 y_lag = y_pred[i]
 
