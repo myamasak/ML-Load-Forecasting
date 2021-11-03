@@ -9,7 +9,7 @@
     "max_depth":{"_type":"choice", "_value":[3, 6, 9, 12, 16, 20, 24, 32, 40, 50]},
     "min_impurity_decrease":{"_type":"choice", "_value":[0, 0.1, 0.25, 0.5, 0.8, 1]},
     "max_features":{"_type":"choice", "_value":["auto", "sqrt", "log2"]},
-    "alpha":{"_type":"choice", "_value":[0.1, 0.25, 0.5, 0.8, 1]},
+    "alpha":{"_type":"choice", "_value":[0.1, 0.25, 0.5, 0.8, 0.95]},
     "warm_start":{"_type":"choice", "_value":[false, true]},
     "validation_fraction":{"_type":"choice", "_value":[0.1, 0.25, 0.5, 0.8, 1]},
     "tol":{"_type":"choice", "_value":[1e-5, 1e-2, 0.1, 0.2, 0.5, 0.7, 1]},

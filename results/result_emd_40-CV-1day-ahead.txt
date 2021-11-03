@@ -49,6 +49,76 @@ sMAPE: 3.75%
 --- 	34.541 seconds --- the end of the file.
 
 
+Prediction on decomposed part: IMF_0
+Average scores for all folds:
+> r2_score_train: 0.9989 (+- 0.0011)
+> r2_score_test: 0.3030 (+- 0.9488)
+> r2_score_test_adj: 0.2680 (+- 0.9965)
+> rmse: 0.1435 (+- 0.0779)
+> mae: 0.1091 (+- 0.0613)
+> mape: 595.8334 (+- 1239.7530)
+> smape: 74.6125 (+- 31.9510)
+
+Prediction on decomposed part: IMF_1
+Average scores for all folds:
+> r2_score_train: 0.9997 (+- 0.0002)
+> r2_score_test: 0.5625 (+- 0.5081)
+> r2_score_test_adj: 0.5404 (+- 0.5336)
+> rmse: 0.3263 (+- 0.1905)
+> mae: 0.2538 (+- 0.1528)
+> mape: 273.0989 (+- 536.8991)
+> smape: 68.3579 (+- 30.1408)
+
+Prediction on decomposed part: IMF_2
+Average scores for all folds:
+> r2_score_train: 0.9996 (+- 0.0002)
+> r2_score_test: -5.1610 (+- 15.6324)
+> r2_score_test_adj: -5.4710 (+- 16.4190)
+> rmse: 0.2936 (+- 0.1622)
+> mae: 0.2314 (+- 0.1329)
+> mape: 698.1891 (+- 1170.3712)
+> smape: 136.3576 (+- 28.4668)
+
+Prediction on decomposed part: IMF_3
+Average scores for all folds:
+> r2_score_train: 0.9994 (+- 0.0002)
+> r2_score_test: -0.8447 (+- 0.9626)
+> r2_score_test_adj: -0.9375 (+- 1.0110)
+> rmse: 0.1874 (+- 0.0962)
+> mae: 0.1535 (+- 0.0786)
+> mape: 458.4236 (+- 632.0117)
+> smape: 140.7040 (+- 15.6815)
+
+Prediction on decomposed part: IMF_4
+Average scores for all folds:
+> r2_score_train: 0.9997 (+- 0.0001)
+> r2_score_test: -1.2712 (+- 3.8126)
+> r2_score_test_adj: -1.3854 (+- 4.0045)
+> rmse: 0.2170 (+- 0.0894)
+> mae: 0.1831 (+- 0.0798)
+> mape: 1042.5872 (+- 4282.7423)
+> smape: 129.9997 (+- 25.5265)
+
+Prediction on decomposed part: IMF_5
+Average scores for all folds:
+> r2_score_train: 0.9999 (+- 0.0001)
+> r2_score_test: -1.3568 (+- 3.1105)
+> r2_score_test_adj: -1.4754 (+- 3.2670)
+> rmse: 0.2287 (+- 0.1394)
+> mae: 0.1958 (+- 0.1210)
+> mape: 411.7090 (+- 450.9665)
+> smape: 122.6477 (+- 33.4739)
+
+Prediction on decomposed part: IMF_6
+Average scores for all folds:
+> r2_score_train: 0.9999 (+- 0.0000)
+> r2_score_test: -36.8499 (+- 83.5711)
+> r2_score_test_adj: -38.7543 (+- 87.7759)
+> rmse: 0.3002 (+- 0.2063)
+> mae: 0.2566 (+- 0.1868)
+> mape: 392.0245 (+- 1000.4426)
+> smape: 77.1145 (+- 50.9388)
+
 
 
 

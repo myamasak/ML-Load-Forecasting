@@ -73,12 +73,12 @@ LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
-HYPERPARAMETER_TUNING = False
-HYPERPARAMETER_IMF = 'IMF_0'
+HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_IMF = 'IMF_1'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = False
-LSTM_ENABLED = True
+MULTIMODEL = True
+LSTM_ENABLED = False
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -631,9 +631,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #                             subsample=0.95,
             #                             seed=42)
             # Best configuration so far: gbr; metalearner=ARDR
-            regressors = list()
-            regressors.append(('xgboost', xgboost.XGBRegressor()))
-            regressors.append(('knn', KNeighborsRegressor()))
+            # regressors = list()
+            # regressors.append(('xgboost', xgboost.XGBRegressor()))
+            # regressors.append(('knn', KNeighborsRegressor()))
             # regressors.append(('cart', DecisionTreeRegressor()))
             # regressors.append(('rf', RandomForestRegressor()))
             # regressors.append(('rf', RandomForestRegressor(n_estimators=750,
@@ -646,8 +646,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #                                               bootstrap=True,
             #                                               random_state=42,
             #                                               n_jobs=-1)))
-            regressors.append(
-                ('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            # regressors.append(
+            #     ('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
             # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
@@ -662,17 +662,17 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # meta_learner = GradientBoostingRegressor() # 0.85873
             # meta_learner = ExtraTreesRegressor() # 0.85938
             # meta_learner = linear_model.TheilSenRegressor() # 0.87946
-            meta_learner = linear_model.ARDRegression()  # 0.88415
+            # meta_learner = linear_model.ARDRegression()  # 0.88415
             # meta_learner = LinearRegression() # 0.88037
             # meta_learner = linear_model.BayesianRidge() # 0.877
 
             # model = VotingRegressor(estimators=regressors)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
-            model = StackingRegressor(
-                estimators=regressors, final_estimator=meta_learner)
+            # model = StackingRegressor(
+            #     estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
 
-            # model = xgboost.XGBRegressor()
+            model = xgboost.XGBRegressor()
             # model = GradientBoostingRegressor()
 
             if LSTM_ENABLED:
@@ -701,14 +701,19 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
                 if y.columns[0].find('IMF_0') != -1:
-                    model = ExtraTreesRegressor()
-                    local_params = open_json(model, 'ET', 'IMF_0')
+                    # model = ExtraTreesRegressor()
+                    # model = xgboost.XGBRegressor()
+                    # local_params = open_json(model, 'XGB', 'IMF_0')
+                    model = GradientBoostingRegressor()
+                    local_params = open_json(model, 'GBR', 'IMF_0')
                 elif y.columns[0].find('IMF_1') != -1:
-                    model = xgboost.XGBRegressor()
-                    local_params = open_json(model, 'XGB', 'IMF_1')
+                    # model = xgboost.XGBRegressor()
+                    # local_params = open_json(model, 'XGB', 'IMF_1')
+                    model = GradientBoostingRegressor()
+                    local_params = open_json(model, 'GBR', 'IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
                     model = xgboost.XGBRegressor()
-                    local_params = open_json(model, 'XGB', 'IMF_1')
+                    local_params = open_json(model, 'XGB', 'IMF_2')
                 elif y.columns[0].find('IMF_3') != -1:
                     model = GradientBoostingRegressor()
                     local_params = open_json(model, 'GBR', 'IMF_3')
@@ -729,9 +734,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #     warm_start = False
 
             if params['min_samples_split'] > 1:
-                min_samples_split = int(params['min_samples_split'])
+                params['min_samples_split'] = int(params['min_samples_split'])
             else:
-                min_samples_split = float(params['min_samples_split'])
+                params['min_samples_split'] = float(params['min_samples_split'])
 
             model = GradientBoostingRegressor()
             model.set_params(**params)
@@ -1765,7 +1770,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         plt.legend()
         plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
-    plt.tight_layout()
+        plt.tight_layout()
     r2test = r2_score(y_test, y_final)
     log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
     n = len(X_test)
@@ -1794,7 +1799,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     log("MAPE: %.2f%%" % (mape))
     log("sMAPE: %.2f%%" % (smape))
 
-    if True:
+    if plot and True:
         plt.figure()
         plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
         plt.xlabel('Time [h]')
