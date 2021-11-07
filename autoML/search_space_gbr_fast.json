@@ -1,6 +1,6 @@
 {  
     "loss":{"_type":"choice", "_value":["ls", "lad", "huber", "quantile"]},
-    "learning_rate":{"_type":"choice", "_value":[1e-5, 1e-2, 0.1, 0.2, 0.5, 0.7, 1]},
+    "learning_rate":{"_type":"choice", "_value":[1e-5, 1e-2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]},
     "n_estimators":{"_type":"choice", "_value":[200, 500, 800, 1000, 2000, 4000]},
     "subsample":{"_type":"choice", "_value":[0.1, 0.2, 0.4, 0.6, 0.8, 1]},
     "criterion":{"_type":"choice", "_value":["friedman_mse", "mse", "mae"]},
