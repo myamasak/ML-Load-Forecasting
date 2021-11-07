@@ -1,0 +1,18 @@
+{
+    "loss": "huber",
+    "learning_rate": 0.5,
+    "n_estimators": 800,
+    "subsample": 0.6,
+    "criterion": "mse",
+    "min_samples_split": 8,
+    "min_weight_fraction_leaf": 0,
+    "max_depth": 24,
+    "min_impurity_decrease": 0,
+    "max_features": "log2",
+    "alpha": 0.95,
+    "warm_start": false,
+    "validation_fraction": 0.25,
+    "tol": 0.2,
+    "ccp_alpha": 0,
+    "random_state": 42
+}
