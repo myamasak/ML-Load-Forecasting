@@ -1,5 +1,5 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_GBR_EMD_IMF_0
+experimentName: TimeSeriesDecompose_GBR_EMD_IMF_0_SMAPE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
@@ -14,7 +14,7 @@ tuner:
   builtinTunerName: TPE
   classArgs:
     #choice: maximize, minimize
-    optimize_mode: maximize
+    optimize_mode: minimize
 trial:
   command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe ../src/TimeSeriesDecompose.py -nni
   codeDir: .

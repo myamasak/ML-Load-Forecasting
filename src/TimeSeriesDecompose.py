@@ -73,11 +73,11 @@ LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = True
-HYPERPARAMETER_TUNING = False
-HYPERPARAMETER_IMF = 'IMF_1'
+HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = False
+MULTIMODEL = True
 LSTM_ENABLED = False
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
@@ -672,8 +672,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #     estimators=regressors, final_estimator=meta_learner)
             # model = GradientBoostingRegressor()
 
-            model = xgboost.XGBRegressor()
-            # model = GradientBoostingRegressor()
+            # model = xgboost.XGBRegressor()
+            model = GradientBoostingRegressor()
 
             if LSTM_ENABLED:
                 # LSTM parameters
@@ -712,8 +712,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                     model = GradientBoostingRegressor()
                     local_params = open_json(model, 'GBR', 'IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
-                    model = xgboost.XGBRegressor()
-                    local_params = open_json(model, 'XGB', 'IMF_2')
+                    model = GradientBoostingRegressor()
+                    local_params = open_json(model, 'GBR', 'IMF_2')
                 elif y.columns[0].find('IMF_3') != -1:
                     model = GradientBoostingRegressor()
                     local_params = open_json(model, 'GBR', 'IMF_3')
@@ -737,6 +737,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 params['min_samples_split'] = int(params['min_samples_split'])
             else:
                 params['min_samples_split'] = float(params['min_samples_split'])
+            
+            params['n_estimators'] = int(params['n_estimators'])
+            params['max_depth'] = int(params['max_depth'])
 
             model = GradientBoostingRegressor()
             model.set_params(**params)
@@ -1702,8 +1705,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                 X_train = X_[-train_size:]
                 y_train = y_decomposed[-train_size:]
 
-            # model = GradientBoostingRegressor()
-            model = xgboost.XGBRegressor()
+            model = GradientBoostingRegressor()
+            # model = xgboost.XGBRegressor()
             model.fit(X_train, y_train.values.ravel())
 
             # Store predicted values
@@ -1719,7 +1722,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                     # Rename
                     X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
                 else:
-                    X_test_final = X_test[i:i+1]
+                    # X_test_final = X_test[i:i+1]
+                    X_test_final = X_test.iloc[i]
                 # Predict
                 try:
                     y_pred[i] = model.predict(X_test_final)
@@ -1743,6 +1747,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     ########################
     ### Evaluate results ###
     ########################
+    # Font size
+    FONT_SIZE = 18
 
     # Change y variable
     y_final = y_composed
@@ -1768,11 +1774,13 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     if plot:
         plt.figure()
         plt.plot(df, y_all, label=f'Real data')
-        plt.plot(df2, y_final, label=f'Predicted data')
-        plt.title(f'{DATASET_NAME} dataset Prediction')
-        plt.xlabel('Date')
-        plt.ylabel('Load [MW]')
-        plt.legend()
+        plt.plot(df2, y_final, label=f'Forecasted', linestyle='--')
+        # plt.title(f'{DATASET_NAME} dataset Prediction')
+        plt.xlabel('Date', fontsize=FONT_SIZE)
+        plt.ylabel('Load [MW]', fontsize=FONT_SIZE)
+        plt.xticks(fontsize=FONT_SIZE)
+        plt.yticks(fontsize=FONT_SIZE)
+        plt.legend(fontsize=FONT_SIZE)
         plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
         plt.tight_layout()
@@ -2136,11 +2144,10 @@ if CROSSVALIDATION:
 
 if enable_nni:
     log("Publish the results on AutoML nni")
-    # r2testResults = finalResults[0].r2test_per_fold
-    r2testResults = results[0].r2testadj_per_fold
-    r2scoreAvg = np.mean(r2testResults)
-    log(f"r2test = {r2scoreAvg}")
-    nni.report_final_result(r2scoreAvg)
+    smapetestResults = results[0].smape_per_fold
+    smapeScoreAvg = np.mean(smapetestResults)
+    log(f"smapeScoreAvg = {smapeScoreAvg}")
+    nni.report_final_result(smapeScoreAvg)
     # results[0].printResults()
 
 
