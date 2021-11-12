@@ -14,6 +14,58 @@ RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_1'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8041 (+- 0.1341)
+> r2_score_test_adj: 0.7929 (+- 0.1417)
+> rmse: 984.1588 (+- 565.0587)
+> mae: 793.8315 (+- 457.7091)
+> mape: 5.5054 (+- 2.6601)
+> smape: 5.5240 (+- 2.7300)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Ensemble Empirical Mode Decomposition (EEMD) has been started
+254.633 seconds - Ensemble Empirical Mode Decomposition (EEMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9637
+The Adjusted R2 score on the Test set is:	0.9456
+RMSE: 368.060410
+MAE: 290.005599
+MAPE: 2.22%
+sMAPE: 2.19%
+
+
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'eemd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29

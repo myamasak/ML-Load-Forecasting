@@ -70,9 +70,9 @@ STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
-RECURSIVE = True
-GET_LAGGED = True
-PREVIOUS = True
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
 HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
@@ -1443,8 +1443,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_eemd():
         if LOAD_DECOMPOSED:
-            all_files = glob.glob(
-                path + r"/datasets/ISONewEngland/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            if GET_LAGGED:
+                all_files = glob.glob(
+                    path + r"/datasets/ISONewEngland/custom/" + f"eemd_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            else:
+                all_files = glob.glob(
+                    path + r"/datasets/ISONewEngland/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1473,8 +1477,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_ceemdan():
         if LOAD_DECOMPOSED:
-            all_files = glob.glob(
-                path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            if GET_LAGGED:
+                all_files = glob.glob(
+                    path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            else:
+                all_files = glob.glob(
+                    path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them

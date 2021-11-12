@@ -15,6 +15,132 @@ RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_4'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+
+Prediction on decomposed part: IMF_0
+Average scores for all folds:
+> r2_score_train: 0.8377 (+- 0.1106)
+> r2_score_test: 0.3999 (+- 0.7667)
+> r2_score_test_adj: 0.3697 (+- 0.8052)
+> rmse: 0.1390 (+- 0.0705)
+> mae: 0.1093 (+- 0.0559)
+> mape: 503.7246 (+- 894.4437)
+> smape: 77.3137 (+- 33.0485)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_1
+Average scores for all folds:
+> r2_score_train: 0.9309 (+- 0.0464)
+> r2_score_test: 0.6013 (+- 0.4957)
+> r2_score_test_adj: 0.5812 (+- 0.5206)
+> rmse: 0.3067 (+- 0.1758)
+> mae: 0.2408 (+- 0.1418)
+> mape: 314.0440 (+- 820.2692)
+> smape: 65.8372 (+- 28.0109)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_2
+Average scores for all folds:
+> r2_score_train: 0.8339 (+- 0.0774)
+> r2_score_test: -5.0926 (+- 16.2232)
+> r2_score_test_adj: -5.3991 (+- 17.0395)
+> rmse: 0.2844 (+- 0.1653)
+> mae: 0.2254 (+- 0.1331)
+> mape: 615.5508 (+- 862.4889)
+> smape: 139.5874 (+- 28.3939)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_3
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.7995 (+- 0.0751)
+> r2_score_test: -0.6542 (+- 0.9259)
+> r2_score_test_adj: -0.7374 (+- 0.9725)
+> rmse: 0.1786 (+- 0.0935)
+> mae: 0.1479 (+- 0.0774)
+> mape: 369.1527 (+- 375.1174)
+> smape: 142.3980 (+- 19.7863)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_4
+Average scores for all folds:
+> r2_score_train: 0.9308 (+- 0.0359)
+> r2_score_test: -1.0895 (+- 2.6996)
+> r2_score_test_adj: -1.1946 (+- 2.8354)
+> rmse: 0.2144 (+- 0.0863)
+> mae: 0.1816 (+- 0.0764)
+> mape: 664.2041 (+- 1834.4940)
+> smape: 133.6719 (+- 25.1093)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_5
+Average scores for all folds:
+> r2_score_train: 0.9788 (+- 0.0093)
+> r2_score_test: -0.9066 (+- 2.1016)
+> r2_score_test_adj: -1.0025 (+- 2.2073)
+> rmse: 0.2197 (+- 0.1334)
+> mae: 0.1910 (+- 0.1184)
+> mape: 367.3867 (+- 382.0295)
+> smape: 128.3551 (+- 33.9904)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_6
+Average scores for all folds:
+> r2_score_train: 0.9961 (+- 0.0038)
+> r2_score_test: -33.3577 (+- 73.4038)
+> r2_score_test_adj: -35.0864 (+- 77.0970)
+> rmse: 0.2904 (+- 0.1744)
+> mae: 0.2523 (+- 0.1569)
+> mape: 340.1892 (+- 741.1630)
+> smape: 80.3601 (+- 51.1438)
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.7634 (+- 0.1643)
+> r2_score_test_adj: 0.7499 (+- 0.1736)
+> rmse: 1079.0767 (+- 600.0871)
+> mae: 873.1236 (+- 482.6479)
+> mape: 6.0441 (+- 2.6700)
+> smape: 6.0920 (+- 2.8357)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Mode Decomposition (EMD) has been started
+4.465 seconds - Empirical Mode Decomposition (EMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.8784
+The Adjusted R2 score on the Test set is:	0.8176
+RMSE: 673.774960
+MAE: 537.440163
+MAPE: 4.28%
+sMAPE: 4.14%
+
+--- 	36.700 seconds --- the end of the file.
+
+
+
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'emd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
