@@ -69,8 +69,8 @@ BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
-RECURSIVE = False
+LOAD_DECOMPOSED = True
+RECURSIVE = True
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
@@ -400,7 +400,7 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
             # Read all csv files and concat them
             for filename in all_files:
                 if filename.find(MODE) != -1:
-                    df = pd.read_csv(filename, index_col=None, header=0)
+                    df = pd.read_csv(filename, index_col=None, header=None)
                     concat.append(df)
                 if i >= 3:
                     decomposeList.append(pd.concat([concat[0], concat[1], concat[2], concat[3]], axis=0).drop(
@@ -1454,7 +1454,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
             # Read all csv files and concat them
             for filename in all_files:
                 if (filename.find("IMF") != -1) and (filename.find(MODE) != -1):
-                    df = pd.read_csv(filename, index_col=None, header=0)
+                    df = pd.read_csv(filename, index_col=None, header=None)
                     df = df.values.ravel()
                     IMFs.append(df)
 
@@ -1488,7 +1488,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
             # Read all csv files and concat them
             for filename in all_files:
                 if (filename.find("IMF") != -1) and (filename.find(MODE) != -1):
-                    df = pd.read_csv(filename, index_col=None, header=0)
+                    df = pd.read_csv(filename, index_col=None, header=None)
                     df = df.values.ravel()
                     IMFs.append(df)
         # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
