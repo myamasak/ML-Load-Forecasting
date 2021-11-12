@@ -60,7 +60,7 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 1
+KFOLD = 40
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
@@ -787,15 +787,18 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 # Recursive predictions
                 for j in range(len(y_test)):
                     # Next inputs for prediction
-                    if j > 0:
-                        X_test_final = np.concatenate(
-                            [X_test[j], np.array([y_lag])])
+                    if GET_LAGGED:
+                        if j > 0:
+                            X_test_final = np.concatenate(
+                                [X_test[j], np.array([y_lag])])
+                        else:
+                            X_test_final = X_test[0]
+                            if DATASET_NAME.find('ONS') != -1:
+                                X_test = np.delete(X_test, 6, 1)
+                            elif DATASET_NAME.find('ISONewEngland') != -1:
+                                X_test = np.delete(X_test, 8, 1)
                     else:
-                        X_test_final = X_test[0]
-                        if DATASET_NAME.find('ONS') != -1:
-                            X_test = np.delete(X_test, 6, 1)
-                        elif DATASET_NAME.find('ISONewEngland') != -1:
-                            X_test = np.delete(X_test, 8, 1)
+                        X_test_final = X_test[j]
 
                     # Predict
                     y_pred[j] = model.predict(
