@@ -60,25 +60,26 @@ enable_nni = False
 plot = True
 # Configuration for Forecasting
 CROSSVALIDATION = True
-KFOLD = 40
+KFOLD = 1
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'emd'
+MODE = 'eemd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
 LOAD_DECOMPOSED = False
-RECURSIVE = False
-GET_LAGGED = False
+RECURSIVE = True
+GET_LAGGED = True
 PREVIOUS = True
-HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = True
+MULTIMODEL = False
 LSTM_ENABLED = False
+FINAL_TEST = False
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -312,6 +313,9 @@ def mean_absolute_percentage_error(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
+def maep(y_true, y_pred):
+    return mean_absolute_error(y_true, y_pred) / np.mean(y_true)
+    
 
 def symmetric_mape(y_true, y_pred):
     return 100 * np.mean(2 * np.abs(y_true - y_pred) / (np.abs(y_true) + np.abs(y_pred)))
@@ -744,20 +748,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             model = GradientBoostingRegressor()
             model.set_params(**params)
 
-            # if params['min_samples_split'] > 1:
-            #     min_samples_split=int(params['min_samples_split'])
-            # else:
-            #     min_samples_split=float(params['min_samples_split'])
-
-            # if params['bootstrap'] == "True":
-            #     bootstrap = True
-            # else:
-            #     bootstrap = False
-            # if params['warm_start'] == "True":
-            #     warm_start = True
-            # elif params['warm_start'] == "False":
-            #     warm_start = False
-
         i = 0
 
         log(f'Training from {fold_no} to {kfold} folds ...')
@@ -849,6 +839,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # log("RMSE: %f" % (rmse))
 
             mae = mean_absolute_error(y_test, y_pred)
+            mae_percent = maep(y_test, y_pred)
             # log("MAE: %f" % (mae))
 
             # Fix shape
@@ -892,6 +883,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             results[r].r2testadj_per_fold.append(adjr2_score)
             results[r].rmse_per_fold.append(rmse)
             results[r].mae_per_fold.append(mae)
+            results[r].maep_per_fold.append(mae_percent)
             results[r].mape_per_fold.append(mape)
             results[r].smape_per_fold.append(smape)
             results[r].name.append(y.columns[0])
@@ -1190,6 +1182,10 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
         mae = mean_absolute_error(y_test, y_pred)
         log("MAE: %f" % (mae))
+        
+        mae_percent = maep(y_test, y_pred)
+        log("MAEP: %f" % (mae_percent))
+                
 
         # Fix shape
         if len(y_pred) > 1:
@@ -1208,6 +1204,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         finalResults[0].r2testadj_per_fold.append(adjr2_score)
         finalResults[0].rmse_per_fold.append(rmse)
         finalResults[0].mae_per_fold.append(mae)
+        finalResults[0].maep_per_fold.append(mae_percent)
         finalResults[0].mape_per_fold.append(mape)
         finalResults[0].smape_per_fold.append(smape)
         finalResults[0].name.append("DEMAND")
@@ -1299,6 +1296,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
             mae = mean_absolute_error(y_test, y_pred[i])
            # log("MAE: %f" % (mae))
+            mae_percent = maep(y_test, y_pred[i])
 
             # Fix shape
             if len(y_pred[i]) > 1:
@@ -1319,6 +1317,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             finalResults[0].r2testadj_per_fold.append(adjr2_score)
             finalResults[0].rmse_per_fold.append(rmse)
             finalResults[0].mae_per_fold.append(mae)
+            finalResults[0].maep_per_fold.append(mae_percent)
             finalResults[0].mape_per_fold.append(mape)
             finalResults[0].smape_per_fold.append(smape)
             finalResults[0].name.append(f'kfold_{i}')
@@ -1445,7 +1444,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     def do_eemd():
         if LOAD_DECOMPOSED:
             all_files = glob.glob(
-                path + r'/datasets/ISONewEngland/custom/eemd_IMF*.csv')
+                path + r"/datasets/ISONewEngland/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1475,7 +1474,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     def do_ceemdan():
         if LOAD_DECOMPOSED:
             all_files = glob.glob(
-                path + r'/datasets/ISONewEngland/custom/ceemdan_IMF*.csv')
+                path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1624,6 +1623,8 @@ def data_cleaning_columns(X, y):
 
 
 def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
+    if not FINAL_TEST:
+        return
     log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
     global df
     if len(df) != len(y_):
@@ -2024,6 +2025,16 @@ def init_lstm(X, params):
     #                         callbacks = [early_stop])
     return model, early_stop
 
+
+def saveDecomposedIMFs(y_decomposed_list):
+    if not LOAD_DECOMPOSED and (MODE != 'none' or MODE != 'robust-stl'):
+        for imf in y_decomposed_list:
+            if type(imf) is not type(pd.DataFrame()):
+                imf = pd.DataFrame({imf.name: imf.values})
+            imf.to_csv(
+                path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+
+
 ################
 # MAIN PROGRAM
 ################
@@ -2091,6 +2102,9 @@ y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y)
 y_decomposed_list = decomposeSeasonal(
     df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
 
+# Save decomposed data
+saveDecomposedIMFs(y_decomposed_list)
+
 # Index for Results
 r = 0
 # Loop over decomposed data
@@ -2144,10 +2158,10 @@ if CROSSVALIDATION:
 
 if enable_nni:
     log("Publish the results on AutoML nni")
-    smapetestResults = results[0].smape_per_fold
-    smapeScoreAvg = np.mean(smapetestResults)
-    log(f"smapeScoreAvg = {smapeScoreAvg}")
-    nni.report_final_result(smapeScoreAvg)
+    rmsetestResults = results[0].rmse_per_fold
+    rmseScoreAvg = np.mean(rmsetestResults)
+    log(f"rmseScoreAvg = {rmseScoreAvg}")
+    nni.report_final_result(rmseScoreAvg)
     # results[0].printResults()
 
 
@@ -2161,12 +2175,6 @@ log("\n--- \t{:0.3f} seconds --- the end of the file.".format(time.time() - star
 # seasonal.to_csv(path+f'/robust-stl_seasonal_{selectDatasets[0]}.csv', index = None, header=True)
 # remainder.to_csv(path+f'/robust-stl_remainder_{selectDatasets[0]}.csv', index = None, header=True)
 #
-if not LOAD_DECOMPOSED and MODE != 'none' and MODE != 'robust-stl':
-    for imf in y_decomposed_list:
-        if type(imf) is not type(pd.DataFrame()):
-            imf = pd.DataFrame({imf.name: imf.values})
-        imf.to_csv(
-            path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
 
 
 # Close logging handlers to release the log file

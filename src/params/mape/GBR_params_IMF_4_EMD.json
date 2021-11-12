@@ -1,0 +1,18 @@
+{
+    "loss": "quantile",
+    "learning_rate": 0.4453985008659143,
+    "n_estimators": 1000,
+    "subsample": 0.30000000000000004,
+    "criterion": "mse",
+    "min_samples_split": 12,
+    "min_weight_fraction_leaf": 0.15000000000000002,
+    "max_depth": 21,
+    "min_impurity_decrease": 0.75,
+    "max_features": "log2",
+    "alpha": 0.8500000000000001,
+    "warm_start": true,
+    "validation_fraction": 0.6000000000000001,
+    "tol": 0.00017697112534702003,
+    "ccp_alpha": 0.7000000000000001,
+    "random_state": 42
+}

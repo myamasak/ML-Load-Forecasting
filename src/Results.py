@@ -7,6 +7,7 @@ class Results:
         self.r2testadj_per_fold = []
         self.rmse_per_fold = []
         self.mae_per_fold = []
+        self.maep_per_fold = []
         self.mape_per_fold = []
         self.smape_per_fold = []
         self.name = []
@@ -24,6 +25,7 @@ class Results:
                 log(f'> Fold {i+1} - r2_score_test_adj: {self.r2testadj_per_fold[i]:.4f}')
                 log(f'> Fold {i+1} - rmse: {self.rmse_per_fold[i]:.4f}')
                 log(f'> Fold {i+1} - mae: {self.mae_per_fold[i]:.4f}')
+                log(f'> Fold {i+1} - maep: {self.maep_per_fold[i]:.4f}')
                 log(f'> Fold {i+1} - mape: {self.mape_per_fold[i]:.4f}')
                 log(f'> Fold {i+1} - smape: {self.smape_per_fold[i]:.4f}')
         log('------------------------------------------------------------------------')
@@ -34,6 +36,7 @@ class Results:
         log(f'> r2_score_test_adj: {np.mean(self.r2testadj_per_fold):.4f} (+- {np.std(self.r2testadj_per_fold):.4f})')
         log(f'> rmse: {np.mean(self.rmse_per_fold):.4f} (+- {np.std(self.rmse_per_fold):.4f})')
         log(f'> mae: {np.mean(self.mae_per_fold):.4f} (+- {np.std(self.mae_per_fold):.4f})')
+        log(f'> maep: {np.mean(self.maep_per_fold):.4f} (+- {np.std(self.maep_per_fold):.4f})')
         log(f'> mape: {np.mean(self.mape_per_fold):.4f} (+- {np.std(self.mape_per_fold):.4f})')
         log(f'> smape: {np.mean(self.smape_per_fold):.4f} (+- {np.std(self.smape_per_fold):.4f})')
         log('------------------------------------------------------------------------')

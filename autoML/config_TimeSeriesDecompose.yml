@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_GBR_EMD_IMF_0_SMAPE
+experimentName: TimeSeriesDecompose_GBR_EMD_IMF_0_RMSE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space_gbr_fast.json
+searchSpacePath: search_space_gbr.json
 #choice: true, false
 useAnnotation: false
 tuner:
