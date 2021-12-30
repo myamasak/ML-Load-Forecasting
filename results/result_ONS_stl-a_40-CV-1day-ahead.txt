@@ -1,0 +1,83 @@
+Prediction on decomposed part: Trend
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9881 (+- 0.0052)
+> r2_score_test: 0.3955 (+- 0.7075)
+> r2_score_test_adj: 0.3730 (+- 0.7339)
+> rmse: 0.2876 (+- 0.1558)
+> mae: 0.2407 (+- 0.1312)
+> maep: -0.8209 (+- 4.3762)
+> mape: 1116.0335 (+- 6013.0519)
+> smape: 73.6237 (+- 34.6021)
+------------------------------------------------------------------------
+
+--- 	1.9051 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: Seasonal
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9999 (+- 0.0004)
+> r2_score_test: 0.9988 (+- 0.0066)
+> r2_score_test_adj: 0.9987 (+- 0.0068)
+> rmse: 0.0057 (+- 0.0221)
+> mae: 0.0034 (+- 0.0134)
+> maep: -318290457119291.6250 (+- 1267113015441978.7500)
+> mape: 1.6669 (+- 7.1216)
+> smape: 1.1100 (+- 4.1956)
+------------------------------------------------------------------------
+
+--- 	1.9935 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: Residual
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9279 (+- 0.0284)
+> r2_score_test: 0.8157 (+- 0.1905)
+> r2_score_test_adj: 0.8088 (+- 0.1976)
+> rmse: 0.1390 (+- 0.0639)
+> mae: 0.1056 (+- 0.0471)
+> maep: 198.9439 (+- 1523.8495)
+> mape: 140.1072 (+- 104.4427)
+> smape: 59.2193 (+- 19.3062)
+------------------------------------------------------------------------
+
+--- 	1.9349 seconds --- Load Forecasting 
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+Print and plot the results
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8282 (+- 0.1746)
+> r2_score_test_adj: 0.8207 (+- 0.1823)
+> rmse: 1808.7280 (+- 899.2894)
+> mae: 1468.9119 (+- 727.5807)
+> maep: 0.0410 (+- 0.0206)
+> mape: 4.1786 (+- 2.1279)
+> smape: 4.1341 (+- 2.0485)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Seasonal and Trend decomposition using Loess (STL) Decomposition has been started
+0.006 seconds - Seasonal and Trend decomposition using Loess (STL) Decomposition has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9781
+The Adjusted R2 score on the Test set is:	0.9708
+RMSE: 660.448414
+MAE: 587.035805
+MAPE: 1.62%
+sMAPE: 1.63%
+
+--- 	16.398 seconds --- the end of the file.

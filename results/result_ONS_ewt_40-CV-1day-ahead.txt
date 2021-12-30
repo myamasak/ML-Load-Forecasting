@@ -1,0 +1,161 @@
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'ewt'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+FINAL_TEST = True
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+
+Prediction on decomposed part: IMF_0
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9997 (+- 0.0003)
+> r2_score_test: -94.7751 (+- 255.1966)
+> r2_score_test_adj: -98.3444 (+- 264.7070)
+> rmse: 0.1185 (+- 0.1265)
+> mae: 0.1014 (+- 0.1132)
+> maep: 0.7206 (+- 3.7820)
+> mape: 107.2231 (+- 218.4144)
+> smape: 45.7239 (+- 51.2351)
+------------------------------------------------------------------------
+
+--- 	1.8047 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_1
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9966 (+- 0.0016)
+> r2_score_test: -19.7106 (+- 43.3477)
+> r2_score_test_adj: -20.4824 (+- 44.9631)
+> rmse: 0.1385 (+- 0.1063)
+> mae: 0.1192 (+- 0.0950)
+> maep: 0.3887 (+- 3.3814)
+> mape: 551.4124 (+- 478.5330)
+> smape: 132.5092 (+- 50.6630)
+------------------------------------------------------------------------
+
+--- 	1.9222 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_2
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9903 (+- 0.0029)
+> r2_score_test: -3.0642 (+- 3.1906)
+> r2_score_test_adj: -3.2157 (+- 3.3095)
+> rmse: 0.0168 (+- 0.0091)
+> mae: 0.0143 (+- 0.0081)
+> maep: 1.7890 (+- 14.5739)
+> mape: 613.4752 (+- 901.8970)
+> smape: 125.9597 (+- 26.5345)
+------------------------------------------------------------------------
+
+--- 	1.8631 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_3
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9892 (+- 0.0031)
+> r2_score_test: -4.2519 (+- 3.5902)
+> r2_score_test_adj: -4.4476 (+- 3.7240)
+> rmse: 0.0274 (+- 0.0126)
+> mae: 0.0238 (+- 0.0110)
+> maep: 1.1300 (+- 8.4252)
+> mape: 482.9022 (+- 268.0269)
+> smape: 145.3533 (+- 19.8510)
+------------------------------------------------------------------------
+
+--- 	1.8620 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_4
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9867 (+- 0.0048)
+> r2_score_test: -5.2358 (+- 3.7326)
+> r2_score_test_adj: -5.4682 (+- 3.8717)
+> rmse: 0.0235 (+- 0.0108)
+> mae: 0.0207 (+- 0.0097)
+> maep: -1.2641 (+- 15.5151)
+> mape: 473.9519 (+- 148.4620)
+> smape: 158.2382 (+- 22.8082)
+------------------------------------------------------------------------
+
+--- 	1.8311 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_5
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9806 (+- 0.0082)
+> r2_score_test: 0.9058 (+- 0.0956)
+> r2_score_test_adj: 0.9022 (+- 0.0992)
+> rmse: 0.2415 (+- 0.1136)
+> mae: 0.1895 (+- 0.0917)
+> maep: 12.3434 (+- 46.4319)
+> mape: 132.8086 (+- 244.8504)
+> smape: 40.6402 (+- 16.7461)
+------------------------------------------------------------------------
+
+--- 	1.9693 seconds --- Load Forecasting 
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+Print and plot the results
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8450 (+- 0.1748)
+> r2_score_test_adj: 0.8382 (+- 0.1824)
+> rmse: 1678.1973 (+- 935.6701)
+> mae: 1365.5124 (+- 789.8762)
+> maep: 0.0380 (+- 0.0220)
+> mape: 3.8767 (+- 2.2466)
+> smape: 3.8366 (+- 2.1896)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Empirical Wavelet Transform (EWT) has been started
+0.397 seconds - Empirical Wavelet Transform (EWT) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.8018
+The Adjusted R2 score on the Test set is:	0.7357
+RMSE: 1988.012300
+MAE: 1886.324146
+MAPE: 5.16%
+sMAPE: 5.01%
+
+--- 	22.112 seconds --- the end of the file.

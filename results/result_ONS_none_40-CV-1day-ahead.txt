@@ -1,3 +1,58 @@
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'none'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+FINAL_TEST = True
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8365 (+- 0.1756)
+> r2_score_test_adj: 0.8294 (+- 0.1833)
+> rmse: 1759.5770 (+- 886.8483)
+> mae: 1434.0121 (+- 739.7702)
+> maep: 0.0400 (+- 0.0211)
+> mape: 4.0670 (+- 2.1584)
+> smape: 4.0305 (+- 2.0821)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9827
+The Adjusted R2 score on the Test set is:	0.9769
+RMSE: 587.774794
+MAE: 505.100956
+MAPE: 1.32%
+sMAPE: 1.33%
+
+--- 	11.696 seconds --- the end of the file.
+
+
+
+
+
+
 PREVIOUS = False
 ------------------------------------------------------------------------
 Average scores for all folds:

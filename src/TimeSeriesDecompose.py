@@ -1,5 +1,5 @@
 from tensorflow import set_random_seed
-from numpy.random import seed
+import random
 import math
 from pandas.plotting import register_matplotlib_converters
 import nni
@@ -53,24 +53,26 @@ register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-DATASET_NAME = 'ISONewEngland'
+# DATASET_NAME = 'ISONewEngland'
+DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves
 plot = True
 # Configuration for Forecasting
+ALGORITHM = 'svr'
 CROSSVALIDATION = True
-KFOLD = 40
+KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'eemd'
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = True
-RECURSIVE = True
+LOAD_DECOMPOSED = False
+RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
@@ -79,11 +81,17 @@ STEPS_AHEAD = 24*1
 TEST_DAYS = 29
 MULTIMODEL = False
 LSTM_ENABLED = False
-FINAL_TEST = False
+FINAL_TEST = True
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
+# Seed Random Numbers with the TensorFlow Backend
+SEED_VALUE = 4242
+random.seed(SEED_VALUE)
+set_random_seed(SEED_VALUE)
+np.random.seed(SEED_VALUE)
 ###
+
 # Default render
 pio.renderers.default = 'browser'
 # Default size for plotly export figures
@@ -114,17 +122,50 @@ log(f"BOXCOX: {BOXCOX}")
 log(f"STANDARDSCALER: {STANDARDSCALER}")
 log(f"MINMAXSCALER: {MINMAXSCALER}")
 
+ # LSTM parameters
+_batch = 24
+_epochs = 50
+_neurons = 128
+_hidden_layers = 4
+_optimizer = 'Adam'
+_dropout = False
+_dropoutVal = 0.2
+_activation = LeakyReLU(alpha=0.2)
+LSTM_PARAMS = {
+                "optimizer":_optimizer,
+                "neurons_width":_neurons,
+                "hidden_layers":_hidden_layers,
+                "activation":_activation,
+                "batch_size":_batch,
+                "epochs":_epochs,
+                "dropout":_dropout,
+                "dropout_val":_dropoutVal
+                }
+# LSTM Implementation
+# model, early_stop = init_lstm(LSTM_PARAMS)
 
-# Seed Random Numbers with the TensorFlow Backend
-seed(42)
-set_random_seed(42)
+REGRESSORS = {  "knn": KNeighborsRegressor(),
+                "dt": DecisionTreeRegressor(random_state=SEED_VALUE),
+                "rf": RandomForestRegressor(random_state=SEED_VALUE),
+                "svr": svm.SVR(),
+                "xgboost": xgboost.XGBRegressor(random_state=SEED_VALUE),
+                "gbr": GradientBoostingRegressor(random_state=SEED_VALUE),
+                "extratrees": ExtraTreesRegressor(random_state=SEED_VALUE),
+                "ard": linear_model.ARDRegression(),
+                "sgd": linear_model.SGDRegressor(random_state=SEED_VALUE),
+                "bayes": linear_model.BayesianRidge(),
+                "lasso": linear_model.LassoLars(),
+                "par": linear_model.PassiveAggressiveRegressor(random_state=SEED_VALUE),
+                "theilsen": linear_model.TheilSenRegressor(random_state=SEED_VALUE),
+                "linear": linear_model.LinearRegression()
+             }
 
 
 def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
     # Save all files in the folder
     if dataset_name.find('ONS') != -1:
-        filename = glob.glob(path + r'/datasets/ONS/*south*.csv')
+        filename = glob.glob(path + r'/datasets/ONS/*allregions*.csv')
         filename = filename[0].replace('\\', '/')
         dataset = pd.read_csv(filename, index_col=None,
                               header=0, delimiter=";")
@@ -314,7 +355,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 def maep(y_true, y_pred):
-    return mean_absolute_error(y_true, y_pred) / np.mean(y_true)
+    return (mean_absolute_error(y_true, y_pred) / np.mean(y_true))*100
     
 
 def symmetric_mape(y_true, y_pred):
@@ -640,18 +681,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # regressors.append(('knn', KNeighborsRegressor()))
             # regressors.append(('cart', DecisionTreeRegressor()))
             # regressors.append(('rf', RandomForestRegressor()))
-            # regressors.append(('rf', RandomForestRegressor(n_estimators=750,
-            #                                               max_depth=32,
-            #                                               min_samples_split=2,
-            #                                               min_samples_leaf=1,
-            #                                               max_features="auto",
-            #                                               max_leaf_nodes=None,
-            #                                               min_impurity_decrease=0.001,
-            #                                               bootstrap=True,
-            #                                               random_state=42,
-            #                                               n_jobs=-1)))
-            # regressors.append(
-            #     ('svm', svm.SVR(kernel='rbf', gamma=0.001, C=10000)))
+            # regressors.append(('svm', svm.SVR()))
             # regressors.append(('gbr', GradientBoostingRegressor()))
             # regressors.append(('extratrees', ExtraTreesRegressor()))
             # regressors.append(('sgd', linear_model.SGDRegressor()))
@@ -663,73 +693,39 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # regressors.append(('linear', linear_model.LinearRegression()))
 
             # define meta learner model
-            # meta_learner = GradientBoostingRegressor() # 0.85873
-            # meta_learner = ExtraTreesRegressor() # 0.85938
-            # meta_learner = linear_model.TheilSenRegressor() # 0.87946
             # meta_learner = linear_model.ARDRegression()  # 0.88415
-            # meta_learner = LinearRegression() # 0.88037
-            # meta_learner = linear_model.BayesianRidge() # 0.877
 
             # model = VotingRegressor(estimators=regressors)
             # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
             # model = StackingRegressor(
             #     estimators=regressors, final_estimator=meta_learner)
-            # model = GradientBoostingRegressor()
 
-            # model = xgboost.XGBRegressor()
-            model = GradientBoostingRegressor()
-
-            if LSTM_ENABLED:
-                # LSTM parameters
-                _batch = 24
-                _epochs = 50
-                _neurons = 128
-                _hidden_layers = 4
-                _optimizer = 'Adam'
-                _dropout = False
-                _dropoutVal = 0.2
-                _activation = LeakyReLU(alpha=0.2)
-                lstm_params = {
-                                "optimizer":_optimizer,
-                                "neurons_width":_neurons,
-                                "hidden_layers":_hidden_layers,
-                                "activation":_activation,
-                                "batch_size":_batch,
-                                "epochs":_epochs,
-                                "dropout":_dropout,
-                                "dropout_val":_dropoutVal
-                               }
-                # LSTM Implementation
-                # model, early_stop = init_lstm(lstm_params)
+            model = REGRESSORS[ALGORITHM]
 
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
-                if y.columns[0].find('IMF_0') != -1:
-                    # model = ExtraTreesRegressor()
-                    # model = xgboost.XGBRegressor()
-                    # local_params = open_json(model, 'XGB', 'IMF_0')
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_0')
+                if y.columns[0].find('IMF_0') != -1:                    
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_0')
                 elif y.columns[0].find('IMF_1') != -1:
-                    # model = xgboost.XGBRegressor()
-                    # local_params = open_json(model, 'XGB', 'IMF_1')
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_1')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_2')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_2')
                 elif y.columns[0].find('IMF_3') != -1:
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_3')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_3')
                 elif y.columns[0].find('IMF_4') != -1:
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_4')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_4')
                 elif y.columns[0].find('IMF_5') != -1:
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_5')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_5')
                 elif y.columns[0].find('IMF_6') != -1:
-                    model = GradientBoostingRegressor()
-                    local_params = open_json(model, 'GBR', 'IMF_6')
+                    model = REGRESSORS[ALGORITHM]
+                    local_params = open_json(model, ALGORITHM, 'IMF_6')
+                # Set model hyperparameters from json file
                 model.set_params(**local_params)
         else:  # nni enabled
             # if params['warm_start'] == "True":
@@ -745,7 +741,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             params['n_estimators'] = int(params['n_estimators'])
             params['max_depth'] = int(params['max_depth'])
 
-            model = GradientBoostingRegressor()
+            model = REGRESSORS[ALGORITHM]
             model.set_params(**params)
 
         i = 0
@@ -771,10 +767,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Learn
             if LSTM_ENABLED:
-                model, early_stop = init_lstm(X, lstm_params)
+                model, early_stop = init_lstm(X, LSTM_PARAMS)
                 model.fit(X_train, y_train,
-                          epochs=lstm_params['epochs'],
-                          batch_size=lstm_params['batch_size'],
+                          epochs=LSTM_PARAMS['epochs'],
+                          batch_size=LSTM_PARAMS['batch_size'],
                           verbose=0,
                           shuffle=False,
                           callbacks=[early_stop])
@@ -924,6 +920,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 pass
 
         # Print the results: average per fold
+        log(f"Model name: {type(model).__name__}")
         results[r].printResults()
 
     else:  # NOT CROSSVALIDATION
@@ -996,20 +993,11 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 # linear_model.PassiveAggressiveRegressor(),
                 # linear_model.TheilSenRegressor(),
                 # linear_model.LinearRegression()]
-            model = GradientBoostingRegressor()
+            # model = GradientBoostingRegressor()
+            model = REGRESSORS[ALGORITHM]
 
-        else:  # mni enabled
-            model = xgboost.XGBRegressor(
-                colsample_bytree=params['colsample_bytree'],
-                gamma=params['gamma'],
-                learning_rate=params['learning_rate'],
-                max_depth=params['max_depth'],
-                min_child_weight=params['min_child_weight'],
-                n_estimators=params['n_estimators'],
-                reg_alpha=params['reg_alpha'],
-                reg_lambda=params['reg_lambda'],
-                subsample=params['subsample'],
-                seed=42)
+        else:  # nni enabled
+            model = REGRESSORS[ALGORITHM]
 
         # for model in regressors:
         model.fit(X_train, y_train.values.ravel())
@@ -1044,6 +1032,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         y_pred_train = model.predict(X_train)
         r2train = r2_score(y_train, y_pred_train)
         r2test = r2_score(y_test, y_pred)
+        log(f"Model name: {type(model).__name__}")
         log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
         log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
         n = len(X_test)
@@ -1173,6 +1162,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.tight_layout()
 
         r2test = r2_score(y_test, y_pred)
+        log(f"Model name: {type(model).__name__}")
         log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
         n = len(X_test)
         p = X_test.shape[1]
@@ -1355,6 +1345,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 path+f'/results/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
 
         # Print the results: average per fold
+        log(f"Model name: {type(model).__name__}")
         finalResults[0].printResults()
 
 
@@ -1654,11 +1645,13 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     X_ = X_.drop('DATE', axis=1)
 
     # Limit the horizon by n_steps
-    X_test = X_test[:n_steps+1]
-    y_test = y_test[:n_steps+1]
-    index_shifting = index_shifting = X_test.reset_index()['index'] - 1
-    X_test = X_test.set_index(index_shifting)
-    y_test = pd.DataFrame(y_test).set_index(index_shifting)
+    X_test = X_test[:n_steps]
+    y_test = y_test[:n_steps]
+    #### This is for get_lagged TRUE ####
+    # if GET_LAGGED:
+        # index_shifting = index_shifting = X_test.reset_index()['index'] - 1
+        # X_test = X_test.set_index(index_shifting)
+        # y_test = pd.DataFrame(y_test).set_index(index_shifting)
 
     # y_all = pd.concat([y_,y_test], axis=1)
     y_all = np.concatenate([y_, y_test.values.ravel()])
@@ -1705,7 +1698,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                 y_lag = y_pred[i]
 
             decomposePred.append(y_pred)
-    else:
+    else: # previous_models
         for y_decomposed in y_decomposed_list:
             train_size = round(len(X_)/(KFOLD))
             if GET_LAGGED:
@@ -1717,36 +1710,39 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
                 X_train = X_[-train_size:]
                 y_train = y_decomposed[-train_size:]
 
-            model = GradientBoostingRegressor()
+            model = REGRESSORS[ALGORITHM]
             # model = xgboost.XGBRegressor()
             model.fit(X_train, y_train.values.ravel())
 
             # Store predicted values
             y_pred = np.zeros(n_steps)
             # Recursive predictions
-            for i in range(n_steps):
-                if GET_LAGGED:
-                    if i > 0:
-                        X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
-                    else:
-                        X_test_final = X_test.iloc[0].append(
-                            pd.Series(X_lagged['DEMAND_LAG'][0]))
-                    # Rename
-                    X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
-                else:
-                    # X_test_final = X_test[i:i+1]
-                    X_test_final = X_test.iloc[i]
-                # Predict
-                try:
-                    y_pred[i] = model.predict(X_test_final)
-                except (ValueError, AttributeError) as e:
-                    y_pred[i] = model.predict(
-                    X_test_final.values.reshape(-1, X_test_final.shape[0]))
-                    pass
-                # Save prediction
-                y_lag = y_pred[i]
-
+            if RECURSIVE:
+                for i in range(n_steps):
+                    if GET_LAGGED:
+                        if i > 0:
+                            X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
+                        else:
+                            X_test_final = X_test.iloc[0].append(
+                                pd.Series(X_lagged['DEMAND_LAG'][0]))
+                        # Rename
+                        X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
+                    # Predict
+                    try:
+                        y_pred[i] = model.predict(X_test_final)
+                    except (ValueError, AttributeError) as e:
+                        y_pred[i] = model.predict(
+                        X_test_final.values.reshape(-1, X_test_final.shape[0]))
+                        pass
+                    # Save prediction
+                    y_lag = y_pred[i]
+            
+            else: # DIRECT prediction
+                y_pred = model.predict(X_test)
+                
+            # Append predictions for each IMF
             decomposePred.append(y_pred)
+            
 
     # Compose the signal
     log("Join all decomposed y predictions")
@@ -1766,19 +1762,15 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     y_final = y_composed
 
     # Crop y_test
-    y_test = y_test[:-1]
+    ### wtf is that - maybe for GET_LAGGED
+    #y_test = y_test[:-1]
 
-    # Split original series into train and test data
-    # X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size = testSize, random_state = 0, shuffle = False)
-    # Prepare for plotting
-    # rows = X_test.index
-    # df2 = df.iloc[rows[0]:]
-    # rows = X_test_copy.index.values
     df2 = X_test_copy['DATE'][:n_steps]
-    df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1])
-    # df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1] - 24*FORECASTDAYS+1)
+    ## if GET_LAGGED:
+        ## df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1])
+        # df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1] - 24*FORECASTDAYS+1)
 
-    df = pd.concat([pd.DataFrame(df), df2], axis=0)
+    df = pd.concat([df, df2], axis=0)
 
     y_all = y_all[:len(y_)+len(y_final)]
     # y_all = y_all[:-24*FORECASTDAYS]
@@ -1796,7 +1788,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
         plt.tight_layout()
-    r2test = r2_score(y_test, y_final)
+    r2test = r2_score(np.array(y_test).squeeze(), np.array(y_final).squeeze())
+    log(f"Model name: {type(model).__name__}")
     log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
     n = len(X_test)
     p = X_test.shape[1]
@@ -1809,6 +1802,9 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     mae = mean_absolute_error(y_test, y_final)
     log("MAE: %f" % (mae))
+    
+    mae_percent = maep(y_test, y_final)
+    log("MAEP: %.3f%%" % (mae_percent))
 
     # Fix shape
     if len(y_final) > 1:
@@ -1821,8 +1817,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     mape = mean_absolute_percentage_error(y_test, y_final)
     smape = symmetric_mape(y_test, y_final)
-    log("MAPE: %.2f%%" % (mape))
-    log("sMAPE: %.2f%%" % (smape))
+    log("MAPE: %.3f%%" % (mape))
+    log("sMAPE: %.3f%%" % (smape))
 
     if plot and True:
         plt.figure()
@@ -1957,7 +1953,6 @@ def data_transformation_inverse(y_composed, lambda_boxcox, sc1, minmax, min_y, c
 
     return y_composed
 
-
 def plotFeatureImportance(X, model):
     # Font size
     FONT_SIZE = 18
@@ -1992,7 +1987,7 @@ def plotFeatureImportance(X, model):
 
 def open_json(model, algorithm, imf):
     filePath = path + \
-        f'/src/params/{algorithm}_params_{imf}_{MODE.upper()}.json'
+        f'/src/params/{algorithm.upper()}_params_{imf.upper()}_{MODE.upper()}.json'
     try:
         # Opening JSON file
         fp = open(filePath)
@@ -2044,7 +2039,6 @@ def saveDecomposedIMFs(y_decomposed_list):
                 imf = pd.DataFrame({imf.name: imf.values})
             imf.to_csv(
                 path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
-
 
 ################
 # MAIN PROGRAM

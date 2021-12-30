@@ -1,3 +1,252 @@
+Latest tuned hyperparameters - 15/11/21
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'eemd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = True
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_4'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = True
+LSTM_ENABLED = False
+FINAL_TEST = True
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+
+Prediction on decomposed part: IMF_0
+Average scores for all folds:
+> r2_score_train: 0.0131 (+- 0.0058)
+> r2_score_test: 0.0123 (+- 0.0088)
+> r2_score_test_adj: -0.0374 (+- 0.0092)
+> rmse: 0.0673 (+- 0.0047)
+> mae: 0.0538 (+- 0.0038)
+> maep: 167.8592 (+- 1216.4045)
+> mape: 122.4016 (+- 35.7943)
+> smape: 180.2628 (+- 2.7833)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_1
+Average scores for all folds:
+> r2_score_train: 0.7929 (+- 0.0444)
+> r2_score_test: 0.4452 (+- 0.1188)
+> r2_score_test_adj: 0.4173 (+- 0.1248)
+> rmse: 0.0469 (+- 0.0056)
+> mae: 0.0374 (+- 0.0044)
+> maep: 0.3861 (+- 162.9455)
+> mape: 404.8043 (+- 556.6613)
+> smape: 112.0834 (+- 9.8364)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_2
+Average scores for all folds:
+> r2_score_train: 0.9919 (+- 0.0030)
+> r2_score_test: 0.9191 (+- 0.0337)
+> r2_score_test_adj: 0.9150 (+- 0.0354)
+> rmse: 0.0606 (+- 0.0122)
+> mae: 0.0484 (+- 0.0100)
+> maep: -20.5835 (+- 137.0737)
+> mape: 131.6737 (+- 172.4026)
+> smape: 44.6403 (+- 11.2444)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_3
+Average scores for all folds:
+> r2_score_train: 0.9874 (+- 0.0054)
+> r2_score_test: 0.9579 (+- 0.0247)
+> r2_score_test_adj: 0.9558 (+- 0.0259)
+> rmse: 0.0980 (+- 0.0201)
+> mae: 0.0790 (+- 0.0155)
+> maep: 5.6172 (+- 5.5030)
+> mape: 70.9418 (+- 103.0363)
+> smape: 29.5665 (+- 6.2810)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_4
+Average scores for all folds:
+> r2_score_train: 0.6632 (+- 0.1574)
+> r2_score_test: 0.6440 (+- 0.2625)
+> r2_score_test_adj: 0.6261 (+- 0.2757)
+> rmse: 0.0730 (+- 0.0240)
+> mae: 0.0585 (+- 0.0191)
+> maep: 13.6887 (+- 27.6363)
+> mape: 232.2897 (+- 206.8595)
+> smape: 74.8479 (+- 19.3258)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_5
+Average scores for all folds:
+> r2_score_train: 0.6434 (+- 0.0828)
+> r2_score_test: 0.2401 (+- 0.2915)
+> r2_score_test_adj: 0.2018 (+- 0.3061)
+> rmse: 0.0975 (+- 0.0587)
+> mae: 0.0807 (+- 0.0506)
+> maep: -13.2651 (+- 101.1372)
+> mape: 398.2261 (+- 604.0876)
+> smape: 115.5717 (+- 16.3523)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_6
+Average scores for all folds:
+> r2_score_train: 0.9889 (+- 0.0037)
+> r2_score_test: -1.3275 (+- 2.9982)
+> r2_score_test_adj: -1.4446 (+- 3.1491)
+> rmse: 0.2885 (+- 0.1550)
+> mae: 0.2480 (+- 0.1398)
+> maep: -1.6577 (+- 6.8500)
+> mape: 214.8502 (+- 285.9433)
+> smape: 76.4016 (+- 41.6127)
+---
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8379 (+- 0.1262)
+> r2_score_test_adj: 0.8286 (+- 0.1334)
+> rmse: 874.4026 (+- 495.9627)
+> mae: 706.5327 (+- 404.4438)
+> maep: 0.0493 (+- 0.0242)
+> mape: 4.8782 (+- 2.3099)
+> smape: 4.9254 (+- 2.4142)
+
+
+
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'eemd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = True
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+FINAL_TEST = True
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+
+Prediction on decomposed part: IMF_0
+Average scores for all folds:
+> r2_score_train: 0.2823 (+- 0.0550)
+> r2_score_test: -0.0023 (+- 0.1187)
+> r2_score_test_adj: -0.0527 (+- 0.1246)
+> rmse: 0.0676 (+- 0.0051)
+> mae: 0.0540 (+- 0.0041)
+> maep: 171.4922 (+- 1205.8196)
+> mape: 267.1431 (+- 230.0019)
+> smape: 150.7668 (+- 7.3403)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_1
+Average scores for all folds:
+> r2_score_train: 0.6231 (+- 0.0769)
+> r2_score_test: 0.4334 (+- 0.1176)
+> r2_score_test_adj: 0.4048 (+- 0.1235)
+> rmse: 0.0474 (+- 0.0057)
+> mae: 0.0380 (+- 0.0048)
+> maep: -0.7678 (+- 171.4166)
+> mape: 577.1857 (+- 1655.6034)
+> smape: 113.9307 (+- 9.6557)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_2
+Average scores for all folds:
+> r2_score_train: 0.9494 (+- 0.0111)
+> r2_score_test: 0.9090 (+- 0.0321)
+> r2_score_test_adj: 0.9044 (+- 0.0337)
+> rmse: 0.0650 (+- 0.0131)
+> mae: 0.0516 (+- 0.0108)
+> maep: -20.3572 (+- 139.7638)
+> mape: 127.2865 (+- 116.3344)
+> smape: 46.9183 (+- 10.2354)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_3
+Average scores for all folds:
+> r2_score_train: 0.9874 (+- 0.0054)
+> r2_score_test: 0.9579 (+- 0.0246)
+> r2_score_test_adj: 0.9558 (+- 0.0258)
+> rmse: 0.0980 (+- 0.0201)
+> mae: 0.0790 (+- 0.0155)
+> maep: 5.6172 (+- 5.5039)
+> mape: 71.0074 (+- 102.9813)
+> smape: 29.5505 (+- 6.2850)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_4
+Average scores for all folds:
+> r2_score_train: 0.9180 (+- 0.0328)
+> r2_score_test: 0.6246 (+- 0.2423)
+> r2_score_test_adj: 0.6057 (+- 0.2545)
+> rmse: 0.0752 (+- 0.0243)
+> mae: 0.0600 (+- 0.0198)
+> maep: 14.4297 (+- 26.5801)
+> mape: 227.2545 (+- 175.9673)
+> smape: 77.1524 (+- 21.4517)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_5
+Average scores for all folds:
+> r2_score_train: 0.9269 (+- 0.0209)
+> r2_score_test: 0.0181 (+- 0.6260)
+> r2_score_test_adj: -0.0313 (+- 0.6575)
+> rmse: 0.1036 (+- 0.0574)
+> mae: 0.0850 (+- 0.0489)
+> maep: -17.0550 (+- 125.5577)
+> mape: 613.3343 (+- 1275.1126)
+> smape: 113.6806 (+- 18.7852)
+------------------------------------------------------------------------
+Prediction on decomposed part: IMF_6
+Average scores for all folds:
+> r2_score_train: 0.9884 (+- 0.0038)
+> r2_score_test: -2.5546 (+- 4.5056)
+> r2_score_test_adj: -2.7335 (+- 4.7323)
+> rmse: 0.3456 (+- 0.1802)
+> mae: 0.2955 (+- 0.1649)
+> maep: -1.8232 (+- 7.3514)
+> mape: 252.2691 (+- 326.0204)
+> smape: 84.5084 (+- 41.7239)
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8034 (+- 0.1361)
+> r2_score_test_adj: 0.7922 (+- 0.1439)
+> rmse: 985.4545 (+- 569.3828)
+> mae: 794.7067 (+- 459.2287)
+> maep: 0.0553 (+- 0.0272)
+> mape: 5.5115 (+- 2.6636)
+> smape: 5.5317 (+- 2.7376)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Ensemble Empirical Mode Decomposition (EEMD) has been started
+0.059 seconds - Ensemble Empirical Mode Decomposition (EEMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9636
+The Adjusted R2 score on the Test set is:	0.9454
+RMSE: 368.551906
+MAE: 290.181611
+MAPE: 2.22%
+sMAPE: 2.19%
+
+--- 	28.214 seconds --- the end of the file.
+
+
+
+
+
 # Configuration for Forecasting
 CROSSVALIDATION = True
 KFOLD = 40

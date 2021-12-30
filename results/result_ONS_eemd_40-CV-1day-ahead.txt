@@ -1,0 +1,177 @@
+# Configuration for Forecasting
+CROSSVALIDATION = True
+KFOLD = 40
+OFFSET = 0
+FORECASTDAYS = 7
+NMODES = 6
+MODE = 'eemd'
+BOXCOX = True
+STANDARDSCALER = True
+MINMAXSCALER = False
+DIFF = False
+LOAD_DECOMPOSED = False
+RECURSIVE = False
+GET_LAGGED = False
+PREVIOUS = False
+HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_IMF = 'IMF_0'
+STEPS_AHEAD = 24*1
+TEST_DAYS = 29
+MULTIMODEL = False
+LSTM_ENABLED = False
+FINAL_TEST = True
+# Selection of year
+selectDatasets = ["2015", "2016", "2017", "2018"]
+Prediction on decomposed part: IMF_0
+Average scores for all folds:
+> r2_score_train: 0.4571 (+- 0.0847)
+> r2_score_test: 0.2380 (+- 0.2357)
+> r2_score_test_adj: 0.2096 (+- 0.2445)
+> rmse: 0.0708 (+- 0.0094)
+> mae: 0.0561 (+- 0.0064)
+> maep: -49.0145 (+- 172.7231)
+> mape: 412.9054 (+- 758.9416)
+> smape: 134.1208 (+- 7.9293)
+------------------------------------------------------------------------
+
+--- 	1.9363 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_1
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.6903 (+- 0.0888)
+> r2_score_test: 0.5751 (+- 0.1267)
+> r2_score_test_adj: 0.5593 (+- 0.1314)
+> rmse: 0.0539 (+- 0.0100)
+> mae: 0.0420 (+- 0.0073)
+> maep: -18.2395 (+- 157.5749)
+> mape: 307.1762 (+- 272.6751)
+> smape: 97.2103 (+- 11.8539)
+------------------------------------------------------------------------
+
+--- 	2.1596 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_2
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9398 (+- 0.0178)
+> r2_score_test: 0.9010 (+- 0.0517)
+> r2_score_test_adj: 0.8973 (+- 0.0536)
+> rmse: 0.0623 (+- 0.0140)
+> mae: 0.0497 (+- 0.0109)
+> maep: 12.8766 (+- 32.0083)
+> mape: 108.8615 (+- 63.5526)
+> smape: 46.4017 (+- 8.8268)
+------------------------------------------------------------------------
+
+--- 	2.0259 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_3
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9834 (+- 0.0065)
+> r2_score_test: 0.9475 (+- 0.0681)
+> r2_score_test_adj: 0.9455 (+- 0.0706)
+> rmse: 0.1029 (+- 0.0443)
+> mae: 0.0812 (+- 0.0336)
+> maep: -13.2226 (+- 117.9493)
+> mape: 78.3574 (+- 79.7965)
+> smape: 29.8697 (+- 11.6142)
+------------------------------------------------------------------------
+
+--- 	1.9712 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_4
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9309 (+- 0.0175)
+> r2_score_test: 0.7834 (+- 0.2017)
+> r2_score_test_adj: 0.7753 (+- 0.2093)
+> rmse: 0.0637 (+- 0.0209)
+> mae: 0.0506 (+- 0.0149)
+> maep: -267.7543 (+- 1754.8082)
+> mape: 593.3461 (+- 2142.8905)
+> smape: 60.1762 (+- 12.7466)
+------------------------------------------------------------------------
+
+--- 	1.9118 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_5
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9276 (+- 0.0237)
+> r2_score_test: 0.6400 (+- 0.2831)
+> r2_score_test_adj: 0.6266 (+- 0.2936)
+> rmse: 0.0916 (+- 0.0405)
+> mae: 0.0746 (+- 0.0337)
+> maep: 3.2844 (+- 19.1607)
+> mape: 186.2764 (+- 130.1471)
+> smape: 81.0181 (+- 18.5481)
+------------------------------------------------------------------------
+
+--- 	1.8437 seconds --- Load Forecasting 
+Load Forecasting algorithm has been started
+CrossValidation has been started
+Predict 40-folds each by 7.0 days
+Prediction on decomposed part: IMF_6
+Training from 1 to 40 folds ...
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.9910 (+- 0.0035)
+> r2_score_test: -0.0514 (+- 1.4985)
+> r2_score_test_adj: -0.0906 (+- 1.5544)
+> rmse: 0.2739 (+- 0.1600)
+> mae: 0.2297 (+- 0.1359)
+> maep: -3.1219 (+- 21.6344)
+> mape: 218.8636 (+- 296.3187)
+> smape: 72.8445 (+- 34.6805)
+------------------------------------------------------------------------
+
+--- 	1.8522 seconds --- Load Forecasting 
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+Print and plot the results
+------------------------------------------------------------------------
+Average scores for all folds:
+> r2_score_train: 0.0000 (+- 0.0000)
+> r2_score_test: 0.8153 (+- 0.1850)
+> r2_score_test_adj: 0.8073 (+- 0.1931)
+> rmse: 1889.3902 (+- 909.8751)
+> mae: 1540.2839 (+- 758.0114)
+> maep: 0.0429 (+- 0.0215)
+> mape: 4.3786 (+- 2.2285)
+> smape: 4.3311 (+- 2.1339)
+------------------------------------------------------------------------
+Final test with test data - Forecast 1 day(s)
+Plot Histogram
+Box-Cox transformation
+Plot Histogram after Box-Cox Transformation
+Ensemble Empirical Mode Decomposition (EEMD) has been started
+252.796 seconds - Ensemble Empirical Mode Decomposition (EEMD) has finished.
+Join all decomposed y predictions
+Inverse StandardScaler transformation
+Inverse Box-Cox transformation
+The R2 score on the Test set is:	0.9753
+The Adjusted R2 score on the Test set is:	0.9671
+RMSE: 701.296055
+MAE: 568.382520
+MAPE: 1.50%
+sMAPE: 1.50%
+
+--- 	523.893 seconds --- the end of the file.

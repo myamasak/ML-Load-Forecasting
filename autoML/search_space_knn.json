@@ -1,0 +1,8 @@
+{  
+    "n_neighbors":{"_type":"quniform", "_value":[1,10,1]},
+    "weights":{"_type":"choice", "_value":["uniform","distance"]},
+    "algorithm":{"_type":"choice", "_value":["auto","ball_tree","kd_tree","brute"]},
+    "leaf_size":{"_type":"quniform", "_value":[1,60,1]},
+    "p":{"_type":"quniform", "_value":[1,10,1]},
+    "metric":{"_type":"choice", "_value":["euclidean","manhattan","chebyshev","minkowski","wminkowski","seuclidean","mahalanobis"]}
+}
