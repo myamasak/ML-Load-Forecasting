@@ -725,8 +725,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 elif y.columns[0].find('IMF_6') != -1:
                     model = REGRESSORS[ALGORITHM]
                     local_params = open_json(model, ALGORITHM, 'IMF_6')
-                # Set model hyperparameters from json file
-                model.set_params(**local_params)
+            else: # for individual algorithm Manual tuning                
+                local_params = open_json(model, ALGORITHM, 'none', manual=True)
+            # Set model hyperparameters from json file
+            model.set_params(**local_params)
         else:  # nni enabled
             # if params['warm_start'] == "True":
             #     warm_start = True
@@ -1862,8 +1864,8 @@ def data_transformation(y):
     lambda_boxcox = None
     log("Plot Histogram")
     # plot_histogram(y, xlabel='Load [MW]')
-    if BOXCOX:
-        min_y = min(y)
+    min_y = min(y)
+    if BOXCOX:        
         if min_y <= 0:
             log("Shift negative to positive values + offset 1")
             y_transf = y+abs(min_y)+1
@@ -1895,7 +1897,7 @@ def data_transformation(y):
             y_transf = pd.DataFrame({label: y_transf.values.ravel()})
     if MINMAXSCALER:
         label = y_transf.columns[0]
-        minmax = MinMaxScaler(feature_range=(1, 100))
+        minmax = MinMaxScaler(feature_range=(0, 1))
         y_transf = minmax.fit_transform(y_transf)
         try:
             y_transf = pd.DataFrame({label: y_transf})
@@ -1985,18 +1987,23 @@ def plotFeatureImportance(X, model):
     #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
 
 
-def open_json(model, algorithm, imf):
-    filePath = path + \
-        f'/src/params/{algorithm.upper()}_params_{imf.upper()}_{MODE.upper()}.json'
-    try:
-        # Opening JSON file
-        fp = open(filePath)
-        local_params = json.load(fp)
-    except (FileNotFoundError, OSError, IOError) as e:
-        log(f'Hyperparameters JSON file not found: {e}')
-        log(f'Use default params...')
-        local_params = model.get_params()
-        pass
+def open_json(model, algorithm, imf, manual=False):
+    if not manual:
+        filePath = path + \
+            f'/src/params/{algorithm.upper()}_params_{imf.upper()}_{MODE.upper()}.json'
+    else:
+        filePath = path + \
+            f'/src/params/{algorithm.upper()}_params_MANUAL.json'
+        
+        try:
+            # Opening JSON file
+            fp = open(filePath)
+            local_params = json.load(fp)
+        except (FileNotFoundError, OSError, IOError) as e:
+            log(f'Hyperparameters JSON file not found: {e}')
+            log(f'Use default params...')
+            local_params = model.get_params()
+            pass
     return local_params
 
 

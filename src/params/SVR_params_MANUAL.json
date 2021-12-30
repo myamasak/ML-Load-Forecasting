@@ -1,0 +1,11 @@
+{
+    "kernel": "rbf",
+    "degree": 3,
+    "gamma": "auto",
+    "coef0": 1,
+    "tol": 1e-3,
+    "C": 1000,
+    "epsilon": 0.1,
+    "shrinking": false,
+    "cache_size": 200
+}
