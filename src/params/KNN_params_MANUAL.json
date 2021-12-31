@@ -1,0 +1,9 @@
+{
+    "n_neighbors":18,
+    "weights":"uniform",
+    "algorithm":"auto",
+    "leaf_size":30,
+    "p":2,
+    "metric":"euclidean",
+    "n_jobs": -1
+}

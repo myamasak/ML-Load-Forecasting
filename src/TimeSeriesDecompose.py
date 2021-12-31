@@ -60,7 +60,7 @@ enable_nni = False
 # Set True to plot curves
 plot = True
 # Configuration for Forecasting
-ALGORITHM = 'svr'
+ALGORITHM = 'knn'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
@@ -82,6 +82,7 @@ TEST_DAYS = 29
 MULTIMODEL = False
 LSTM_ENABLED = False
 FINAL_TEST = True
+SAVE_JSON = True
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018"]
 # selectDatasets = ["2017","2018"]
@@ -734,15 +735,22 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             #     warm_start = True
             # elif params['warm_start'] == "False":
             #     warm_start = False
-
-            if params['min_samples_split'] > 1:
-                params['min_samples_split'] = int(params['min_samples_split'])
-            else:
-                params['min_samples_split'] = float(params['min_samples_split'])
+            try:
+                if params['min_samples_split'] > 1:
+                    params['min_samples_split'] = int(params['min_samples_split'])
+                else:
+                    params['min_samples_split'] = float(params['min_samples_split'])
+                
+                params['n_estimators'] = int(params['n_estimators'])
+                params['max_depth'] = int(params['max_depth'])
+                
+            except (KeyError, TypeError) as e:
+                log(e)
+                pass
             
-            params['n_estimators'] = int(params['n_estimators'])
-            params['max_depth'] = int(params['max_depth'])
-
+            params['n_neighbors'] = int(params['n_neighbors'])
+            params['leaf_size'] = int(params['leaf_size'])
+            params['p'] = int(params['p'])
             model = REGRESSORS[ALGORITHM]
             model.set_params(**params)
 
@@ -886,8 +894,12 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             results[r].mae_per_fold.append(mae)
             results[r].maep_per_fold.append(mae_percent)
             results[r].mape_per_fold.append(mape)
-            results[r].smape_per_fold.append(smape)
-            results[r].name.append(y.columns[0])
+            results[r].smape_per_fold.append(smape)            
+            results[r].decomposition = MODE
+            results[r].nmodes = NMODES
+            results[r].algorithm = ALGORITHM            
+            results[r].test_name = 'loadForecast_' + y.columns[0]
+            
 
             # Increase fold number
             fold_no = fold_no + 1
@@ -910,10 +922,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             plt.tight_layout()
             if BOXCOX:
                 plt.savefig(
-                    path+f'/results/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
+                    path+f'/results/pdf/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
             else:
                 plt.savefig(
-                    path+f'/results/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
+                    path+f'/results/pdf/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
 
             # Calculate feature importances
             try:
@@ -923,7 +935,13 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
         # Print the results: average per fold
         log(f"Model name: {type(model).__name__}")
+        results[r].model_name.append(type(model).__name__)
+        results[r].name.append(y.columns[0])
+        results[r].model_params = model.get_params()
         results[r].printResults()
+        if not enable_nni and SAVE_JSON:
+            results[r].saveResults(path)
+        
 
     else:  # NOT CROSSVALIDATION
         log(f'Predict only the last {testSize*X.shape[0]/24} days')
@@ -1024,10 +1042,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             plt.legend()
             if BOXCOX:
                 plt.savefig(
-                    path+f'/results/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
+                    path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
             else:
                 plt.savefig(
-                    path+f'/results/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
+                    path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
             plt.show()
             plt.tight_layout()
 
@@ -1159,7 +1177,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.xlabel('Date')
             plt.ylabel('Load [MW]')
             plt.legend()
-            plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
+            plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
             plt.show()
             plt.tight_layout()
 
@@ -1173,13 +1191,13 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             adjr2_score))
 
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-        log("RMSE: %f" % (rmse))
+        # log("RMSE: %f" % (rmse))
 
         mae = mean_absolute_error(y_test, y_pred)
-        log("MAE: %f" % (mae))
+        # log("MAE: %f" % (mae))
         
         mae_percent = maep(y_test, y_pred)
-        log("MAEP: %f" % (mae_percent))
+        # log("MAEP: %f" % (mae_percent))
                 
 
         # Fix shape
@@ -1192,8 +1210,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 y_test = y_test.values.ravel()
         mape = mean_absolute_percentage_error(y_test, y_pred)
         smape = symmetric_mape(y_test, y_pred)
-        log("MAPE: %.2f%%" % (mape))
-        log("sMAPE: %.2f%%" % (smape))
+        # log("MAPE: %.2f%%" % (mape))
+        # log("sMAPE: %.2f%%" % (smape))
         finalResults[0].r2train_per_fold.append(0)
         finalResults[0].r2test_per_fold.append(r2test)
         finalResults[0].r2testadj_per_fold.append(adjr2_score)
@@ -1203,10 +1221,18 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         finalResults[0].mape_per_fold.append(mape)
         finalResults[0].smape_per_fold.append(smape)
         finalResults[0].name.append("DEMAND")
+        finalResults[0].model_name.append(type(model).__name__)
+        finalResults[0].model_params = model.get_params()
+        finalResults[0].decomposition = MODE
+        finalResults[0].nmodes = NMODES
+        finalResults[0].algorithm = ALGORITHM
+        finalResults[0].test_name = 'plotResults'
 
         finalResults[0].printResults()
+        if not enable_nni and SAVE_JSON:
+            finalResults[0].saveResults(path)
 
-    else:
+    else: # CROSSVALIDATION
         # Add real data to plot
         if plot:
             # fig = go.Figure()
@@ -1249,9 +1275,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
         train_index = np.arange(0, train_size+OFFSET)
         test_index = np.arange(train_size+OFFSET, train_size+test_size+OFFSET)
-
+        
         for i in range(0, KFOLD):
-            finalResults.append(Results())
             X_train = inputs[train_index]
             y_train = targets[train_index]
             try:
@@ -1315,8 +1340,12 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             finalResults[0].maep_per_fold.append(mae_percent)
             finalResults[0].mape_per_fold.append(mape)
             finalResults[0].smape_per_fold.append(smape)
-            finalResults[0].name.append(f'kfold_{i}')
-
+            finalResults[0].name.append(f'kfold_{i}')            
+            finalResults[0].decomposition = MODE
+            finalResults[0].nmodes = NMODES
+            finalResults[0].algorithm = ALGORITHM
+            finalResults[0].test_name = 'plotResults'
+            
             # Increase fold number
             fold_no = fold_no + 1
 
@@ -1339,16 +1368,20 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             #     size=12)
             # ))
             # fig.show()
-            # fig.write_image(file=path+'/results/loadForecast_k-fold_crossvalidation.pdf')
+            # fig.write_image(file=path+'/results/pdf/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
             plt.show()
             plt.tight_layout()
             plt.savefig(
-                path+f'/results/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
+                path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
 
         # Print the results: average per fold
         log(f"Model name: {type(model).__name__}")
+        finalResults[0].model_name.append(type(model).__name__)
+        finalResults[0].model_params = model.get_params()
         finalResults[0].printResults()
+        if not enable_nni and SAVE_JSON:
+            finalResults[0].saveResults(path)
 
 
 def test_stationarity(data):
@@ -1554,9 +1587,9 @@ def plot_histogram(y_, xlabel):
         plt.legend()
         plt.tight_layout()
         if xlabel.find('Box') != -1:
-            plt.savefig(path+f'/results/{DATASET_NAME}_BoxCox_histogram.pdf')
+            plt.savefig(path+f'/results/pdf/{DATASET_NAME}_BoxCox_histogram.pdf')
         else:
-            plt.savefig(path+f'/results/{DATASET_NAME}_demand_histogram.pdf')
+            plt.savefig(path+f'/results/pdf/{DATASET_NAME}_demand_histogram.pdf')
 
 
 def transform_stationary(y_, y_diff=0, invert=False):
@@ -1776,7 +1809,11 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     y_all = y_all[:len(y_)+len(y_final)]
     # y_all = y_all[:-24*FORECASTDAYS]
-
+    
+    
+    y_test = np.array(y_test).squeeze()
+    y_final = np.array(y_final).squeeze()
+    
     if plot:
         plt.figure()
         plt.plot(df, y_all, label=f'Real data')
@@ -1787,26 +1824,26 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         plt.xticks(fontsize=FONT_SIZE)
         plt.yticks(fontsize=FONT_SIZE)
         plt.legend(fontsize=FONT_SIZE)
-        plt.savefig(path+f'/results/{MODE}_noCV_composed_pred_vs_real.pdf')
+        plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
-        plt.tight_layout()
-    r2test = r2_score(np.array(y_test).squeeze(), np.array(y_final).squeeze())
-    log(f"Model name: {type(model).__name__}")
-    log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
+        plt.tight_layout()        
+    r2test = r2_score(y_test, y_final)
+    # log(f"Model name: {type(model).__name__}")
+    # log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
     n = len(X_test)
     p = X_test.shape[1]
     adjr2_score = 1-((1-r2test)*(n-1)/(n-p-1))
-    log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(
-        adjr2_score))
+    # log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(
+    #     adjr2_score))
 
     rmse = np.sqrt(mean_squared_error(y_test, y_final))
-    log("RMSE: %f" % (rmse))
+    # log("RMSE: %f" % (rmse))
 
     mae = mean_absolute_error(y_test, y_final)
-    log("MAE: %f" % (mae))
+    # log("MAE: %f" % (mae))
     
     mae_percent = maep(y_test, y_final)
-    log("MAEP: %.3f%%" % (mae_percent))
+    # log("MAEP: %.3f%%" % (mae_percent))
 
     # Fix shape
     if len(y_final) > 1:
@@ -1819,9 +1856,33 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     mape = mean_absolute_percentage_error(y_test, y_final)
     smape = symmetric_mape(y_test, y_final)
-    log("MAPE: %.3f%%" % (mape))
-    log("sMAPE: %.3f%%" % (smape))
+    # log("MAPE: %.3f%%" % (mape))
+    # log("sMAPE: %.3f%%" % (smape))
+    
+    ###### Save results ########
+    results = Results()
+    results.r2train_per_fold.append(0)
+    results.r2test_per_fold.append(r2test)
+    results.r2testadj_per_fold.append(adjr2_score)
+    results.rmse_per_fold.append(rmse)
+    results.mae_per_fold.append(mae)
+    results.maep_per_fold.append(mae_percent)
+    results.mape_per_fold.append(mape)
+    results.smape_per_fold.append(smape)
+    results.name.append('none')
+    results.model_name.append(type(model).__name__)
+    results.model_params = model.get_params()
+    results.decomposition = MODE
+    results.nmodes = NMODES
+    results.algorithm = ALGORITHM
+    results.test_name = 'finalTest'
+    # Print results
+    results.printResults()
+    if not enable_nni and SAVE_JSON:
+        results.saveResults(path)
 
+    #################################
+    
     if plot and True:
         plt.figure()
         plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
@@ -1856,7 +1917,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         plt.xticks(xaxis)
         plt.show()
         plt.tight_layout()
-
+        
+   
 
 def data_transformation(y):
     sc1 = None
@@ -1981,7 +2043,7 @@ def plotFeatureImportance(X, model):
     plt.xlabel('Relative Importance', fontsize=FONT_SIZE)
     plt.show()
     plt.tight_layout()
-    plt.savefig(path+f'/results/{DATASET_NAME}_{MODE}_feature_importance.pdf')
+    plt.savefig(path+f'/results/pdf/{DATASET_NAME}_{MODE}_feature_importance.pdf')
 
     # featImportance = pd.concat([pd.DataFrame({'Features':names}),
     #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
@@ -2046,6 +2108,7 @@ def saveDecomposedIMFs(y_decomposed_list):
                 imf = pd.DataFrame({imf.name: imf.values})
             imf.to_csv(
                 path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+    
 
 ################
 # MAIN PROGRAM
@@ -2055,6 +2118,7 @@ for args in sys.argv:
     if args == '-nni':
         enable_nni = True
         plot = False
+        SAVE_JSON = False
 
 params = nni.get_next_parameter()
 # Initial message
@@ -2087,7 +2151,7 @@ if plot and True:
     plt.plot(df, y)
     plt.show()
     plt.tight_layout()
-    plt.savefig(path+f'/results/{DATASET_NAME}_after_outlierClean.pdf')
+    plt.savefig(path+f'/results/pdf/{DATASET_NAME}_after_outlierClean.pdf')
 # List of results
 results = []
 finalResults = []
@@ -2163,6 +2227,7 @@ if CROSSVALIDATION:
     data_transformation_inverse(
         y_composed, lambda_boxcox, sc1, minmax, min_y, cv=CROSSVALIDATION)
     log("Print and plot the results")
+    finalResults.append(Results())
     plotResults(X_=X, y_=y, y_pred=y_composed,
                 testSize=testSize, dataset_name=DATASET_NAME)
     finalTest(model=models, X_test=X_testset,
@@ -2170,7 +2235,7 @@ if CROSSVALIDATION:
 
 if enable_nni:
     log("Publish the results on AutoML nni")
-    rmsetestResults = results[0].rmse_per_fold
+    rmsetestResults = finalResults[0].rmse_per_fold
     rmseScoreAvg = np.mean(rmsetestResults)
     log(f"rmseScoreAvg = {rmseScoreAvg}")
     nni.report_final_result(rmseScoreAvg)
