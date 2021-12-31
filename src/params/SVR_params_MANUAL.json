@@ -4,7 +4,7 @@
     "gamma": "auto",
     "coef0": 1,
     "tol": 1e-3,
-    "C": 1000,
+    "C": 100,
     "epsilon": 0.1,
     "shrinking": false,
     "cache_size": 200
