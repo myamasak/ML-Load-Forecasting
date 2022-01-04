@@ -1,0 +1,8 @@
+{
+    "n_neighbors": 29,
+    "weights": "uniform",
+    "algorithm": "kd_tree",
+    "leaf_size": 37,
+    "p": 27,
+    "metric": "manhattan"
+}

@@ -2,6 +2,7 @@ import numpy as np
 from log import log
 from datetime import datetime
 
+
 class Results:
     def __init__(self):
         self.r2train_per_fold = []
@@ -36,7 +37,7 @@ class Results:
         self.avg_smape = None
         self.std_smape = None
         self.model_params = dict()
-        
+        self.duration = None
 
     def printResults(self, print_folds=False):
         # == Provide average scores ==
@@ -59,6 +60,7 @@ class Results:
                 log(f'> Fold {i+1} - smape: {self.smape_per_fold[i]:.4f}')
         log('------------------------------------------------------------------------')
         log(f'Model name: {self.model_name}')
+        log(f'Duration: {self.duration} seconds')
         log('Average scores for all folds:')
         log(f'> r2_score_train: {np.mean(self.r2train_per_fold):.4f} (+- {np.std(self.r2train_per_fold):.4f})')
         log(f'> r2_score_test: {np.mean(self.r2test_per_fold):.4f} (+- {np.std(self.r2test_per_fold):.4f})')
@@ -73,7 +75,9 @@ class Results:
     def saveResults(self, path):
         # timestamp = round(datetime.now().timestamp())
         timestamp = datetime.today().strftime('%Y%m%d_%H%M%S')
-        path = path + "/results/json/" + f"{self.algorithm}_{self.decomposition}_{self.nmodes}_{self.test_name}_" + str(timestamp) + ".csv" 
+        path = path + "/results/json/" + \
+            f"{self.algorithm}_{self.decomposition}_{self.nmodes}_{self.test_name}_" + \
+            str(timestamp) + ".csv"
 
         # Average results
         self.avg_r2train = round(np.mean(self.r2train_per_fold), 4)
@@ -92,7 +96,7 @@ class Results:
         self.std_mae = round(np.std(self.mae_per_fold), 4)
         self.std_maep = round(np.std(self.maep_per_fold), 4)
         self.std_mape = round(np.std(self.mape_per_fold), 4)
-        self.std_smape = round(np.std(self.smape_per_fold), 4)        
+        self.std_smape = round(np.std(self.smape_per_fold), 4)
 
         data = dict()
         data = self.__dict__

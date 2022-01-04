@@ -1,8 +1,8 @@
 {  
-    "n_neighbors":{"_type":"quniform", "_value":[3,30,1]},
+    "n_neighbors":{"_type":"quniform", "_value":[3,60,1]},
     "weights":{"_type":"choice", "_value":["uniform","distance"]},
     "algorithm":{"_type":"choice", "_value":["auto","ball_tree","kd_tree","brute"]},
-    "leaf_size":{"_type":"quniform", "_value":[1,60,1]},
-    "p":{"_type":"quniform", "_value":[1,10,1]},
+    "leaf_size":{"_type":"quniform", "_value":[1,90,1]},
+    "p":{"_type":"quniform", "_value":[1,40,1]},
     "metric":{"_type":"choice", "_value":["euclidean", "l2", "minkowski", "p", "manhattan", "cityblock", "l1", "chebyshev", "infinity"]}
 }

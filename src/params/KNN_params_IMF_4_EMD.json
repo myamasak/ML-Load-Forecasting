@@ -1,0 +1,8 @@
+{
+    "n_neighbors": 60,
+    "weights": "uniform",
+    "algorithm": "brute",
+    "leaf_size": 71,
+    "p": 13,
+    "metric": "l1"
+}

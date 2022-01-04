@@ -1,0 +1,8 @@
+{
+    "n_neighbors": 30,
+    "weights": "distance",
+    "algorithm": "ball_tree",
+    "leaf_size": 23,
+    "p": 12,
+    "metric": "manhattan"
+}

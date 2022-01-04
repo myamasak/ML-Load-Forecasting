@@ -1,0 +1,8 @@
+{
+    "n_neighbors": 4,
+    "weights": "distance",
+    "algorithm": "auto",
+    "leaf_size": 6,
+    "p": 35,
+    "metric": "minkowski"
+}

@@ -66,17 +66,17 @@ KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'none'
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
-HYPERPARAMETER_IMF = 'IMF_0'
+HYPERPARAMETER_IMF = 'IMF_6'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
 MULTIMODEL = False
@@ -578,7 +578,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
 
 def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
     log("Load Forecasting algorithm has been started")
-    start_time_xgboost = time.time()
+    start_time_loadForecast = time.time()
 
     global df, fig
     kfoldPred = []
@@ -731,11 +731,12 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # Set model hyperparameters from json file
             model.set_params(**local_params)
         else:  # nni enabled
-            # if params['warm_start'] == "True":
-            #     warm_start = True
-            # elif params['warm_start'] == "False":
-            #     warm_start = False
-            try:
+            
+            # Convert some params to int to avoid error (float bug)
+            if ALGORITHM == 'xgboost' or \
+               ALGORITHM == 'gbr' or \
+               ALGORITHM == 'extratrees' or \
+               ALGORITHM == 'rf':
                 if params['min_samples_split'] > 1:
                     params['min_samples_split'] = int(params['min_samples_split'])
                 else:
@@ -743,14 +744,17 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 
                 params['n_estimators'] = int(params['n_estimators'])
                 params['max_depth'] = int(params['max_depth'])
-                
-            except (KeyError, TypeError) as e:
-                log(e)
-                pass
             
-            params['n_neighbors'] = int(params['n_neighbors'])
-            params['leaf_size'] = int(params['leaf_size'])
-            params['p'] = int(params['p'])
+            elif ALGORITHM == 'knn':
+                params['n_neighbors'] = int(params['n_neighbors'])
+                params['leaf_size'] = int(params['leaf_size'])
+                params['p'] = int(params['p'])
+            elif ALGORITHM == 'svr':
+                params['degree'] = int(params['degree'])
+                params['coef0'] = int(params['coef0'])
+                params['C'] = int(params['C'])
+                params['cache_size'] = int(params['cache_size'])
+                
             model = REGRESSORS[ALGORITHM]
             model.set_params(**params)
 
@@ -938,6 +942,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         results[r].model_name.append(type(model).__name__)
         results[r].name.append(y.columns[0])
         results[r].model_params = model.get_params()
+        results[r].duration = round(time.time() - start_time_loadForecast)
         results[r].printResults()
         if not enable_nni and SAVE_JSON:
             results[r].saveResults(path)
@@ -1097,9 +1102,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         #     else:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
         #     ax.figure.show()
-        # log("\n--- \t{:0.4f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost))
+        # log("\n--- \t{:0.4f} seconds --- Load Forecasting ".format(time.time() - start_time_loadForecast))
 
-    log("\n--- \t{:0.4f} seconds --- Load Forecasting ".format(time.time() - start_time_xgboost))
+    log("\n--- \t{:0.4f} seconds --- Load Forecasting ".format(time.time() - start_time_loadForecast))
     return y_pred, testSize, kfoldPred, model
 
 
@@ -1136,7 +1141,8 @@ def composeSeasonal(decomposePred, model='stl-a'):
 
 
 def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
-
+    start_time = time.time()
+    
     if len(df) != len(y_):
         y_ = y_[:len(df)]
     if len(df) != len(X_):
@@ -1227,6 +1233,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         finalResults[0].nmodes = NMODES
         finalResults[0].algorithm = ALGORITHM
         finalResults[0].test_name = 'plotResults'
+        finalResults[0].duration = round(time.time() - start_time)
+        
 
         finalResults[0].printResults()
         if not enable_nni and SAVE_JSON:
@@ -1379,6 +1387,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         log(f"Model name: {type(model).__name__}")
         finalResults[0].model_name.append(type(model).__name__)
         finalResults[0].model_params = model.get_params()
+        finalResults[0].duration = round(time.time() - start_time)
         finalResults[0].printResults()
         if not enable_nni and SAVE_JSON:
             finalResults[0].saveResults(path)
@@ -1660,6 +1669,7 @@ def data_cleaning_columns(X, y):
 
 
 def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
+    start_time = time.time()
     if not FINAL_TEST:
         return
     log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
@@ -1876,6 +1886,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     results.nmodes = NMODES
     results.algorithm = ALGORITHM
     results.test_name = 'finalTest'
+    results.duration = round(time.time() - start_time)
+    
     # Print results
     results.printResults()
     if not enable_nni and SAVE_JSON:
@@ -2057,15 +2069,15 @@ def open_json(model, algorithm, imf, manual=False):
         filePath = path + \
             f'/src/params/{algorithm.upper()}_params_MANUAL.json'
         
-        try:
-            # Opening JSON file
-            fp = open(filePath)
-            local_params = json.load(fp)
-        except (FileNotFoundError, OSError, IOError) as e:
-            log(f'Hyperparameters JSON file not found: {e}')
-            log(f'Use default params...')
-            local_params = model.get_params()
-            pass
+    try:
+        # Opening JSON file
+        fp = open(filePath)
+        local_params = json.load(fp)
+    except (FileNotFoundError, OSError, IOError) as e:
+        log(f'Hyperparameters JSON file not found: {e}')
+        log(f'Use default params...')
+        local_params = model.get_params()
+        pass
     return local_params
 
 
@@ -2235,7 +2247,10 @@ if CROSSVALIDATION:
 
 if enable_nni:
     log("Publish the results on AutoML nni")
-    rmsetestResults = finalResults[0].rmse_per_fold
+    if HYPERPARAMETER_TUNING:
+        rmsetestResults = results[0].rmse_per_fold
+    else:        
+        rmsetestResults = finalResults[0].rmse_per_fold
     rmseScoreAvg = np.mean(rmsetestResults)
     log(f"rmseScoreAvg = {rmseScoreAvg}")
     nni.report_final_result(rmseScoreAvg)

@@ -1,0 +1,8 @@
+{
+    "n_neighbors": 10,
+    "weights": "distance",
+    "algorithm": "auto",
+    "leaf_size": 5,
+    "p": 13,
+    "metric": "cityblock"
+}
