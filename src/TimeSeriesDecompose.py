@@ -942,7 +942,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         results[r].model_name.append(type(model).__name__)
         results[r].name.append(y.columns[0])
         results[r].model_params = model.get_params()
-        results[r].duration = round(time.time() - start_time_loadForecast)
+        results[r].duration = round(time.time() - start_time_loadForecast, 2)
         results[r].printResults()
         if not enable_nni and SAVE_JSON:
             results[r].saveResults(path)
@@ -1233,7 +1233,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         finalResults[0].nmodes = NMODES
         finalResults[0].algorithm = ALGORITHM
         finalResults[0].test_name = 'plotResults'
-        finalResults[0].duration = round(time.time() - start_time)
+        finalResults[0].duration = round(time.time() - start_time, 2)
         
 
         finalResults[0].printResults()
@@ -1387,7 +1387,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         log(f"Model name: {type(model).__name__}")
         finalResults[0].model_name.append(type(model).__name__)
         finalResults[0].model_params = model.get_params()
-        finalResults[0].duration = round(time.time() - start_time)
+        finalResults[0].duration = round(time.time() - start_time, 2)
         finalResults[0].printResults()
         if not enable_nni and SAVE_JSON:
             finalResults[0].saveResults(path)
@@ -1886,7 +1886,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     results.nmodes = NMODES
     results.algorithm = ALGORITHM
     results.test_name = 'finalTest'
-    results.duration = round(time.time() - start_time)
+    results.duration = round(time.time() - start_time, 2)
     
     # Print results
     results.printResults()
