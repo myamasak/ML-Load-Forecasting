@@ -58,7 +58,8 @@ DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves
-plot = True
+PLOT = True
+SAVE_FIG = False
 # Configuration for Forecasting
 ALGORITHM = 'knn'
 CROSSVALIDATION = True
@@ -66,7 +67,7 @@ KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 6
-MODE = 'emd'
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -79,7 +80,7 @@ HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_6'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = False
+MULTIMODEL = True
 LSTM_ENABLED = False
 FINAL_TEST = True
 SAVE_JSON = True
@@ -490,7 +491,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
 
     outliers_reindex = outliers.reindex(
         list(range(df.index.min(), df.index.max()+1)))
-    if plot and False:
+    if PLOT and False:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df,
                                  y=y_.squeeze(),
@@ -523,7 +524,8 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     #                      height=500)
 
         fig.show()
-        fig.write_image(f"{path}{DATASET_NAME}_outliers_"+columnName+".pdf")
+        if SAVE_FIG:
+            fig.write_image(f"{path}{DATASET_NAME}_outliers_"+columnName+".pdf")
 
     # Fix outliers by removing and replacing with interpolation
     try:
@@ -539,7 +541,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     y_ = np.array(y_)
     y_ = y_.reshape(y_.shape[0])
 
-    if plot and False:
+    if PLOT and False:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df,
                                  y=y_,
@@ -571,7 +573,8 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     #                      height=500)
 
         fig.show()
-        fig.write_image(f"{DATASET_NAME}_outliers_fixed_"+columnName+".pdf")
+        if SAVE_FIG:
+            fig.write_image(f"{DATASET_NAME}_outliers_fixed_"+columnName+".pdf")
 
     return y_
 
@@ -583,7 +586,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
     global df, fig
     kfoldPred = []
     # Plot
-    if plot:
+    if PLOT:
         # fig = go.Figure()
         plt.figure()
 
@@ -643,8 +646,8 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         train_index = np.arange(0, train_size+offset)
         test_index = np.arange(train_size+offset, train_size+test_size+offset)
 
-        # Add real data to plot
-        if plot:
+        # Add real data to PLOT
+        if PLOT:
             # fig.add_trace(go.Scatter(x=df,
             #                             y=y.squeeze(),
             #                             name=f'Electricity Demand [MW] - {y.columns[0]}',
@@ -829,7 +832,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             df2 = pd.to_datetime(df2)
             y_pred = np.float64(y_pred)
 
-            if plot:
+            if PLOT:
                 # fig.add_trace(go.Scatter(x=df2,
                 #                         y=y_pred,
                 #                         name='Predicted Load (fold='+str(i+1)+")",
@@ -919,17 +922,19 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             test_index = test_index + train_size + test_size
 
-        if plot:
+        if PLOT:
             plt.rcParams.update({'font.size': 14})
             # plt.legend()
             plt.show()
             plt.tight_layout()
             if BOXCOX:
-                plt.savefig(
-                    path+f'/results/pdf/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
+                if SAVE_FIG:
+                    plt.savefig(
+                        path+f'/results/pdf/{MODE}_{y.columns[0]}_BoxCox_loadForecast_k-fold_crossvalidation.pdf')
             else:
-                plt.savefig(
-                    path+f'/results/pdf/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
+                if SAVE_FIG:
+                    plt.savefig(
+                        path+f'/results/pdf/{MODE}_{y.columns[0]}_legend_loadForecast_k-fold_crossvalidation.pdf')
 
             # Calculate feature importances
             try:
@@ -1032,7 +1037,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         rows = X_test.index
         df2 = df.iloc[rows[0]:]
 
-        if plot:
+        if PLOT:
             # plt.figure()
             # plt.plot(df2,y_tested, color = 'red', label = 'Real data')
             plt.plot(df, y, label=f'Real data - {y.columns[0]}')
@@ -1046,11 +1051,13 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             plt.xlabel('Date')
             plt.legend()
             if BOXCOX:
-                plt.savefig(
-                    path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
+                if SAVE_FIG:
+                    plt.savefig(
+                        path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_BoxCox_pred_vs_real.pdf')
             else:
-                plt.savefig(
-                    path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
+                if SAVE_FIG:            
+                    plt.savefig(
+                        path+f'/results/pdf/{MODE}_{y.columns[0]}_noCV_loadForecast_pred_vs_real.pdf')
             plt.show()
             plt.tight_layout()
 
@@ -1166,7 +1173,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         rows = X_test.index
         df2 = df.iloc[rows[0]:]
 
-        if plot:
+        if PLOT:
             plt.figure()
             #plt.plot(df2,y_tested, color = 'red', label = 'Real data')
             try:
@@ -1183,7 +1190,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.xlabel('Date')
             plt.ylabel('Load [MW]')
             plt.legend()
-            plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
+            if SAVE_FIG:
+                plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
             plt.show()
             plt.tight_layout()
 
@@ -1241,8 +1249,8 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             finalResults[0].saveResults(path)
 
     else: # CROSSVALIDATION
-        # Add real data to plot
-        if plot:
+        # Add real data to PLOT
+        if PLOT:
             # fig = go.Figure()
             # fig.add_trace(go.Scatter(x=df,
             #                          y=y_.squeeze(),
@@ -1304,7 +1312,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             df2 = pd.to_datetime(df2)
             y_pred[i] = np.float64(y_pred[i])
 
-            if plot:
+            if PLOT:
                 # fig.add_trace(go.Scatter(x=df2,
                 #                         y=y_pred[i],
                 #                         name='Predicted Load (fold='+str(i+1)+")",
@@ -1364,7 +1372,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
 
             test_index = test_index + train_size + test_size
 
-        if plot:
+        if PLOT:
             # fig.update_layout(
             #     font=dict(size=12),
             #     legend=dict(
@@ -1376,12 +1384,14 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             #     size=12)
             # ))
             # fig.show()
-            # fig.write_image(file=path+'/results/pdf/loadForecast_k-fold_crossvalidation.pdf')
+            # if SAVE_FIG:
+                # fig.write_image(file=path+'/results/pdf/loadForecast_k-fold_crossvalidation.pdf')
             plt.rcParams.update({'font.size': 14})
             plt.show()
             plt.tight_layout()
-            plt.savefig(
-                path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
+            if SAVE_FIG:
+                plt.savefig(
+                    path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
 
         # Print the results: average per fold
         log(f"Model name: {type(model).__name__}")
@@ -1586,7 +1596,7 @@ def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastD
 
 
 def plot_histogram(y_, xlabel):
-    if plot:
+    if PLOT:
         plt.figure()
         plt.title(f'{DATASET_NAME} Demand Histogram')
         plt.ylabel("Occurrences")
@@ -1596,9 +1606,11 @@ def plot_histogram(y_, xlabel):
         plt.legend()
         plt.tight_layout()
         if xlabel.find('Box') != -1:
-            plt.savefig(path+f'/results/pdf/{DATASET_NAME}_BoxCox_histogram.pdf')
+            if SAVE_FIG:
+                plt.savefig(path+f'/results/pdf/{DATASET_NAME}_BoxCox_histogram.pdf')
         else:
-            plt.savefig(path+f'/results/pdf/{DATASET_NAME}_demand_histogram.pdf')
+            if SAVE_FIG:
+                plt.savefig(path+f'/results/pdf/{DATASET_NAME}_demand_histogram.pdf')
 
 
 def transform_stationary(y_, y_diff=0, invert=False):
@@ -1824,7 +1836,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     y_test = np.array(y_test).squeeze()
     y_final = np.array(y_final).squeeze()
     
-    if plot:
+    if PLOT:
         plt.figure()
         plt.plot(df, y_all, label=f'Real data')
         plt.plot(df2, y_final, label=f'Forecasted', linestyle='--')
@@ -1834,7 +1846,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         plt.xticks(fontsize=FONT_SIZE)
         plt.yticks(fontsize=FONT_SIZE)
         plt.legend(fontsize=FONT_SIZE)
-        plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
+        if SAVE_FIG:
+            plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
         plt.tight_layout()        
     r2test = r2_score(y_test, y_final)
@@ -1895,7 +1908,7 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
 
     #################################
     
-    if plot and True:
+    if PLOT and True:
         plt.figure()
         plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
         plt.xlabel('Time [h]')
@@ -2055,7 +2068,8 @@ def plotFeatureImportance(X, model):
     plt.xlabel('Relative Importance', fontsize=FONT_SIZE)
     plt.show()
     plt.tight_layout()
-    plt.savefig(path+f'/results/pdf/{DATASET_NAME}_{MODE}_feature_importance.pdf')
+    if SAVE_FIG:
+        plt.savefig(path+f'/results/pdf/{DATASET_NAME}_{MODE}_feature_importance.pdf')
 
     # featImportance = pd.concat([pd.DataFrame({'Features':names}),
     #                  pd.DataFrame({'Relative_Importance':importances[indices]})], axis=1, sort=False)
@@ -2129,7 +2143,7 @@ def saveDecomposedIMFs(y_decomposed_list):
 for args in sys.argv:
     if args == '-nni':
         enable_nni = True
-        plot = False
+        PLOT = False
         SAVE_JSON = False
 
 params = nni.get_next_parameter()
@@ -2155,7 +2169,7 @@ df = X['DATE']
 # Outlier removal
 y = outlierCleaning(y, dataset_name=DATASET_NAME)
 
-if plot and True:
+if PLOT and True:
     plt.figure()
     plt.title(f'{DATASET_NAME} dataset demand curve')
     plt.xlabel('Date')
@@ -2163,7 +2177,8 @@ if plot and True:
     plt.plot(df, y)
     plt.show()
     plt.tight_layout()
-    plt.savefig(path+f'/results/pdf/{DATASET_NAME}_after_outlierClean.pdf')
+    if SAVE_FIG:
+        plt.savefig(path+f'/results/pdf/{DATASET_NAME}_after_outlierClean.pdf')
 # List of results
 results = []
 finalResults = []

@@ -1,5 +1,5 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_KNN_NONE_RMSE
+experimentName: TimeSeriesDecompose_ONS_KNN_EMD_IMF_6_RMSE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
