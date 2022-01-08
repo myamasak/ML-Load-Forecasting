@@ -59,28 +59,28 @@ DATASET_NAME = 'ONS'
 enable_nni = False
 # Set True to plot curves
 PLOT = True
-SAVE_FIG = False
+SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'knn'
+ALGORITHM = 'gbr'
 CROSSVALIDATION = True
-KFOLD = 10
+KFOLD = 1
 OFFSET = 0
 FORECASTDAYS = 7
-NMODES = 6
-MODE = 'none'
+NMODES = 1
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = False
-HYPERPARAMETER_IMF = 'IMF_6'
+HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = True
+MULTIMODEL = False
 LSTM_ENABLED = False
 FINAL_TEST = True
 SAVE_JSON = True
@@ -1984,7 +1984,7 @@ def data_transformation(y):
             y_transf = pd.DataFrame({label: y_transf.values.ravel()})
     if MINMAXSCALER:
         label = y_transf.columns[0]
-        minmax = MinMaxScaler(feature_range=(0, 1))
+        minmax = MinMaxScaler(feature_range=(-1, 1))
         y_transf = minmax.fit_transform(y_transf)
         try:
             y_transf = pd.DataFrame({label: y_transf})
@@ -2132,9 +2132,16 @@ def saveDecomposedIMFs(y_decomposed_list):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
                 imf = pd.DataFrame({imf.name: imf.values})
-            imf.to_csv(
-                path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
-    
+            try:
+                imf.to_csv(
+                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+                # To avoid decompose it again in the same run
+                LOAD_DECOMPOSED = True
+            except (FileNotFoundError, ValueError, OSError, IOError) as e:
+                log("Failed to save CSV after data Decomposition")
+                log(e)
+                raise
+
 
 ################
 # MAIN PROGRAM
@@ -2145,6 +2152,8 @@ for args in sys.argv:
         enable_nni = True
         PLOT = False
         SAVE_JSON = False
+        SAVE_FIG = False
+        HYPERPARAMETER_TUNING = True
 
 params = nni.get_next_parameter()
 # Initial message
