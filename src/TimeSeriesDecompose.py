@@ -63,7 +63,7 @@ SAVE_FIG = True
 # Configuration for Forecasting
 ALGORITHM = 'gbr'
 CROSSVALIDATION = True
-KFOLD = 1
+KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
 NMODES = 1
@@ -2128,6 +2128,7 @@ def init_lstm(X, params):
 
 
 def saveDecomposedIMFs(y_decomposed_list):
+    global LOAD_DECOMPOSED
     if not LOAD_DECOMPOSED and (MODE != 'none' or MODE != 'robust-stl'):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
