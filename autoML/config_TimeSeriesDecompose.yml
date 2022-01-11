@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_ONS_KNN_EMD_IMF_6_RMSE
+experimentName: TimeSeriesDecompose_ONS_SVR_EMD_IMF_0_RMSE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space_knn.json
+searchSpacePath: search_space_svr.json
 #choice: true, false
 useAnnotation: false
 tuner:

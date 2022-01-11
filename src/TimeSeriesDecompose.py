@@ -66,8 +66,8 @@ CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
-NMODES = 1
-MODE = 'emd'
+NMODES = 9
+MODE = 'stl-a'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -435,8 +435,8 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
         labels = ['Observed', 'Trend', 'Seasonal', 'Remainder']
         if LOAD_DECOMPOSED:
             all_files = glob.glob(
-                path + r'/datasets/ISONewEngland/custom/robust-stl*.csv')
-            # Initialize dataset list
+                path + r"/datasets/"+ DATASET_NAME + "/custom/robust-stl*.csv")
+            # Initialize dataset lis t
             decomposeList = []
             i = 0
             concat = []
@@ -1493,10 +1493,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         if LOAD_DECOMPOSED:
             if GET_LAGGED:
                 all_files = glob.glob(
-                    path + r"/datasets/ISONewEngland/custom/" + f"eemd_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             else:
                 all_files = glob.glob(
-                    path + r"/datasets/ISONewEngland/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1505,6 +1505,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     df = pd.read_csv(filename, index_col=None, header=None)
                     df = df.values.ravel()
                     IMFs.append(df)
+            log("EEMD was successfully loaded.")
 
         else:
             eemd = EEMD(trials=100, noise_width=0.15, DTYPE=np.float16)
@@ -1527,10 +1528,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         if LOAD_DECOMPOSED:
             if GET_LAGGED:
                 all_files = glob.glob(
-                    path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"ceemdan_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             else:
                 all_files = glob.glob(
-                    path + r"/datasets/ISONewEngland/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1539,10 +1540,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     df = pd.read_csv(filename, index_col=None, header=None)
                     df = df.values.ravel()
                     IMFs.append(df)
-        # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
-        ceemdan = CEEMDAN(trials=100, epsilon=0.01)
-        ceemdan.noise_seed(42)
-        IMFs = ceemdan(y_series, max_imf=Nmodes)
+            log("CEEMDAN was successfully loaded.")
+        else:
+            # CEEMDAN - Complete Ensemble Empirical Mode Decomposition with Adaptive Noise
+            ceemdan = CEEMDAN(trials=100, epsilon=0.01)
+            ceemdan.noise_seed(42)
+            IMFs = ceemdan(y_series, max_imf=Nmodes)
         return IMFs
 
     def do_ewt():
@@ -2078,10 +2081,10 @@ def plotFeatureImportance(X, model):
 def open_json(model, algorithm, imf, manual=False):
     if not manual:
         filePath = path + \
-            f'/src/params/{algorithm.upper()}_params_{imf.upper()}_{MODE.upper()}.json'
+            f'/src/params/{DATASET_NAME}_{algorithm.upper()}_params_{imf.upper()}_{MODE.upper()}.json'
     else:
         filePath = path + \
-            f'/src/params/{algorithm.upper()}_params_MANUAL.json'
+            f'/src/params/{DATASET_NAME}_{algorithm.upper()}_params_MANUAL.json'
         
     try:
         # Opening JSON file
@@ -2128,7 +2131,6 @@ def init_lstm(X, params):
 
 
 def saveDecomposedIMFs(y_decomposed_list):
-    global LOAD_DECOMPOSED
     if not LOAD_DECOMPOSED and (MODE != 'none' or MODE != 'robust-stl'):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
@@ -2136,8 +2138,6 @@ def saveDecomposedIMFs(y_decomposed_list):
             try:
                 imf.to_csv(
                     path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
-                # To avoid decompose it again in the same run
-                LOAD_DECOMPOSED = True
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
@@ -2218,6 +2218,7 @@ y_decomposed_list = decomposeSeasonal(
 # Save decomposed data
 saveDecomposedIMFs(y_decomposed_list)
 
+LOAD_DECOMPOSED = True
 # Index for Results
 r = 0
 # Loop over decomposed data
