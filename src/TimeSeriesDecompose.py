@@ -61,13 +61,13 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'gbr'
+ALGORITHM = 'knn'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
-NMODES = 9
-MODE = 'stl-a'
+NMODES = 8
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -1491,12 +1491,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_eemd():
         if LOAD_DECOMPOSED:
-            if GET_LAGGED:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
-            else:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            # if GET_LAGGED:
+            #     all_files = glob.glob(
+            #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            # else:
+            all_files = glob.glob(
+                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1526,12 +1526,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
 
     def do_ceemdan():
         if LOAD_DECOMPOSED:
-            if GET_LAGGED:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"ceemdan_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
-            else:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + "/custom/" + f"ceemdan_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            # if GET_LAGGED:
+            #     all_files = glob.glob(
+            #         path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            # else:
+            all_files = glob.glob(
+                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -2090,6 +2090,10 @@ def open_json(model, algorithm, imf, manual=False):
         # Opening JSON file
         fp = open(filePath)
         local_params = json.load(fp)
+        if manual:
+            log("Manual hyperparameters loaded successfully.")
+        else:
+            log("Multimodel hyperparameters loaded successfully.")
     except (FileNotFoundError, OSError, IOError) as e:
         log(f'Hyperparameters JSON file not found: {e}')
         log(f'Use default params...')
@@ -2131,13 +2135,13 @@ def init_lstm(X, params):
 
 
 def saveDecomposedIMFs(y_decomposed_list):
-    if not LOAD_DECOMPOSED and (MODE != 'none' or MODE != 'robust-stl'):
+    if not LOAD_DECOMPOSED and (MODE == 'eemd' or MODE == 'ceemdan'):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
                 imf = pd.DataFrame({imf.name: imf.values})
             try:
                 imf.to_csv(
-                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
