@@ -1,10 +1,10 @@
 {
     "kernel": "rbf",
-    "degree": 2,
+    "degree": 2.0,
     "gamma": 0.001,
-    "coef0": 10,
-    "tol": 0.00001,
-    "C": 10000,
+    "coef0": 10.0,
+    "tol": 1,
+    "C": 10000.0,
     "epsilon": 0.2,
     "shrinking": true,
     "cache_size": 750

@@ -35,6 +35,7 @@ import os
 import numpy as np
 import pandas as pd
 import json
+# from dm_test.dm_test import dm_test
 """
 Time-Series Decomposition
 Author: Marcos Yamasaki
@@ -61,18 +62,18 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'knn'
+ALGORITHM = 'xgboost'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 7
-NMODES = 8
-MODE = 'emd'
+NMODES = 1
+MODE = 'ceemdan'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -842,6 +843,16 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             y_pred_train = model.predict(X_train)
             y_pred_train = np.float64(y_pred_train)
             r2train = r2_score(y_train, y_pred_train)
+            
+            # Fix shape
+            if len(y_pred) > 1:
+                y_pred = y_pred.ravel()
+            if len(y_test) > 1:
+                try:
+                    y_test = y_test.ravel()
+                except AttributeError:
+                    y_test = y_test.values.ravel()
+            
             r2test = r2_score(y_test, y_pred)
 
             # log("The R2 score on the Train set is:\t{:0.3f}".format(r2train))
@@ -857,15 +868,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             mae = mean_absolute_error(y_test, y_pred)
             mae_percent = maep(y_test, y_pred)
             # log("MAE: %f" % (mae))
-
-            # Fix shape
-            if len(y_pred) > 1:
-                y_pred = y_pred.ravel()
-            if len(y_test) > 1:
-                try:
-                    y_test = y_test.ravel()
-                except AttributeError:
-                    y_test = y_test.values.ravel()
 
             mape = mean_absolute_percentage_error(y_test, y_pred)
             smape = symmetric_mape(y_test, y_pred)
@@ -1063,6 +1065,17 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
         y_pred_train = model.predict(X_train)
         r2train = r2_score(y_train, y_pred_train)
+        
+        # Fix shape
+        if len(y_pred) > 1:
+            y_pred = y_pred.ravel()
+        if len(y_test) > 1:
+            try:
+                y_test = y_test.ravel()
+            except AttributeError:
+                y_test = y_test.values.ravel()
+
+        
         r2test = r2_score(y_test, y_pred)
         log(f"Model name: {type(model).__name__}")
         log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
@@ -1079,14 +1092,6 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         mae = mean_absolute_error(y_test, y_pred)
         log("MAE: %f" % (mae))
 
-        # Fix shape
-        if len(y_pred) > 1:
-            y_pred = y_pred.ravel()
-        if len(y_test) > 1:
-            try:
-                y_test = y_test.ravel()
-            except AttributeError:
-                y_test = y_test.values.ravel()
 
         mape = mean_absolute_percentage_error(y_test, y_pred)
         smape = symmetric_mape(y_test, y_pred)
@@ -1194,6 +1199,15 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
             plt.show()
             plt.tight_layout()
+            
+        # Fix shape
+        if len(y_pred) > 1:
+            y_pred = y_pred.ravel()
+        if len(y_test) > 1:
+            try:
+                y_test = y_test.ravel()
+            except AttributeError:
+                y_test = y_test.values.ravel()
 
         r2test = r2_score(y_test, y_pred)
         log(f"Model name: {type(model).__name__}")
@@ -1214,14 +1228,6 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
         # log("MAEP: %f" % (mae_percent))
                 
 
-        # Fix shape
-        if len(y_pred) > 1:
-            y_pred = y_pred.ravel()
-        if len(y_test) > 1:
-            try:
-                y_test = y_test.ravel()
-            except AttributeError:
-                y_test = y_test.values.ravel()
         mape = mean_absolute_percentage_error(y_test, y_pred)
         smape = symmetric_mape(y_test, y_pred)
         # log("MAPE: %.2f%%" % (mape))
@@ -1318,6 +1324,16 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 #                         name='Predicted Load (fold='+str(i+1)+")",
                 #                         mode='lines'))
                 plt.plot(df2, y_pred[i], label=f'Predicted Load (fold={i})')
+                
+                
+            # Fix shape
+            if len(y_pred[i]) > 1:
+                y_pred[i] = y_pred[i].ravel()
+            if len(y_test) > 1:
+                try:
+                    y_test = y_test.ravel()
+                except AttributeError:
+                    y_test = y_test.values.ravel()
 
             r2test = r2_score(y_test, y_pred[i])
         #    log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
@@ -1334,14 +1350,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
            # log("MAE: %f" % (mae))
             mae_percent = maep(y_test, y_pred[i])
 
-            # Fix shape
-            if len(y_pred[i]) > 1:
-                y_pred[i] = y_pred[i].ravel()
-            if len(y_test) > 1:
-                try:
-                    y_test = y_test.ravel()
-                except AttributeError:
-                    y_test = y_test.values.ravel()
+            
             # MAPE and sMAPE
             mape = mean_absolute_percentage_error(y_test, y_pred[i])
             smape = symmetric_mape(y_test, y_pred[i])
@@ -1853,6 +1862,18 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
             plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
         plt.tight_layout()        
+        
+        
+    # Fix shape
+    if len(y_final) > 1:
+        y_final = y_final.ravel()
+    if len(y_test) > 1:
+        try:
+            y_test = y_test.ravel()
+        except AttributeError:
+            y_test = y_test.values.ravel()    
+    
+    
     r2test = r2_score(y_test, y_final)
     # log(f"Model name: {type(model).__name__}")
     # log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
@@ -1871,14 +1892,6 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     mae_percent = maep(y_test, y_final)
     # log("MAEP: %.3f%%" % (mae_percent))
 
-    # Fix shape
-    if len(y_final) > 1:
-        y_final = y_final.ravel()
-    if len(y_test) > 1:
-        try:
-            y_test = y_test.ravel()
-        except AttributeError:
-            y_test = y_test.values.ravel()
 
     mape = mean_absolute_percentage_error(y_test, y_final)
     smape = symmetric_mape(y_test, y_final)
@@ -1908,6 +1921,8 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     results.printResults()
     if not enable_nni and SAVE_JSON:
         results.saveResults(path)
+        
+    savePredictions(y_test, y_final)
 
     #################################
     
@@ -2147,6 +2162,20 @@ def saveDecomposedIMFs(y_decomposed_list):
                 log(e)
                 raise
 
+def savePredictions(y_test, y_pred):
+    if type(y_pred) is not type(pd.DataFrame()):
+        y_pred = pd.DataFrame(y_pred)
+    if type(y_test) is not type(pd.DataFrame()):
+        y_test = pd.DataFrame(y_test)
+        
+    y_pred = pd.concat([y_test, y_pred], axis=1)
+    try:
+        y_pred.to_csv(
+                path+f'/datasets/{DATASET_NAME}/y_pred/y_pred_{ALGORITHM}_{MODE}-{NMODES}_forecast{STEPS_AHEAD}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=['y_test','y_pred'])
+    except (FileNotFoundError, ValueError, OSError, IOError) as e:
+        log("Failed to save CSV for y_pred.")
+        log(e)
+        raise
 
 ################
 # MAIN PROGRAM
@@ -2221,7 +2250,7 @@ y_decomposed_list = decomposeSeasonal(
 
 # Save decomposed data
 saveDecomposedIMFs(y_decomposed_list)
-
+# After saving, ensure fast loading of saved IMFs
 LOAD_DECOMPOSED = True
 # Index for Results
 r = 0
