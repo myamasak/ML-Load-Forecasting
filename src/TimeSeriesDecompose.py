@@ -66,7 +66,7 @@ ALGORITHM = 'xgboost'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
-FORECASTDAYS = 7
+FORECASTDAYS = 30
 NMODES = 1
 MODE = 'ceemdan'
 BOXCOX = True
@@ -1502,10 +1502,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         if LOAD_DECOMPOSED:
             # if GET_LAGGED:
             #     all_files = glob.glob(
-            #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # else:
             all_files = glob.glob(
-                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1537,10 +1537,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         if LOAD_DECOMPOSED:
             # if GET_LAGGED:
             #     all_files = glob.glob(
-            #         path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_LAG_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            #         path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # else:
             all_files = glob.glob(
-                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -2156,7 +2156,7 @@ def saveDecomposedIMFs(y_decomposed_list):
                 imf = pd.DataFrame({imf.name: imf.values})
             try:
                 imf.to_csv(
-                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_forecast{FORECASTDAYS}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
