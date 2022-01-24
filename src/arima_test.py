@@ -228,7 +228,7 @@ fig, axes = plt.subplots(2, 1, sharex=True)
 axes[0].plot(pd.DataFrame(y)); axes[0].set_title('Demand')
 axes[1].set(ylim=(-0.5,1.2))
 #axes[1].set(xlim=(-10,100))
-plot_acf(pd.DataFrame(y).dropna(), ax=axes[1], lags=24*15)
+plot_acf(pd.DataFrame(y).dropna(), ax=axes[1], lags=24*360)
 plt.show()
 
 sns.set_palette(palette='deep')

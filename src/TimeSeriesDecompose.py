@@ -67,13 +67,13 @@ CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 30
-NMODES = 1
-MODE = 'ceemdan'
+NMODES = 2
+MODE = 'ewt'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -84,9 +84,10 @@ TEST_DAYS = 29
 MULTIMODEL = False
 LSTM_ENABLED = False
 FINAL_TEST = True
+FINAL_TEST_ONLY = False
 SAVE_JSON = True
 # Selection of year
-selectDatasets = ["2015", "2016", "2017", "2018"]
+selectDatasets = ["2015", "2016", "2017", "2018", "2019"]
 # selectDatasets = ["2017","2018"]
 # Seed Random Numbers with the TensorFlow Backend
 SEED_VALUE = 4242
@@ -531,7 +532,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     # Fix outliers by removing and replacing with interpolation
     try:
         y_ = y_.replace([outliers], np.nan)
-    except ValueError:
+    except (ValueError, KeyError) as e:
         y_ = y_.replace(outliers, np.nan)
     y_ = y_.interpolate(method='linear', axis=0).ffill().bfill()
 
@@ -1692,30 +1693,30 @@ def data_cleaning_columns(X, y):
     return X, y
 
 
-def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
+def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
     start_time = time.time()
     if not FINAL_TEST:
         return
     log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
     global df
-    if len(df) != len(y_):
-        # y_ = y_[:len(df)]
-        y_ = y_[1:]
-    if len(df) != len(X_):
-        # X_ = X_[:len(df)]
-        X_ = X_.drop(index=0).reset_index(drop=True)
+    if len(df) != len(y_all):
+        # y_all = y_all[:len(df)]
+        y_all = y_all[1:]
+    if len(df) != len(X_all):
+        # X_all = X_all[:len(df)]
+        X_all = X_all.drop(index=0).reset_index(drop=True)
 
-    X_test_copy = X_test
-    y_test_copy = y_test
+    X_testset_copy = X_testset
+    y_testset_copy = y_testset
     # Sanity check and drop unused columns
-    X_test, y_test = data_cleaning_columns(X_test, y_test)
+    X_testset, y_testset = data_cleaning_columns(X_testset, y_testset)
 
-    # Drop date column on X_
-    X_ = X_.drop('DATE', axis=1)
+    # Drop date column on X_all
+    X_all = X_all.drop('DATE', axis=1)
 
     # Limit the horizon by n_steps
-    X_test = X_test[:n_steps]
-    y_test = y_test[:n_steps]
+    # X_testset = X_testset[:n_steps]
+    # y_testset = y_testset[:n_steps]
     #### This is for get_lagged TRUE ####
     # if GET_LAGGED:
         # index_shifting = index_shifting = X_test.reset_index()['index'] - 1
@@ -1723,103 +1724,85 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
         # y_test = pd.DataFrame(y_test).set_index(index_shifting)
 
     # y_all = pd.concat([y_,y_test], axis=1)
-    y_all = np.concatenate([y_, y_test.values.ravel()])
-    X_all = pd.concat([X_, X_test], axis=0)
+    # y_all = np.concatenate([y_all, y_test.values.ravel()])
+    # X_all = pd.concat([X_, X_test], axis=0)
 
     # Normalize the signal
-    y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_)
+    y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_testset)
 
     # Data decompose
     y_decomposed_list = decomposeSeasonal(
         df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
 
+    
+    # Add real data to PLOT
+    # if PLOT:
+    #     if BOXCOX:
+    #         plt.title(
+    #             f'Electricity Prediction [MW] - with Box-Cox Transformation - {y.columns[0]}')
+    #         plt.ylabel(f'Load [MW] - Box-Cox')
+    #     else:
+    #         plt.title(f'Electricity Prediction [MW] - {y.columns[0]}')
+    #         plt.ylabel(f'Load [MW] - {y.columns[0]}')
+    #     plt.xlabel(f'Date')
+    #     plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
+    
     # List of predictions (IMF_0, IMF_1, ...)
     decomposePred = []
-
+    kfoldPred = []
+    save_test_index = []
+    save_index = True
     if previous_models:
-        for (model, y_decomposed) in zip(models, y_decomposed_list):
-            if GET_LAGGED:
-                X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
-
-            # Store predicted values
-            y_pred = np.zeros(n_steps)
-            # Recursive predictions
-            for i in range(n_steps):
-                if GET_LAGGED:
-                    if i > 0:
-                        X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
-                    else:
-                        X_test_final = X_test.iloc[0].append(
-                            pd.Series(X_lagged['DEMAND_LAG'][0]))
-                    # Rename
-                    X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
-                else:
-                    X_test_final = X_test.iloc[i]
-
-                # Predict
-                if LSTM_ENABLED:
-                    y_pred[i] = model.predict(
-                        X_test_final.values.reshape(1, 1, X_test_final.shape[0]))
-                else:
-                    y_pred[i] = model.predict(
-                        X_test_final.values.reshape(-1, X_test_final.shape[0]))
-                # Save prediction
-                y_lag = y_pred[i]
-
-            decomposePred.append(y_pred)
-    else: # previous_models
+        raise 
+    else: # previous_models = false
         for y_decomposed in y_decomposed_list:
-            train_size = round(len(X_)/(KFOLD))
-            if GET_LAGGED:
-                # X_all_lag, y_all_lag = get_lagged_y(X_all, y_decomposed, n_steps=1)
-                X_lagged, y_lagged = get_lagged_y(X_, y_decomposed, n_steps=1)
-                X_train = X_lagged[-train_size:]
-                y_train = y_lagged[-train_size:]
-            else:
-                X_train = X_[-train_size:]
+            kfoldPred = []
+            # train and validation
+            test_size = round(n_steps)
+            train_size = math.floor((len(X_testset)/KFOLD) - test_size)
+            # Indexes
+            train_index = np.arange(0, train_size)
+            test_index = np.arange(train_size, train_size+test_size)
+            for i in range(0, KFOLD):
+                # Set indexes - Sliding window
+                X_test = X_testset.iloc[test_index]
+                y_test = y_testset[test_index]                
+                X_train = X_testset[-train_size:]
                 y_train = y_decomposed[-train_size:]
+                ################
+                model = REGRESSORS[ALGORITHM]
+                model.fit(X_train, y_train.values.ravel())
 
-            model = REGRESSORS[ALGORITHM]
-            # model = xgboost.XGBRegressor()
-            model.fit(X_train, y_train.values.ravel())
-
-            # Store predicted values
-            y_pred = np.zeros(n_steps)
-            # Recursive predictions
-            if RECURSIVE:
-                for i in range(n_steps):
-                    if GET_LAGGED:
-                        if i > 0:
-                            X_test_final = X_test.iloc[i].append(pd.Series(y_lag))
-                        else:
-                            X_test_final = X_test.iloc[0].append(
-                                pd.Series(X_lagged['DEMAND_LAG'][0]))
-                        # Rename
-                        X_test_final = X_test_final.rename({0: 'DEMAND_LAG'})
-                    # Predict
-                    try:
-                        y_pred[i] = model.predict(X_test_final)
-                    except (ValueError, AttributeError) as e:
-                        y_pred[i] = model.predict(
-                        X_test_final.values.reshape(-1, X_test_final.shape[0]))
-                        pass
-                    # Save prediction
-                    y_lag = y_pred[i]
-            
-            else: # DIRECT prediction
+                # Store predicted values
                 y_pred = model.predict(X_test)
+                kfoldPred.append(y_pred)
                 
-            # Append predictions for each IMF
-            decomposePred.append(y_pred)
+                # Increase indexes
+                if not LSTM_ENABLED:
+                    # Sliding window
+                    train_index = np.arange(
+                        train_index[-1] + 1, train_index[-1] + 1 + train_size + test_size)
+                else:
+                    # Expanding window
+                    train_index = np.arange(0, train_index[-1] + 1 + train_size + test_size)
+                
+                if save_index:
+                    save_test_index.append(test_index)
+                
+                test_index = test_index + train_size + test_size
             
-
+            # To save test_index and avoid many loops doing the same thing
+            save_index = False
+            # Append predictions for each IMF
+            decomposePred.append(kfoldPred)
+        
     # Compose the signal
     log("Join all decomposed y predictions")
     y_composed = composeSeasonal(decomposePred, model=MODE)
 
     # Invert normalization
     y_composed = data_transformation_inverse(
-        y_composed, lambda_boxcox, sc1, minmax, min_y, cv=False)
+        y_composed, lambda_boxcox, sc1, minmax, min_y, cv=True)
 
     ########################
     ### Evaluate results ###
@@ -1834,99 +1817,121 @@ def finalTest(model, X_test, y_test, X_, y_, testSize, n_steps=STEPS_AHEAD, prev
     ### wtf is that - maybe for GET_LAGGED
     #y_test = y_test[:-1]
 
-    df2 = X_test_copy['DATE'][:n_steps]
+    df2 = X_testset_copy['DATE']
     ## if GET_LAGGED:
         ## df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1])
         # df2 = pd.DataFrame(df2).set_index(X_test.index.values[:-1] - 24*FORECASTDAYS+1)
 
     df = pd.concat([df, df2], axis=0)
 
-    y_all = y_all[:len(y_)+len(y_final)]
+    # y_all = y_all[:len(y_)+len(y_final)]
     # y_all = y_all[:-24*FORECASTDAYS]
     
     
-    y_test = np.array(y_test).squeeze()
+    # y_testset = np.array(y_testset).squeeze()
     y_final = np.array(y_final).squeeze()
     
     if PLOT:
         plt.figure()
-        plt.plot(df, y_all, label=f'Real data')
-        plt.plot(df2, y_final, label=f'Forecasted', linestyle='--')
-        # plt.title(f'{DATASET_NAME} dataset Prediction')
+        # Real data
+        plt.plot(X_testset_copy['DATE'], y_testset, color='darkgray', label=f'Real data')
         plt.xlabel('Date', fontsize=FONT_SIZE)
         plt.ylabel('Load [MW]', fontsize=FONT_SIZE)
         plt.xticks(fontsize=FONT_SIZE)
         plt.yticks(fontsize=FONT_SIZE)
         plt.legend(fontsize=FONT_SIZE)
+        
+    
+    y_test_list = []
+    results = Results()
+    # Predicted data
+    for i in range(0, KFOLD):
+        # Select correct range of y_testset for each fold
+        y_test = y_testset[save_test_index[i]]
+        # Save it to use later
+        y_test_list.append(y_test)
+        
+        if PLOT:
+            plt.plot(X_testset_copy['DATE'].iloc[save_test_index[i]], y_final[i], label=f'Forecasted', linestyle='--')
+    
+        # Fix shape
+        if len(y_final[i]) > 1:
+            y_final[i] = y_final[i].ravel()
+        if len(y_test) > 1:
+            try:
+                y_test = y_test.ravel()
+            except AttributeError:
+                y_test = y_test.values.ravel()    
+        
+        
+        r2test = r2_score(y_test, y_final[i])
+        # log(f"Model name: {type(model).__name__}")
+        # log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
+        n = len(X_test)
+        p = X_test.shape[1]
+        adjr2_score = 1-((1-r2test)*(n-1)/(n-p-1))
+        # log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(
+        #     adjr2_score))
+
+        rmse = np.sqrt(mean_squared_error(y_test, y_final[i]))
+        # log("RMSE: %f" % (rmse))
+
+        mae = mean_absolute_error(y_test, y_final[i])
+        # log("MAE: %f" % (mae))
+        
+        mae_percent = maep(y_test, y_final[i])
+        # log("MAEP: %.3f%%" % (mae_percent))
+
+
+        mape = mean_absolute_percentage_error(y_test, y_final[i])
+        smape = symmetric_mape(y_test, y_final[i])
+        # log("MAPE: %.3f%%" % (mape))
+        # log("sMAPE: %.3f%%" % (smape))
+        
+        ###### Save results ########
+        results.r2train_per_fold.append(0)
+        results.r2test_per_fold.append(r2test)
+        results.r2testadj_per_fold.append(adjr2_score)
+        results.rmse_per_fold.append(rmse)
+        results.mae_per_fold.append(mae)
+        results.maep_per_fold.append(mae_percent)
+        results.mape_per_fold.append(mape)
+        results.smape_per_fold.append(smape)
+        results.name.append('none')
+        results.model_name.append(type(model).__name__)
+        results.model_params = model.get_params()
+        results.decomposition = MODE
+        results.nmodes = NMODES
+        results.algorithm = ALGORITHM
+        results.test_name = 'finalTest'
+        results.duration = round(time.time() - start_time, 2)
+    
+
+        
+    if PLOT:
         if SAVE_FIG:
             plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
-        plt.tight_layout()        
-        
-        
-    # Fix shape
-    if len(y_final) > 1:
-        y_final = y_final.ravel()
-    if len(y_test) > 1:
-        try:
-            y_test = y_test.ravel()
-        except AttributeError:
-            y_test = y_test.values.ravel()    
-    
-    
-    r2test = r2_score(y_test, y_final)
-    # log(f"Model name: {type(model).__name__}")
-    # log("The R2 score on the Test set is:\t{:0.4f}".format(r2test))
-    n = len(X_test)
-    p = X_test.shape[1]
-    adjr2_score = 1-((1-r2test)*(n-1)/(n-p-1))
-    # log("The Adjusted R2 score on the Test set is:\t{:0.4f}".format(
-    #     adjr2_score))
-
-    rmse = np.sqrt(mean_squared_error(y_test, y_final))
-    # log("RMSE: %f" % (rmse))
-
-    mae = mean_absolute_error(y_test, y_final)
-    # log("MAE: %f" % (mae))
-    
-    mae_percent = maep(y_test, y_final)
-    # log("MAEP: %.3f%%" % (mae_percent))
-
-
-    mape = mean_absolute_percentage_error(y_test, y_final)
-    smape = symmetric_mape(y_test, y_final)
-    # log("MAPE: %.3f%%" % (mape))
-    # log("sMAPE: %.3f%%" % (smape))
-    
-    ###### Save results ########
-    results = Results()
-    results.r2train_per_fold.append(0)
-    results.r2test_per_fold.append(r2test)
-    results.r2testadj_per_fold.append(adjr2_score)
-    results.rmse_per_fold.append(rmse)
-    results.mae_per_fold.append(mae)
-    results.maep_per_fold.append(mae_percent)
-    results.mape_per_fold.append(mape)
-    results.smape_per_fold.append(smape)
-    results.name.append('none')
-    results.model_name.append(type(model).__name__)
-    results.model_params = model.get_params()
-    results.decomposition = MODE
-    results.nmodes = NMODES
-    results.algorithm = ALGORITHM
-    results.test_name = 'finalTest'
-    results.duration = round(time.time() - start_time, 2)
-    
+        plt.tight_layout()
     # Print results
+    # Print the results: average per fold
+    log(f"Model name: {type(model).__name__}")
+    results.model_name.append(type(model).__name__)
+    # results.name.append(y.columns[0])
+    results.model_params = model.get_params()
+    results.duration = round(time.time() - start_time, 2)
     results.printResults()
+    
+    # savePredictions(y_test_list, y_final)
+
     if not enable_nni and SAVE_JSON:
         results.saveResults(path)
         
-    savePredictions(y_test, y_final)
+        
 
     #################################
     
-    if PLOT and True:
+    if PLOT and False:
         plt.figure()
         plt.title(f'{DATASET_NAME} dataset Prediction - n-steps ahead')
         plt.xlabel('Time [h]')
@@ -2156,7 +2161,7 @@ def saveDecomposedIMFs(y_decomposed_list):
                 imf = pd.DataFrame({imf.name: imf.values})
             try:
                 imf.to_csv(
-                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)
+                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)                
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
@@ -2199,12 +2204,6 @@ X, y = dataCleaning(dataset, dataset_name=DATASET_NAME)
 # Include new data
 X, y = featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True,
                           holiday_bridge=False, demand_lag=True, dataset_name=DATASET_NAME)
-
-# Split the test data from training/validation data
-y_testset = y[(-24*TEST_DAYS):]
-X_testset = X[(-24*TEST_DAYS):]
-X = X[:(-24*TEST_DAYS)]
-y = y[:(-24*TEST_DAYS)]
 
 # Redefine df
 global df
@@ -2252,57 +2251,67 @@ y_decomposed_list = decomposeSeasonal(
 saveDecomposedIMFs(y_decomposed_list)
 # After saving, ensure fast loading of saved IMFs
 LOAD_DECOMPOSED = True
+
+# Split the test data from training/validation data
+# y_testset = y[(-24*365):]
+# X_testset = X[(-24*365):]
+# X = X[:(-24*365)]
+# y = y[:(-24*365)]
+y_testset = y[(-24*365):]
+X_testset = X[(-24*365):]
+X_trainset = X[:(-24*365)]
+y_trainset = y[:(-24*365)]
+
+# Reduce decomposed list to trainset only
+newlist = []
+for decompose in y_decomposed_list:
+    newlist.append(decompose[:-24*365])
+
+y_decomposed_list = newlist
+
+df = X_trainset['DATE']
+X_testset = X_testset.reset_index(drop=True)
+# y_testset = y_testset.reset_index(drop=True)
+
 # Index for Results
 r = 0
-# Loop over decomposed data
-for y_decomposed in y_decomposed_list:
-    if type(y_decomposed) is not type(pd.DataFrame()):
-        y_decomposed = pd.DataFrame({y_decomposed.name: y_decomposed.values})
-    ######## This is for hyperparameter tuning #######
-    if HYPERPARAMETER_TUNING:
-        if y_decomposed.columns[0].find(HYPERPARAMETER_IMF) == -1:
-            continue
-    ##################################################
 
-    results.append(Results())  # Start new Results instance every loop step
+if not FINAL_TEST_ONLY:
+    # Loop over decomposed data
+    for y_decomposed in y_decomposed_list:
+        if type(y_decomposed) is not type(pd.DataFrame()):
+            y_decomposed = pd.DataFrame({y_decomposed.name: y_decomposed.values})
+        ######## This is for hyperparameter tuning #######
+        if HYPERPARAMETER_TUNING:
+            if y_decomposed.columns[0].find(HYPERPARAMETER_IMF) == -1:
+                continue
+        ##################################################
 
-    # Load Forecasting
-    y_out, testSize, kfoldPred, model = loadForecast(
-        X=X, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)
-    # Save the current model for further usage
-    models.append(model)
+        results.append(Results())  # Start new Results instance every loop step
 
-    if CROSSVALIDATION:
-        decomposePred.append(kfoldPred)
-    else:
-        decomposePred.append(y_out)
-    r += 1
+        # Load Forecasting
+        y_out, testSize, kfoldPred, model = loadForecast(
+            X=X_trainset, y=y_decomposed, CrossValidation=CROSSVALIDATION, kfold=KFOLD, offset=OFFSET, forecastDays=FORECASTDAYS, dataset_name=DATASET_NAME)
+        # Save the current model for further usage
+        models.append(model)
 
-if not enable_nni and not CROSSVALIDATION:
-    log("Join all decomposed y predictions")
-    y_composed = composeSeasonal(decomposePred, model=MODE)
-    data_transformation_inverse(
-        y_composed, lambda_boxcox, sc1, minmax, min_y, cv=CROSSVALIDATION)
+        if CROSSVALIDATION:
+            decomposePred.append(kfoldPred)
+        else:
+            decomposePred.append(y_out)
+        r += 1
 
-    log("Print and plot the results")
-    finalResults.append(Results())
-    plotResults(X_=X, y_=y, y_pred=y_composed,
-                testSize=testSize, dataset_name=DATASET_NAME)
-    finalTest(model=models, X_test=X_testset,
-              y_test=y_testset, X_=X, y_=y, testSize=testSize)
-
-
-if CROSSVALIDATION:
+    # Join decomposed values, invert transformations, perform final tests
     log("Join all decomposed y predictions")
     y_composed = composeSeasonal(decomposePred, model=MODE)
     data_transformation_inverse(
         y_composed, lambda_boxcox, sc1, minmax, min_y, cv=CROSSVALIDATION)
     log("Print and plot the results")
     finalResults.append(Results())
-    plotResults(X_=X, y_=y, y_pred=y_composed,
+    plotResults(X_=X_trainset, y_=y, y_pred=y_composed,
                 testSize=testSize, dataset_name=DATASET_NAME)
-    finalTest(model=models, X_test=X_testset,
-              y_test=y_testset, X_=X, y_=y, testSize=testSize)
+finalTest(model=models, X_testset=X_testset,
+            y_testset=y_testset, X_all=X, y_all=y)
 
 if enable_nni:
     log("Publish the results on AutoML nni")
