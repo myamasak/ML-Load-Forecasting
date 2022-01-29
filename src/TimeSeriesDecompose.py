@@ -62,13 +62,13 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'xgboost'
+ALGORITHM = 'knn'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
-FORECASTDAYS = 30
-NMODES = 2
-MODE = 'ewt'
+FORECASTDAYS = 15
+NMODES = 3
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -148,21 +148,24 @@ LSTM_PARAMS = {
 # LSTM Implementation
 # model, early_stop = init_lstm(LSTM_PARAMS)
 
-REGRESSORS = {  "knn": KNeighborsRegressor(),
-                "dt": DecisionTreeRegressor(random_state=SEED_VALUE),
-                "rf": RandomForestRegressor(random_state=SEED_VALUE),
-                "svr": svm.SVR(),
-                "xgboost": xgboost.XGBRegressor(random_state=SEED_VALUE),
-                "gbr": GradientBoostingRegressor(random_state=SEED_VALUE),
-                "extratrees": ExtraTreesRegressor(random_state=SEED_VALUE),
-                "ard": linear_model.ARDRegression(),
-                "sgd": linear_model.SGDRegressor(random_state=SEED_VALUE),
-                "bayes": linear_model.BayesianRidge(),
-                "lasso": linear_model.LassoLars(),
-                "par": linear_model.PassiveAggressiveRegressor(random_state=SEED_VALUE),
-                "theilsen": linear_model.TheilSenRegressor(random_state=SEED_VALUE),
-                "linear": linear_model.LinearRegression()
-             }
+def regressors(algorithm : str):
+    REGRESSORS = {  "knn": KNeighborsRegressor(),
+                    "dt": DecisionTreeRegressor(random_state=SEED_VALUE),
+                    "rf": RandomForestRegressor(random_state=SEED_VALUE),
+                    "svr": svm.SVR(),
+                    "xgboost": xgboost.XGBRegressor(random_state=SEED_VALUE),
+                    "gbr": GradientBoostingRegressor(random_state=SEED_VALUE),
+                    "extratrees": ExtraTreesRegressor(random_state=SEED_VALUE),
+                    "ard": linear_model.ARDRegression(),
+                    "sgd": linear_model.SGDRegressor(random_state=SEED_VALUE),
+                    "bayes": linear_model.BayesianRidge(),
+                    "lasso": linear_model.LassoLars(),
+                    "par": linear_model.PassiveAggressiveRegressor(random_state=SEED_VALUE),
+                    "theilsen": linear_model.TheilSenRegressor(random_state=SEED_VALUE),
+                    "linear": linear_model.LinearRegression()
+                 }
+
+    return REGRESSORS[algorithm]
 
 
 def datasetImport(selectDatasets, dataset_name='ONS'):
@@ -706,30 +709,30 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # model = StackingRegressor(
             #     estimators=regressors, final_estimator=meta_learner)
 
-            model = REGRESSORS[ALGORITHM]
+            model = regressors(ALGORITHM)
 
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
                 if y.columns[0].find('IMF_0') != -1:                    
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_0')
                 elif y.columns[0].find('IMF_1') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_1')
                 elif y.columns[0].find('IMF_2') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_2')
                 elif y.columns[0].find('IMF_3') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_3')
                 elif y.columns[0].find('IMF_4') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_4')
                 elif y.columns[0].find('IMF_5') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_5')
                 elif y.columns[0].find('IMF_6') != -1:
-                    model = REGRESSORS[ALGORITHM]
+                    model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, 'IMF_6')
             else: # for individual algorithm Manual tuning                
                 local_params = open_json(model, ALGORITHM, 'none', manual=True)
@@ -760,7 +763,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 params['C'] = int(params['C'])
                 params['cache_size'] = int(params['cache_size'])
                 
-            model = REGRESSORS[ALGORITHM]
+            model = regressors(ALGORITHM)
             model.set_params(**params)
 
         i = 0
@@ -1027,10 +1030,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 # linear_model.TheilSenRegressor(),
                 # linear_model.LinearRegression()]
             # model = GradientBoostingRegressor()
-            model = REGRESSORS[ALGORITHM]
+            model = regressors(ALGORITHM)
 
         else:  # nni enabled
-            model = REGRESSORS[ALGORITHM]
+            model = regressors(ALGORITHM)
 
         # for model in regressors:
         model.fit(X_train, y_train.values.ravel())
@@ -1500,7 +1503,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
         return IMFs
 
     def do_eemd():
-        if LOAD_DECOMPOSED:
+        if LOAD_DECOMPOSED:            
             # if GET_LAGGED:
             #     all_files = glob.glob(
             #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
@@ -1516,7 +1519,6 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
                     df = df.values.ravel()
                     IMFs.append(df)
             log("EEMD was successfully loaded.")
-
         else:
             eemd = EEMD(trials=100, noise_width=0.15, DTYPE=np.float16)
             eemd.MAX_ITERATION = 2000
@@ -1695,24 +1697,26 @@ def data_cleaning_columns(X, y):
 
 def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, previous_models=PREVIOUS):
     start_time = time.time()
+    
     if not FINAL_TEST:
         return
     log(f"Final test with test data - Forecast {int(n_steps/24)} day(s)")
     global df
-    if len(df) != len(y_all):
-        # y_all = y_all[:len(df)]
-        y_all = y_all[1:]
-    if len(df) != len(X_all):
-        # X_all = X_all[:len(df)]
-        X_all = X_all.drop(index=0).reset_index(drop=True)
+    # if len(df) != len(y_all):
+    #     # y_all = y_all[:len(df)]
+    #     y_all = y_all[1:]
+    # if len(df) != len(X_all):
+    #     # X_all = X_all[:len(df)]
+    #     X_all = X_all.drop(index=0).reset_index(drop=True)
 
     X_testset_copy = X_testset
     y_testset_copy = y_testset
     # Sanity check and drop unused columns
     X_testset, y_testset = data_cleaning_columns(X_testset, y_testset)
+    X_all, y_all = data_cleaning_columns(X_all, y_all)
 
     # Drop date column on X_all
-    X_all = X_all.drop('DATE', axis=1)
+    # X_all = X_all.drop('DATE', axis=1)
 
     # Limit the horizon by n_steps
     # X_testset = X_testset[:n_steps]
@@ -1729,10 +1733,14 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
 
     # Normalize the signal
     y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_testset)
+    # y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_all)
 
     # Data decompose
     y_decomposed_list = decomposeSeasonal(
         df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+    
+    # Save decomposed signal
+    saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[-1])
 
     
     # Add real data to PLOT
@@ -1748,10 +1756,14 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
     #     plt.plot(df, y.squeeze(), color='darkgray', label='Real data')
     
     # List of predictions (IMF_0, IMF_1, ...)
+
     decomposePred = []
     kfoldPred = []
     save_test_index = []
     save_index = True
+    
+    # To define test size
+    FOLD = 5
     if previous_models:
         raise 
     else: # previous_models = false
@@ -1759,24 +1771,61 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
             kfoldPred = []
             # train and validation
             test_size = round(n_steps)
-            train_size = math.floor((len(X_testset)/KFOLD) - test_size)
+            train_size = math.floor((len(X_testset)/FOLD) - test_size)
             # Indexes
             train_index = np.arange(0, train_size)
             test_index = np.arange(train_size, train_size+test_size)
-            for i in range(0, KFOLD):
+            if PLOT:
+                plt.figure()
+                plt.plot(y_decomposed, color='darkgray', label='Real data')
+            for i in range(0, FOLD):
                 # Set indexes - Sliding window
                 X_test = X_testset.iloc[test_index]
-                y_test = y_testset[test_index]                
-                X_train = X_testset[-train_size:]
-                y_train = y_decomposed[-train_size:]
+                y_test = y_decomposed.iloc[test_index]                
+                X_train = X_testset.iloc[train_index]
+                y_train = y_decomposed.iloc[train_index]
                 ################
-                model = REGRESSORS[ALGORITHM]
+                model = regressors(ALGORITHM)
+                # Choose one model for each IMF
+                if MULTIMODEL and MODE != 'none':
+                    if y.columns[0].find('IMF_0') != -1:                    
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_0')
+                    elif y.columns[0].find('IMF_1') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_1')
+                    elif y.columns[0].find('IMF_2') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_2')
+                    elif y.columns[0].find('IMF_3') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_3')
+                    elif y.columns[0].find('IMF_4') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_4')
+                    elif y.columns[0].find('IMF_5') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_5')
+                    elif y.columns[0].find('IMF_6') != -1:
+                        model = regressors(ALGORITHM)
+                        local_params = open_json(model, ALGORITHM, 'IMF_6')
+                else: # for individual algorithm Manual tuning                
+                    local_params = open_json(model, ALGORITHM, 'none', manual=True)
+                # Set model hyperparameters from json file
+                model.set_params(**local_params)
+                
                 model.fit(X_train, y_train.values.ravel())
 
                 # Store predicted values
                 y_pred = model.predict(X_test)
                 kfoldPred.append(y_pred)
+                # rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+                # log(f"r2score = {r2_score(y_test, y_pred)}")
+                # log(f"rmse = {rmse}")
                 
+                if PLOT:
+                    plt.plot(test_index, y_pred, linestyle='--')
+                    
                 # Increase indexes
                 if not LSTM_ENABLED:
                     # Sliding window
@@ -1844,8 +1893,9 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
     
     y_test_list = []
     results = Results()
+    
     # Predicted data
-    for i in range(0, KFOLD):
+    for i in range(0, FOLD):
         # Select correct range of y_testset for each fold
         y_test = y_testset[save_test_index[i]]
         # Save it to use later
@@ -2154,14 +2204,14 @@ def init_lstm(X, params):
     return model, early_stop
 
 
-def saveDecomposedIMFs(y_decomposed_list):
+def saveDecomposedIMFs(y_decomposed_list, years):
     if not LOAD_DECOMPOSED and (MODE == 'eemd' or MODE == 'ceemdan'):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
                 imf = pd.DataFrame({imf.name: imf.values})
             try:
                 imf.to_csv(
-                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{selectDatasets[0]}-{selectDatasets[-1]}.csv', index=None, header=False)                
+                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{years[0]}-{years[-1]}.csv', index=None, header=False)                
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
@@ -2240,34 +2290,39 @@ models = []
 ######### Starting the framework #########
 ##########################################
 
+y_testset = y[(-24*365):]
+X_testset = X[(-24*365):]
+X_trainset = X[:(-24*365)]
+y_trainset = y[:(-24*365)]
+
 # Data transformation - BoxCox and MinMaxScaler/StandardScaler
-y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y)
+y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_trainset)
 
 # Decompose data
 y_decomposed_list = decomposeSeasonal(
     df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
 
 # Save decomposed data
-saveDecomposedIMFs(y_decomposed_list)
-# After saving, ensure fast loading of saved IMFs
-LOAD_DECOMPOSED = True
+saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[:-1])
+# Ensure final test will need to decompose its part
+LOAD_DECOMPOSED = False
 
 # Split the test data from training/validation data
 # y_testset = y[(-24*365):]
 # X_testset = X[(-24*365):]
-# X = X[:(-24*365)]
-# y = y[:(-24*365)]
-y_testset = y[(-24*365):]
-X_testset = X[(-24*365):]
-X_trainset = X[:(-24*365)]
-y_trainset = y[:(-24*365)]
+# X_trainset = X[:(-24*365)]
+# y_trainset = y[:(-24*365)]
+# y_testset = y[(-24*TEST_DAYS):]
+# X_testset = X[(-24*TEST_DAYS):]
+# X_trainset = X[:(-24*TEST_DAYS)]
+# y_trainset = y[:(-24*TEST_DAYS)]
 
 # Reduce decomposed list to trainset only
-newlist = []
-for decompose in y_decomposed_list:
-    newlist.append(decompose[:-24*365])
-
-y_decomposed_list = newlist
+#newlist = []
+#for decompose in y_decomposed_list:
+#    newlist.append(decompose[:-24*365])
+#
+#y_decomposed_list = newlist
 
 df = X_trainset['DATE']
 X_testset = X_testset.reset_index(drop=True)
