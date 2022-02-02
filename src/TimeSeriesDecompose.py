@@ -42,8 +42,8 @@ Author: Marcos Yamasaki
 04/03/2021
 """
 import time
-import logging
 from log import log
+import logging
 start_time = time.time()
 # from sklearn.experimental import enable_halving_search_cv
 # from sklearn.model_selection import HalvingGridSearchCV
@@ -73,7 +73,7 @@ BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -87,6 +87,7 @@ FINAL_TEST = True
 FINAL_TEST_ONLY = False
 FINAL_FOLD = 20
 SAVE_JSON = True
+LOOP = False
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018", "2019"]
 # selectDatasets = ["2017","2018"]
@@ -114,6 +115,11 @@ if path.find('autoML') != -1:
     path = r'%s' % path.replace('/autoML', '')
 elif path.find('src') != -1:
     path = r'%s' % path.replace('/src', '')
+elif path.find('loop') != -1:
+    path = r'%s' % path.replace('/src/loop.py', '')
+    
+print(f"path = {path}")
+
 
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
@@ -388,7 +394,7 @@ def calc_r2score(y_true, y_pred):
     return result
 
 
-def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a'):
+def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a', final_test=False):
     tic = time.time()
     if mode == 'stl-a' or mode == 'stl-m':
         log('Seasonal and Trend decomposition using Loess (STL) Decomposition has been started')
@@ -436,7 +442,7 @@ def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a'):
         log(f"{toc-tic:0.3f} seconds - Seasonal and Trend decomposition using Loess (STL) Decomposition has finished.")
     elif mode == 'emd' or mode == 'eemd' or mode == 'vmd' or mode == 'ceemdan' or mode == 'ewt':
         decomposeList = emd_decompose(
-            y_, Nmodes=Nmodes, dataset_name=DATASET_NAME, mode=mode)
+            y_, Nmodes=Nmodes, dataset_name=DATASET_NAME, mode=mode, final_test=final_test)
     elif mode == 'robust-stl':
         labels = ['Observed', 'Trend', 'Seasonal', 'Remainder']
         if LOAD_DECOMPOSED:
@@ -1454,7 +1460,7 @@ def fast_fourier_transform(y_):
         plt.tight_layout()
 
 
-def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd'):
+def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd', final_test=False):
     if mode == 'emd':
         printName = 'Empirical Mode Decomposition (EMD)'
     elif mode == 'eemd':
@@ -1491,8 +1497,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd'):
             #     all_files = glob.glob(
             #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # else:
-            all_files = glob.glob(
-                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            if not final_test:
+                all_files = glob.glob(
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            else:
+                all_files = glob.glob(
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1525,8 +1535,12 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd'):
             #     all_files = glob.glob(
             #         path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # else:
-            all_files = glob.glob(
-                path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            if not final_test:
+                all_files = glob.glob(
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            else:
+                all_files = glob.glob(
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1741,7 +1755,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
 
     # Data decompose
     y_decomposed_list = decomposeSeasonal(
-        df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+        df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=True)
     
     # Save decomposed signal
     saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[-1])
@@ -2206,9 +2220,14 @@ def saveDecomposedIMFs(y_decomposed_list, years):
         for imf in y_decomposed_list:
             if type(imf) is not type(pd.DataFrame()):
                 imf = pd.DataFrame({imf.name: imf.values})
+            
             try:
-                imf.to_csv(
-                    path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{years[0]}-{years[-1]}.csv', index=None, header=False)                
+                if type(years) != type(list()):
+                    imf.to_csv(
+                        path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{years}.csv', index=None, header=False)                
+                else:
+                    imf.to_csv(
+                        path+f'/datasets/{DATASET_NAME}/custom/{MODE}-{NMODES}_{imf.columns[0]}_{years[0]}-{years[-1]}.csv', index=None, header=False)                
             except (FileNotFoundError, ValueError, OSError, IOError) as e:
                 log("Failed to save CSV after data Decomposition")
                 log(e)
@@ -2247,8 +2266,8 @@ if '-mode' in sys.argv:
     MODE = sys.argv[sys.argv.index('-mode') + 1]
 if '-algo' in sys.argv:
     ALGORITHM = sys.argv[sys.argv.index('-algo') + 1]
-if '-ds' in sys.argv:
-    DATASET_NAME = sys.argv[sys.argv.index('-ds') + 1].upper()
+if '-dataset' in sys.argv:
+    DATASET_NAME = sys.argv[sys.argv.index('-dataset') + 1]
 if '-kfold' in sys.argv:
     KFOLD = int(sys.argv[sys.argv.index('-kfold') + 1])
 if '-fdays' in sys.argv:
@@ -2259,6 +2278,13 @@ if '-steps' in sys.argv:
     STEPS_AHEAD = int(sys.argv[sys.argv.index('-steps') + 1])
 if '-fold' in sys.argv:
     FINAL_FOLD = int(sys.argv[sys.argv.index('-fold') + 1])
+if '-seed' in sys.argv:
+    SEED_VALUE = int(sys.argv[sys.argv.index('-seed') + 1])
+if '-loop' in sys.argv:
+    LOOP = True
+    PLOT = False
+    
+
 ##############################
 
 params = nni.get_next_parameter()
@@ -2317,12 +2343,12 @@ y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_trainset)
 
 # Decompose data
 y_decomposed_list = decomposeSeasonal(
-    df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE)
+    df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=False)
 
 # Save decomposed data
 saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[:-1])
 # Ensure final test will need to decompose its part
-LOAD_DECOMPOSED = False
+# LOAD_DECOMPOSED = False
 
 # Split the test data from training/validation data
 # y_testset = y[(-24*365):]
@@ -2393,7 +2419,8 @@ if enable_nni:
         rmsetestResults = finalResults[0].rmse_per_fold
     rmseScoreAvg = np.mean(rmsetestResults)
     log(f"rmseScoreAvg = {rmseScoreAvg}")
-    nni.report_final_result(rmseScoreAvg)
+    if not LOOP:
+        nni.report_final_result(rmseScoreAvg)
     # results[0].printResults()
 
 

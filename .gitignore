@@ -107,4 +107,3 @@ venv.bak/
 .exe/
 dask-worker-space/
 
-./results/json
