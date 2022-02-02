@@ -10,7 +10,7 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src', '')
 
 
-DATASET_NAME = 'ISONewEngland'
+DATASET_NAME = 'isone'
 
 #path = path + '/dataset/{DATASET_NAME}/custom/*.csv'
 

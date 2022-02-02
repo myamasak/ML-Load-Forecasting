@@ -54,15 +54,15 @@ register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-# DATASET_NAME = 'ISONewEngland'
-DATASET_NAME = 'ONS'
+# DATASET_NAME = 'isone'
+DATASET_NAME = 'ons'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'knn'
+ALGORITHM = 'xgboost'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
@@ -85,6 +85,7 @@ MULTIMODEL = False
 LSTM_ENABLED = False
 FINAL_TEST = True
 FINAL_TEST_ONLY = False
+FINAL_FOLD = 20
 SAVE_JSON = True
 # Selection of year
 selectDatasets = ["2015", "2016", "2017", "2018", "2019"]
@@ -168,10 +169,10 @@ def regressors(algorithm : str):
     return REGRESSORS[algorithm]
 
 
-def datasetImport(selectDatasets, dataset_name='ONS'):
+def datasetImport(selectDatasets, dataset_name='ons'):
     log('Dataset import has been started')
     # Save all files in the folder
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         filename = glob.glob(path + r'/datasets/ONS/*allregions*.csv')
         filename = filename[0].replace('\\', '/')
         dataset = pd.read_csv(filename, index_col=None,
@@ -180,7 +181,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
         datasetList = []
         for year in selectDatasets:
             datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
-    elif dataset_name.find('ISONewEngland') != -1:
+    elif dataset_name.find('isone') != -1:
         all_files = glob.glob(
             path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
         # Initialize dataset list
@@ -195,7 +196,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     # Concat them all
     dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
 
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         # replace comma to dot
         dataset['DEMAND'] = dataset['DEMAND'].str.replace(',', '.')
         dataset['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
@@ -206,13 +207,13 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
     return dataset
 
 
-def dataCleaning(dataset, dataset_name='ONS'):
+def dataCleaning(dataset, dataset_name='ons'):
     log('Data cleaning function has been started')
     # Select X data
     X = dataset.iloc[:, :]
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         X = X.drop(['DEMAND'], axis=1)
-    elif dataset_name.find('ISONewEngland') != -1:
+    elif dataset_name.find('isone') != -1:
         try:
             X = X.drop(['DEMAND', 'DA_DEMD', 'DA_LMP', 'DA_EC', 'DA_CC', 'DA_MLC', 'DATE', 'HOUR',
                         'RT_LMP', 'RT_EC', 'RT_CC', 'RT_MLC', 'SYSLoad', 'RegSP', 'RegCP'], axis=1)
@@ -252,14 +253,14 @@ def dataCleaning(dataset, dataset_name='ONS'):
         log(y.iloc[nanIndex])
 
     # Select Y data
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         # y = pd.concat([pd.DataFrame({'DEMAND':y}), dataset['SUBSYSTEM']], axis=1, sort=False)
         y = pd.DataFrame({'DEMAND': y})
 
     return X, y
 
 
-def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False, demand_lag=True, dataset_name='ONS'):
+def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False, demand_lag=True, dataset_name='ons'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -305,10 +306,10 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
 
     # Save in Date format
     global df  # set a global variable for easier plot
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         # df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
         df = X['DATE'].reset_index(drop=True)
-    elif dataset_name.find('ISONewEngland') != -1:
+    elif dataset_name.find('isone') != -1:
         df = X['DATE'].reset_index(drop=True)
 
     if holiday_bridge:
@@ -344,12 +345,12 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
             'Holiday', 'Holiday_bridge']].sum(axis=1)
         X = X.drop(['Holiday', 'Holiday_bridge'], axis=1)
 
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         # Store regions in a list of dataframes
         log('Drop SUBSYSTEM column')
         X = X.drop('SUBSYSTEM', axis=1)
 
-    # elif dataset_name.find('ISONewEngland') != -1:
+    # elif dataset_name.find('isone') != -1:
     #     X.append(X)
     #     y.append(y)
 
@@ -387,19 +388,19 @@ def calc_r2score(y_true, y_pred):
     return result
 
 
-def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
+def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a'):
     tic = time.time()
     if mode == 'stl-a' or mode == 'stl-m':
         log('Seasonal and Trend decomposition using Loess (STL) Decomposition has been started')
         data = pd.DataFrame(X_)
 
-        if dataset_name.find('ONS') != -1:
+        if dataset_name.find('ons') != -1:
             try:
                 concatlist = [data, pd.DataFrame(
                     y_.drop(['SUBSYSTEM'], axis=1))]
             except (AttributeError, KeyError) as e:
                 concatlist = [data, pd.DataFrame(y_)]
-        elif dataset_name.find('ISONewEngland') != -1:
+        elif dataset_name.find('isone') != -1:
             concatlist = [data, pd.DataFrame(y_)]
         data = pd.concat(concatlist, axis=1)
 
@@ -470,10 +471,10 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a'):
     return decomposeList
 
 
-def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
+def outlierCleaning(y_, columnName='DEMAND', dataset_name='ons'):
     # global X_train, X_test, y_train, y_test, X_
     # Drop subsystem and date columns
-    if dataset_name.find('ONS') != -1:
+    if dataset_name.find('ons') != -1:
         try:
             if y_.columns[1].find("SUBSYSTEM") != -1:
                 y_ = y_.drop(['SUBSYSTEM'], axis=1)
@@ -584,7 +585,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     return y_
 
 
-def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
+def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ons'):
     log("Load Forecasting algorithm has been started")
     start_time_loadForecast = time.time()
 
@@ -713,27 +714,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
-                if y.columns[0].find('IMF_0') != -1:                    
+                if y.columns[0].find('IMF_') != -1:                    
                     model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_0')
-                elif y.columns[0].find('IMF_1') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_1')
-                elif y.columns[0].find('IMF_2') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_2')
-                elif y.columns[0].find('IMF_3') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_3')
-                elif y.columns[0].find('IMF_4') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_4')
-                elif y.columns[0].find('IMF_5') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_5')
-                elif y.columns[0].find('IMF_6') != -1:
-                    model = regressors(ALGORITHM)
-                    local_params = open_json(model, ALGORITHM, 'IMF_6')
+                    local_params = open_json(model, ALGORITHM, y.columns[0])
             else: # for individual algorithm Manual tuning                
                 local_params = open_json(model, ALGORITHM, 'none', manual=True)
             # Set model hyperparameters from json file
@@ -811,9 +794,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                                 [X_test[j], np.array([y_lag])])
                         else:
                             X_test_final = X_test[0]
-                            if DATASET_NAME.find('ONS') != -1:
+                            if DATASET_NAME.find('ons') != -1:
                                 X_test = np.delete(X_test, 6, 1)
-                            elif DATASET_NAME.find('ISONewEngland') != -1:
+                            elif DATASET_NAME.find('isone') != -1:
                                 X_test = np.delete(X_test, 8, 1)
                     else:
                         X_test_final = X_test[j]
@@ -1113,7 +1096,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         # if plot:
         #     ax = xgboost.plot_importance(model)
         #     ax.figure.set_size_inches(11,15)
-        #     if dataset_name.find('ONS') != -1:
+        #     if dataset_name.find('ons') != -1:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
         #     else:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
@@ -1156,7 +1139,7 @@ def composeSeasonal(decomposePred, model='stl-a'):
     return finalPred
 
 
-def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
+def plotResults(X_, y_, y_pred, testSize, dataset_name='ons'):
     start_time = time.time()
     
     if len(df) != len(y_):
@@ -1170,7 +1153,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 y_pred = y_pred.reshape(y_pred.shape[0])
             elif y_pred.shape[0] == 1:
                 y_pred = y_pred.reshape(y_pred.shape[1])
-        if dataset_name.find('ONS') != -1:
+        if dataset_name.find('ons') != -1:
             try:
                 y_ = y_.drop(["SUBSYSTEM"], axis=1)
             except (AttributeError, KeyError) as e:
@@ -1471,7 +1454,7 @@ def fast_fourier_transform(y_):
         plt.tight_layout()
 
 
-def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
+def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd'):
     if mode == 'emd':
         printName = 'Empirical Mode Decomposition (EMD)'
     elif mode == 'eemd':
@@ -1488,10 +1471,10 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     def do_emd():
         emd = EMD()
         # 4 years
-        if DATASET_NAME.find('ISONewEngland') != -1:
+        if DATASET_NAME.find('isone') != -1:
             emd.FIXE_H = 8
             emd.nbsym = 6
-        elif DATASET_NAME.find('ONS') != -1:
+        elif DATASET_NAME.find('ons') != -1:
             emd.FIXE_H = 1
             emd.nbsym = 2
         # 1 year
@@ -1603,12 +1586,33 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd'):
     return series_IMFs
 
 
-def get_training_set_for_same_period(X_train, y_train, X_test, y_test, forecastDays=15, dataset_name='ONS'):
-    log("Fetching the same period of prediction series...")
-    X_train[X_train['Month'] == X_test['Month']]
-    X_train[X_train['Day'] == X_test['Day']]
-    X_train[X_train['Hour'] == X_test['Hour']]
+def get_lags_steps(X_test, y_train, steps_behind=24*7, steps_head=24*1):
+    # log("Fetching the same period of prediction series...")
+    # Take demand 1 week before of the forecast horizon
+    lag_index = X_test.index.values-steps_behind
+    
+    # for the first y_train values, need to access part of y_trainset
+    if lag_index[0] < 0:
+        y_lag = y_trainset[-steps_behind:]
+    else: # normal workflow
+        try:
+            y_lag = y_train.loc[X_test.index.values-steps_behind]
+        except AttributeError:
+            y_lag = y_train[X_test.index.values-steps_behind]
 
+    # Rename column
+    try:
+        label = y_lag.columns[0]
+    except AttributeError:
+        y_lag = pd.DataFrame(y_lag)
+        label = y_lag.columns[0]
+    try:
+        y_lag = y_lag.rename(columns={label: 'LAG'})
+    except TypeError:
+        y_lag = pd.DataFrame({'LAG': y_lag.ravel()})
+    
+    return y_lag
+    
 
 def plot_histogram(y_, xlabel):
     if PLOT:
@@ -1674,12 +1678,12 @@ def get_lagged_y(X_, y_, n_steps=1):
 
 def data_cleaning_columns(X, y):
     # Drop subsystem and date columns
-    if DATASET_NAME.find('ONS') != -1:
+    if DATASET_NAME.find('ons') != -1:
         try:
             X = X.drop(['SUBSYSTEM', 'DATE'], axis=1)
         except KeyError:
             X = X.drop(['DATE'], axis=1)
-    elif DATASET_NAME.find('ISONewEngland') != -1:
+    elif DATASET_NAME.find('isone') != -1:
         try:
             X = X.drop(['DATE'], axis=1)
         except KeyError:
@@ -1762,53 +1766,41 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
     save_test_index = []
     save_index = True
     
-    # To define test size
-    FOLD = 5
+    # train and validation
+    test_size = round(n_steps)
+    train_size = math.floor((len(X_testset)/FINAL_FOLD) - test_size)
     if previous_models:
         raise 
     else: # previous_models = false
         for y_decomposed in y_decomposed_list:
             kfoldPred = []
-            # train and validation
-            test_size = round(n_steps)
-            train_size = math.floor((len(X_testset)/FOLD) - test_size)
             # Indexes
             train_index = np.arange(0, train_size)
             test_index = np.arange(train_size, train_size+test_size)
             if PLOT:
                 plt.figure()
                 plt.plot(y_decomposed, color='darkgray', label='Real data')
-            for i in range(0, FOLD):
+            for i in range(0, FINAL_FOLD):
                 # Set indexes - Sliding window
                 X_test = X_testset.iloc[test_index]
                 y_test = y_decomposed.iloc[test_index]                
                 X_train = X_testset.iloc[train_index]
                 y_train = y_decomposed.iloc[train_index]
-                ################
+                
+                if GET_LAGGED:
+                    ## Include LAG values in X_test and X_train
+                    y_lag = get_lags_steps(X_train, y_testset)
+                    X_train = pd.concat([X_train, y_lag], axis=1)
+                    y_lag = get_lags_steps(X_test, y_train)
+                    X_test = pd.concat([X_test, y_lag], axis=1)
+                    ####
+                
                 model = regressors(ALGORITHM)
                 # Choose one model for each IMF
                 if MULTIMODEL and MODE != 'none':
-                    if y.columns[0].find('IMF_0') != -1:                    
+                    if y.columns[0].find('IMF_') != -1:
                         model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_0')
-                    elif y.columns[0].find('IMF_1') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_1')
-                    elif y.columns[0].find('IMF_2') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_2')
-                    elif y.columns[0].find('IMF_3') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_3')
-                    elif y.columns[0].find('IMF_4') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_4')
-                    elif y.columns[0].find('IMF_5') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_5')
-                    elif y.columns[0].find('IMF_6') != -1:
-                        model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, 'IMF_6')
+                        local_params = open_json(model, ALGORITHM, y.columns[0])
                 else: # for individual algorithm Manual tuning                
                     local_params = open_json(model, ALGORITHM, 'none', manual=True)
                 # Set model hyperparameters from json file
@@ -1825,6 +1817,11 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
                 
                 if PLOT:
                     plt.plot(test_index, y_pred, linestyle='--')
+                    # Calculate feature importances
+                    try:
+                        plotFeatureImportance(X_test, model)
+                    except:
+                        pass
                     
                 # Increase indexes
                 if not LSTM_ENABLED:
@@ -1895,7 +1892,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
     results = Results()
     
     # Predicted data
-    for i in range(0, FOLD):
+    for i in range(0, FINAL_FOLD):
         # Select correct range of y_testset for each fold
         y_test = y_testset[save_test_index[i]]
         # Save it to use later
@@ -2236,13 +2233,33 @@ def savePredictions(y_test, y_pred):
 # MAIN PROGRAM
 ################
 # Verify arguments for program execution
-for args in sys.argv:
-    if args == '-nni':
-        enable_nni = True
-        PLOT = False
-        SAVE_JSON = False
-        SAVE_FIG = False
-        HYPERPARAMETER_TUNING = True
+if '-nni' in sys.argv:
+    enable_nni = True
+    PLOT = False
+    SAVE_JSON = False
+    SAVE_FIG = False
+    HYPERPARAMETER_TUNING = True
+    FINAL_TEST_ONLY = False
+    MULTIMODEL = False
+if '-imf' in sys.argv:
+    HYPERPARAMETER_IMF = int(sys.argv[sys.argv.index('-imf') + 1])
+if '-mode' in sys.argv:
+    MODE = sys.argv[sys.argv.index('-mode') + 1]
+if '-algo' in sys.argv:
+    ALGORITHM = sys.argv[sys.argv.index('-algo') + 1]
+if '-ds' in sys.argv:
+    DATASET_NAME = sys.argv[sys.argv.index('-ds') + 1].upper()
+if '-kfold' in sys.argv:
+    KFOLD = int(sys.argv[sys.argv.index('-kfold') + 1])
+if '-fdays' in sys.argv:
+    FORECASTDAYS = int(sys.argv[sys.argv.index('-fdays') + 1])
+if '-nmodes' in sys.argv:
+    NMODES = int(sys.argv[sys.argv.index('-nmodes') + 1])
+if '-steps' in sys.argv:
+    STEPS_AHEAD = int(sys.argv[sys.argv.index('-steps') + 1])
+if '-fold' in sys.argv:
+    FINAL_FOLD = int(sys.argv[sys.argv.index('-fold') + 1])
+##############################
 
 params = nni.get_next_parameter()
 # Initial message
