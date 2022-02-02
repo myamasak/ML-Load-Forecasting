@@ -43,6 +43,8 @@ for algo in algorithms:
             cmd = [pypath, script_path,
             "-algo", algo, "-mode", mode, "-nmodes", str(nmode), "-dataset", dataset,
             "-loop"]
+            if algo.find('xgboost') == -1:
+                cmd.append('-load')
             proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)

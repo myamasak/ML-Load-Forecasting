@@ -73,7 +73,7 @@ BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -2283,6 +2283,8 @@ if '-seed' in sys.argv:
 if '-loop' in sys.argv:
     LOOP = True
     PLOT = False
+if '-load' in sys.argv:
+    LOAD_DECOMPOSE = True
     
 
 ##############################
