@@ -30,8 +30,8 @@ except NameError:
     path = os.getcwd()
     path = path.replace('\\','/').replace('src','')
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv') + \
-            glob.glob(path + r'/datasets/ISONewEngland/holidays/*.csv')
+all_files = glob.glob(path + r'/datasets/ISONE/csv-fixed/*.csv') + \
+            glob.glob(path + r'/datasets/ISONE/holidays/*.csv')
 
 # Select datasets 
 #selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",

@@ -21,7 +21,7 @@ elif path.find('scripts') != -1:
     path = r'%s' % path.replace('/scripts', '')
 
 
-outputPath=path + r'/datasets/ISONewEngland/not-fixed/'
+outputPath=path + r'/datasets/ISONE/not-fixed/'
 outputPath = r'%s' % outputPath.replace('\\','/')
 
 path = path + r'/xls/target/'

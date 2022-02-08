@@ -29,7 +29,7 @@ path = r'%s' % os.getcwd().replace('\\','/')
 #path = path + '/code/ML-Load-Forecasting'
 
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+all_files = glob.glob(path + r'/datasets/ISONE/csv-fixed/*.csv')
 
 # Select datasets 
 selectDatasets = ["2009","2010","2011","2012","2013","2014","2015","2016","2017"]

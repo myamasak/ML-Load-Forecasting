@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_ONS_SVR_EMD_IMF_0_RMSE
+experimentName: TimeSeriesDecompose_ONS_XGB_CEEMDAN_IMF_0_RMSE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space_svr.json
+searchSpacePath: search_space_xgboost.json
 #choice: true, false
 useAnnotation: false
 tuner:
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: minimize
 trial:
-  command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe ../src/TimeSeriesDecompose.py -nni
+  command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe ../src/TimeSeriesDecompose.py -nni -algo xgboost -mode ceemdan -nmodes 1 -load -imf 0
   codeDir: .
   gpuNum: 0

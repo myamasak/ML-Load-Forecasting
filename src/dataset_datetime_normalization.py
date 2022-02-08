@@ -35,7 +35,7 @@ elif path.find('src') != -1:
     path = r'%s' % path.replace('/src', '')
 
 # Save all files in the folder
-all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+all_files = glob.glob(path + r'/datasets/ISONE/csv-fixed/*.csv')
 
 # Select datasets
 # selectDatasets = ["2003","2004","2006","2007","2008","2009","2010","2011","2012","2013",

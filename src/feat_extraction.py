@@ -120,9 +120,9 @@ def fun_loadExFeats(dSet,ri,idx, item,Fs,LPcutoff,Nmodes, FFTregLen = 25, gaussS
         # fMirr =  np.append(np.flip(f[0:ltemp-1],axis = 0),f)  
         # fMirr = np.append(fMirr,np.flip(f[-ltemp-1:-1],axis = 0))
         # f = np.copy(fMirr)
-    if dSet == "ISONewEngland":
+    if dSet == "ISONE":
         # f = np.loadtxt("%s/data/%s/%s%.3d.txt"%(dSet,item,item,ri+1))   
-        all_files = glob.glob(path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+        all_files = glob.glob(path + r'/datasets/ISONE/csv-fixed/*.csv')
         # Initialize dataset list
         datasetList = []
         # Read all csv files and concat them
@@ -252,7 +252,7 @@ def fun_loadExFeats(dSet,ri,idx, item,Fs,LPcutoff,Nmodes, FFTregLen = 25, gaussS
 # General parameters
 #which dataset
 # dataset = ["BonnDataset","NSC_ND"] #BonnDataset or NSC_ND
-dataset = ["ISONewEngland","ONS"] #BonnDataset or NSC_ND
+dataset = ["ISONE","ONS"] #BonnDataset or NSC_ND
 
 # paramsData = {"BonnDataset": {"Nregs": 100, "Fs":173.61, 
 #                               "groups":["S","F","Z","N","O"],
@@ -262,7 +262,7 @@ dataset = ["ISONewEngland","ONS"] #BonnDataset or NSC_ND
 #                          "groups":["ictal","interictal","preictal"],
 #                          "LPcutoff": 70 ,"channels":1,
 #                          "FFTregLen": 10, "gaussSigma": 2}}#EWT parameters (for regularized spectrum)
-paramsData = {"ISONewEngland": {"Nregs": 1, "Fs":24, 
+paramsData = {"ISONE": {"Nregs": 1, "Fs":24, 
                               "groups":["nogroup"],
                               "LPcutoff": 40, "channels":1,
                               "FFTregLen": 25, "gaussSigma": 5},#EWT parameters (for regularized spectrum)

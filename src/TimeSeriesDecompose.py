@@ -55,7 +55,7 @@ sys.path.append('../')
 ### Constants ###
 # Dataset chosen
 # DATASET_NAME = 'isone'
-DATASET_NAME = 'ons'
+DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves
@@ -67,17 +67,17 @@ CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
-NMODES = 3
-MODE = 'none'
+NMODES = 1
+MODE = 'ceemdan'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
-HYPERPARAMETER_TUNING = False
+HYPERPARAMETER_TUNING = True
 HYPERPARAMETER_IMF = 'IMF_0'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
@@ -121,17 +121,6 @@ elif path.find('loop') != -1:
 print(f"path = {path}")
 
 
-log(f"Dataset: {DATASET_NAME}")
-log(f"Years: {selectDatasets}")
-log(f"CrossValidation: {CROSSVALIDATION}")
-log(f"KFOLD: {KFOLD}")
-log(f"OFFSET: {OFFSET}")
-log(f"FORECASTDAYS: {FORECASTDAYS}")
-log(f"NMODES: {NMODES}")
-log(f"MODE: {MODE}")
-log(f"BOXCOX: {BOXCOX}")
-log(f"STANDARDSCALER: {STANDARDSCALER}")
-log(f"MINMAXSCALER: {MINMAXSCALER}")
 
  # LSTM parameters
 _batch = 24
@@ -175,10 +164,10 @@ def regressors(algorithm : str):
     return REGRESSORS[algorithm]
 
 
-def datasetImport(selectDatasets, dataset_name='ons'):
+def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
     # Save all files in the folder
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         filename = glob.glob(path + r'/datasets/ONS/*allregions*.csv')
         filename = filename[0].replace('\\', '/')
         dataset = pd.read_csv(filename, index_col=None,
@@ -189,7 +178,7 @@ def datasetImport(selectDatasets, dataset_name='ons'):
             datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
     elif dataset_name.find('isone') != -1:
         all_files = glob.glob(
-            path + r'/datasets/ISONewEngland/csv-fixed/*.csv')
+            path + r'/datasets/ISONE/csv-fixed/*.csv')
         # Initialize dataset list
         datasetList = []
         # Read all csv files and concat them
@@ -202,7 +191,7 @@ def datasetImport(selectDatasets, dataset_name='ons'):
     # Concat them all
     dataset = pd.concat(datasetList, axis=0, sort=False, ignore_index=True)
 
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         # replace comma to dot
         dataset['DEMAND'] = dataset['DEMAND'].str.replace(',', '.')
         dataset['DATE'] = pd.to_datetime(dataset.DATE, format="%d/%m/%Y %H:%M")
@@ -213,11 +202,11 @@ def datasetImport(selectDatasets, dataset_name='ons'):
     return dataset
 
 
-def dataCleaning(dataset, dataset_name='ons'):
+def dataCleaning(dataset, dataset_name='ONS'):
     log('Data cleaning function has been started')
     # Select X data
     X = dataset.iloc[:, :]
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         X = X.drop(['DEMAND'], axis=1)
     elif dataset_name.find('isone') != -1:
         try:
@@ -259,14 +248,14 @@ def dataCleaning(dataset, dataset_name='ons'):
         log(y.iloc[nanIndex])
 
     # Select Y data
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         # y = pd.concat([pd.DataFrame({'DEMAND':y}), dataset['SUBSYSTEM']], axis=1, sort=False)
         y = pd.DataFrame({'DEMAND': y})
 
     return X, y
 
 
-def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False, demand_lag=True, dataset_name='ons'):
+def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True, holiday_bridge=False, demand_lag=True, dataset_name='ONS'):
     log('Feature engineering has been started')
     # Decouple date and time from dataset
     # Then concat the decoupled date in different columns in X data
@@ -312,7 +301,7 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
 
     # Save in Date format
     global df  # set a global variable for easier plot
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         # df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
         df = X['DATE'].reset_index(drop=True)
     elif dataset_name.find('isone') != -1:
@@ -351,7 +340,7 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
             'Holiday', 'Holiday_bridge']].sum(axis=1)
         X = X.drop(['Holiday', 'Holiday_bridge'], axis=1)
 
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         # Store regions in a list of dataframes
         log('Drop SUBSYSTEM column')
         X = X.drop('SUBSYSTEM', axis=1)
@@ -394,13 +383,13 @@ def calc_r2score(y_true, y_pred):
     return result
 
 
-def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a', final_test=False):
+def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a', final_test=False):
     tic = time.time()
     if mode == 'stl-a' or mode == 'stl-m':
         log('Seasonal and Trend decomposition using Loess (STL) Decomposition has been started')
         data = pd.DataFrame(X_)
 
-        if dataset_name.find('ons') != -1:
+        if dataset_name.find('ONS') != -1:
             try:
                 concatlist = [data, pd.DataFrame(
                     y_.drop(['SUBSYSTEM'], axis=1))]
@@ -477,10 +466,10 @@ def decomposeSeasonal(X_, y_, dataset_name='ons', Nmodes=3, mode='stl-a', final_
     return decomposeList
 
 
-def outlierCleaning(y_, columnName='DEMAND', dataset_name='ons'):
+def outlierCleaning(y_, columnName='DEMAND', dataset_name='ONS'):
     # global X_train, X_test, y_train, y_test, X_
     # Drop subsystem and date columns
-    if dataset_name.find('ons') != -1:
+    if dataset_name.find('ONS') != -1:
         try:
             if y_.columns[1].find("SUBSYSTEM") != -1:
                 y_ = y_.drop(['SUBSYSTEM'], axis=1)
@@ -591,7 +580,7 @@ def outlierCleaning(y_, columnName='DEMAND', dataset_name='ons'):
     return y_
 
 
-def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ons'):
+def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15, dataset_name='ONS'):
     log("Load Forecasting algorithm has been started")
     start_time_loadForecast = time.time()
 
@@ -800,7 +789,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                                 [X_test[j], np.array([y_lag])])
                         else:
                             X_test_final = X_test[0]
-                            if DATASET_NAME.find('ons') != -1:
+                            if DATASET_NAME.find('ONS') != -1:
                                 X_test = np.delete(X_test, 6, 1)
                             elif DATASET_NAME.find('isone') != -1:
                                 X_test = np.delete(X_test, 8, 1)
@@ -1102,7 +1091,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         # if plot:
         #     ax = xgboost.plot_importance(model)
         #     ax.figure.set_size_inches(11,15)
-        #     if dataset_name.find('ons') != -1:
+        #     if dataset_name.find('ONS') != -1:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{X_['SUBSYSTEM'].unique()[0]}.png")
         #     else:
         #         ax.figure.savefig(path + f"/results/plot_importance_xgboost_{dataset_name}.png")
@@ -1145,7 +1134,7 @@ def composeSeasonal(decomposePred, model='stl-a'):
     return finalPred
 
 
-def plotResults(X_, y_, y_pred, testSize, dataset_name='ons'):
+def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
     start_time = time.time()
     
     if len(df) != len(y_):
@@ -1159,7 +1148,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ons'):
                 y_pred = y_pred.reshape(y_pred.shape[0])
             elif y_pred.shape[0] == 1:
                 y_pred = y_pred.reshape(y_pred.shape[1])
-        if dataset_name.find('ons') != -1:
+        if dataset_name.find('ONS') != -1:
             try:
                 y_ = y_.drop(["SUBSYSTEM"], axis=1)
             except (AttributeError, KeyError) as e:
@@ -1460,7 +1449,7 @@ def fast_fourier_transform(y_):
         plt.tight_layout()
 
 
-def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd', final_test=False):
+def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd', final_test=False):
     if mode == 'emd':
         printName = 'Empirical Mode Decomposition (EMD)'
     elif mode == 'eemd':
@@ -1480,7 +1469,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd', final_test=Fals
         if DATASET_NAME.find('isone') != -1:
             emd.FIXE_H = 8
             emd.nbsym = 6
-        elif DATASET_NAME.find('ons') != -1:
+        elif DATASET_NAME.find('ONS') != -1:
             emd.FIXE_H = 1
             emd.nbsym = 2
         # 1 year
@@ -1495,14 +1484,14 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd', final_test=Fals
         if LOAD_DECOMPOSED:            
             # if GET_LAGGED:
             #     all_files = glob.glob(
-            #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+            #         path + r"/datasets/" + DATASET_NAME + "/custom/" + f"eemd-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-2]}.csv")
             # else:
             if not final_test:
                 all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF_*_{selectDatasets[0]}-{selectDatasets[-2]}.csv")
             else:
                 all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF*_{selectDatasets[-1]}.csv")
+                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"eemd-{NMODES}_IMF_*_{selectDatasets[-1]}.csv")
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1536,11 +1525,11 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ons', mode='eemd', final_test=Fals
             #         path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_LAG_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
             # else:
             if not final_test:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[0]}-{selectDatasets[-1]}.csv")
+                path_composed = path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF_*_{selectDatasets[0]}-{selectDatasets[-2]}*"
             else:
-                all_files = glob.glob(
-                    path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF*_{selectDatasets[-1]}.csv")
+                path_composed = path + r"/datasets/" + DATASET_NAME + r"/custom/" + f"ceemdan-{NMODES}_IMF_*_{selectDatasets[-1]}*"
+            
+            all_files = glob.glob(path_composed)
             # Initialize dataset list
             IMFs = []
             # Read all csv files and concat them
@@ -1692,7 +1681,7 @@ def get_lagged_y(X_, y_, n_steps=1):
 
 def data_cleaning_columns(X, y):
     # Drop subsystem and date columns
-    if DATASET_NAME.find('ons') != -1:
+    if DATASET_NAME.find('ONS') != -1:
         try:
             X = X.drop(['SUBSYSTEM', 'DATE'], axis=1)
         except KeyError:
@@ -1828,14 +1817,6 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
                 # rmse = np.sqrt(mean_squared_error(y_test, y_pred))
                 # log(f"r2score = {r2_score(y_test, y_pred)}")
                 # log(f"rmse = {rmse}")
-                
-                if PLOT:
-                    plt.plot(test_index, y_pred, linestyle='--')
-                    # Calculate feature importances
-                    try:
-                        plotFeatureImportance(X_test, model)
-                    except:
-                        pass
                     
                 # Increase indexes
                 if not LSTM_ENABLED:
@@ -2267,7 +2248,7 @@ if '-mode' in sys.argv:
 if '-algo' in sys.argv:
     ALGORITHM = sys.argv[sys.argv.index('-algo') + 1]
 if '-dataset' in sys.argv:
-    DATASET_NAME = sys.argv[sys.argv.index('-dataset') + 1]
+    DATASET_NAME = sys.argv[sys.argv.index('-dataset') + 1].upper()
 if '-kfold' in sys.argv:
     KFOLD = int(sys.argv[sys.argv.index('-kfold') + 1])
 if '-fdays' in sys.argv:
@@ -2287,6 +2268,17 @@ if '-load' in sys.argv:
     LOAD_DECOMPOSE = True
     
 
+log(f"Dataset: {DATASET_NAME}")
+log(f"Years: {selectDatasets}")
+log(f"CrossValidation: {CROSSVALIDATION}")
+log(f"KFOLD: {KFOLD}")
+log(f"OFFSET: {OFFSET}")
+log(f"FORECASTDAYS: {FORECASTDAYS}")
+log(f"NMODES: {NMODES}")
+log(f"MODE: {MODE}")
+log(f"BOXCOX: {BOXCOX}")
+log(f"STANDARDSCALER: {STANDARDSCALER}")
+log(f"MINMAXSCALER: {MINMAXSCALER}")
 ##############################
 
 params = nni.get_next_parameter()
@@ -2375,7 +2367,9 @@ X_testset = X_testset.reset_index(drop=True)
 
 # Index for Results
 r = 0
-
+models = []
+decomposePred = []
+results = []
 if not FINAL_TEST_ONLY:
     # Loop over decomposed data
     for y_decomposed in y_decomposed_list:

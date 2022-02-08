@@ -21,7 +21,7 @@ register_matplotlib_converters()
 sys.path.append('../')
 
 # CONSTANTS
-DATASET_NAME = 'ons'
+DATASET_NAME = 'ONS'
 ALGORITHM = 'xgboost'
 FORECASTDAYS = 7
 STEPS_AHEAD = 24*1
