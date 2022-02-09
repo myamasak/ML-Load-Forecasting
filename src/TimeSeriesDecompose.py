@@ -78,7 +78,7 @@ RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = True
-HYPERPARAMETER_IMF = 'IMF_0'
+HYPERPARAMETER_IMF = 'IMF_1'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
 MULTIMODEL = False
@@ -719,8 +719,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
         else:  # nni enabled
             
             # Convert some params to int to avoid error (float bug)
-            if ALGORITHM == 'xgboost' or \
-               ALGORITHM == 'gbr' or \
+            if ALGORITHM == 'gbr' or \
                ALGORITHM == 'extratrees' or \
                ALGORITHM == 'rf':
                 if params['min_samples_split'] > 1:
@@ -728,6 +727,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                 else:
                     params['min_samples_split'] = float(params['min_samples_split'])
                 
+            if ALGORITHM == 'xgboost' or \
+               ALGORITHM == 'gbr' or \
+               ALGORITHM == 'extratrees' or \
+               ALGORITHM == 'rf':
                 params['n_estimators'] = int(params['n_estimators'])
                 params['max_depth'] = int(params['max_depth'])
             
@@ -2242,7 +2245,7 @@ if '-nni' in sys.argv:
     FINAL_TEST_ONLY = False
     MULTIMODEL = False
 if '-imf' in sys.argv:
-    HYPERPARAMETER_IMF = int(sys.argv[sys.argv.index('-imf') + 1])
+    HYPERPARAMETER_IMF = sys.argv[sys.argv.index('-imf') + 1].upper()
 if '-mode' in sys.argv:
     MODE = sys.argv[sys.argv.index('-mode') + 1]
 if '-algo' in sys.argv:
