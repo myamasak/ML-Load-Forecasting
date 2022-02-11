@@ -68,7 +68,7 @@ KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
 NMODES = 1
-MODE = 'ceemdan'
+MODE = 'stl-a'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -77,7 +77,7 @@ LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
-HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'IMF_1'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
@@ -403,13 +403,13 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a', final_
         data['DATE'] = pd.to_datetime(data['DATE'])
         data = data.set_index('DATE')
         data = data.drop(['index'], axis=1)
-        data.columns = ['DEMAND']
+        # data.columns = ['DEMAND']
         if mode == 'stl-a':
             model = 'additive'
         elif mode == 'stl-m':
             model = 'multiplicative'
         result = seasonal_decompose(
-            data, period=24, model=model, extrapolate_trend='freq')
+            data['DEMAND'], period=24, model=model, extrapolate_trend='freq')
         result.trend.reset_index(drop=True, inplace=True)
         result.seasonal.reset_index(drop=True, inplace=True)
         result.resid.reset_index(drop=True, inplace=True)
@@ -1747,7 +1747,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
 
     # Data decompose
     y_decomposed_list = decomposeSeasonal(
-        df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=True)
+        X_testset_copy, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=True)
     
     # Save decomposed signal
     saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[-1])
@@ -2269,7 +2269,9 @@ if '-loop' in sys.argv:
     PLOT = False
 if '-load' in sys.argv:
     LOAD_DECOMPOSE = True
-    
+if '-plotoff' in sys.argv:
+    PLOT = False
+
 
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
@@ -2340,7 +2342,7 @@ y_transf, lambda_boxcox, sc1, minmax, min_y = data_transformation(y_trainset)
 
 # Decompose data
 y_decomposed_list = decomposeSeasonal(
-    df, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=False)
+    X_trainset, y_transf, dataset_name=DATASET_NAME, Nmodes=NMODES, mode=MODE, final_test=False)
 
 # Save decomposed data
 saveDecomposedIMFs(y_decomposed_list, years=selectDatasets[:-1])
