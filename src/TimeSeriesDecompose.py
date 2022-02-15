@@ -77,11 +77,11 @@ LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
-HYPERPARAMETER_TUNING = False
-HYPERPARAMETER_IMF = 'IMF_1'
+HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_IMF = 'Trend'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = False
+MULTIMODEL = True
 LSTM_ENABLED = False
 FINAL_TEST = True
 FINAL_TEST_ONLY = False
@@ -414,11 +414,15 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a', final_
         result.seasonal.reset_index(drop=True, inplace=True)
         result.resid.reset_index(drop=True, inplace=True)
         result.observed.reset_index(drop=True, inplace=True)
-        result.trend.name = 'Trend'
-        result.seasonal.name = 'Seasonal'
-        result.resid.name = 'Residual'
-        result.observed.name = 'Observed'
-        decomposeList = [result.trend, result.seasonal, result.resid]
+        # result.trend.name = 'Trend'
+        # result.seasonal.name = 'Seasonal'
+        # result.resid.name = 'Residual'
+        # result.observed.name = 'Observed'
+        df_trend = pd.DataFrame({'Trend': result.trend})
+        df_seasonal = pd.DataFrame({'Seasonal': result.seasonal})
+        df_resid = pd.DataFrame({'Residual': result.resid})
+        df_observed = pd.DataFrame({'Observed': result.observed})
+        decomposeList = [df_trend, df_seasonal, df_resid]
 
         # Select one component for seasonal decompose
         # REMOVE FOR NOW
@@ -709,7 +713,10 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
 
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
-                if y.columns[0].find('IMF_') != -1:                    
+                if y_decomposed.columns[0].find('IMF_') != -1 or \
+                   y_decomposed.columns[0].find('Trend') != -1 or \
+                   y_decomposed.columns[0].find('Residual') != -1 or \
+                   y_decomposed.columns[0].find('Seasonal') != -1:                    
                     model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, y.columns[0])
             else: # for individual algorithm Manual tuning                
@@ -1804,9 +1811,12 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
                 model = regressors(ALGORITHM)
                 # Choose one model for each IMF
                 if MULTIMODEL and MODE != 'none':
-                    if y.columns[0].find('IMF_') != -1:
+                    if y_decomposed.columns[0].find('IMF_') != -1 or \
+                       y_decomposed.columns[0].find('Trend') != -1 or \
+                       y_decomposed.columns[0].find('Residual') != -1 or \
+                       y_decomposed.columns[0].find('Seasonal') != -1:
                         model = regressors(ALGORITHM)
-                        local_params = open_json(model, ALGORITHM, y.columns[0])
+                        local_params = open_json(model, ALGORITHM, y_decomposed.columns[0])
                 else: # for individual algorithm Manual tuning                
                     local_params = open_json(model, ALGORITHM, 'none', manual=True)
                 # Set model hyperparameters from json file
@@ -2160,8 +2170,8 @@ def open_json(model, algorithm, imf, manual=False):
         else:
             log("Multimodel hyperparameters loaded successfully.")
     except (FileNotFoundError, OSError, IOError) as e:
-        log(f'Hyperparameters JSON file not found: {e}')
-        log(f'Use default params...')
+        # log(f'Hyperparameters JSON file not found: {e}')
+        # log(f'Use default params...')
         local_params = model.get_params()
         pass
     return local_params
