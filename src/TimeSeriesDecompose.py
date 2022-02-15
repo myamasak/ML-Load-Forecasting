@@ -78,10 +78,10 @@ RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
 HYPERPARAMETER_TUNING = True
-HYPERPARAMETER_IMF = 'Trend'
+HYPERPARAMETER_IMF = 'TREND'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
-MULTIMODEL = True
+MULTIMODEL = False
 LSTM_ENABLED = False
 FINAL_TEST = True
 FINAL_TEST_ONLY = False
@@ -418,10 +418,10 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a', final_
         # result.seasonal.name = 'Seasonal'
         # result.resid.name = 'Residual'
         # result.observed.name = 'Observed'
-        df_trend = pd.DataFrame({'Trend': result.trend})
-        df_seasonal = pd.DataFrame({'Seasonal': result.seasonal})
-        df_resid = pd.DataFrame({'Residual': result.resid})
-        df_observed = pd.DataFrame({'Observed': result.observed})
+        df_trend = pd.DataFrame({'TREND': result.trend})
+        df_seasonal = pd.DataFrame({'SEASONAL': result.seasonal})
+        df_resid = pd.DataFrame({'RESIDUAL': result.resid})
+        df_observed = pd.DataFrame({'OBSERVED': result.observed})
         decomposeList = [df_trend, df_seasonal, df_resid]
 
         # Select one component for seasonal decompose
