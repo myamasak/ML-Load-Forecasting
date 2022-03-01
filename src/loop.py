@@ -29,7 +29,7 @@ if path.find('autoML') != -1:
 #     path = r'%s' % path.replace('/src', '')
 
 script_path = 'TimeSeriesDecompose.py'
-dataset = 'ONS'
+dataset = 'ISONE'
 algorithms = ['xgboost', 'gbr', 'svr', 'knn']
 modes = ['emd', 'ewt', 'eemd', 'ceemdan']
 nmodes = np.arange(1,10)

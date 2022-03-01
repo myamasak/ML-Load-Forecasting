@@ -1,0 +1,18 @@
+{
+    "loss": "ls",
+    "learning_rate": 0.1616621744976713,
+    "n_estimators": 1750,
+    "subsample": 0.45,
+    "criterion": "mse",
+    "min_samples_split": 11,
+    "min_weight_fraction_leaf": 0,
+    "max_depth": 46,
+    "min_impurity_decrease": 0,
+    "max_features": "log2",
+    "alpha": 0.25,
+    "warm_start": false,
+    "validation_fraction": 0.9,
+    "tol": 0.2713823399313628,
+    "ccp_alpha": 0,
+    "random_state": 42
+}

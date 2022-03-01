@@ -1,0 +1,18 @@
+{
+    "loss": "lad",
+    "learning_rate": 0.009035065438582787,
+    "n_estimators": 1750,
+    "subsample": 0.8,
+    "criterion": "friedman_mse",
+    "min_samples_split": 4,
+    "min_weight_fraction_leaf": 0,
+    "max_depth": 12,
+    "min_impurity_decrease": 0,
+    "max_features": "log2",
+    "alpha": 0.05,
+    "warm_start": true,
+    "validation_fraction": 0.1,
+    "tol": 0.00014776630571624647,
+    "ccp_alpha": 0,
+    "random_state": 42
+}

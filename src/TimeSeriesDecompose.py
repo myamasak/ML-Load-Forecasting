@@ -54,7 +54,7 @@ register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-# DATASET_NAME = 'isone'
+# DATASET_NAME = 'ISONE'
 DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
@@ -62,13 +62,13 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'xgboost'
+ALGORITHM = 'svr'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
 NMODES = 1
-MODE = 'stl-a'
+MODE = 'emd'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -77,7 +77,7 @@ LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
-HYPERPARAMETER_TUNING = True
+HYPERPARAMETER_TUNING = False
 HYPERPARAMETER_IMF = 'TREND'
 STEPS_AHEAD = 24*1
 TEST_DAYS = 29
@@ -176,7 +176,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
         datasetList = []
         for year in selectDatasets:
             datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
-    elif dataset_name.find('isone') != -1:
+    elif dataset_name.find('ISONE') != -1:
         all_files = glob.glob(
             path + r'/datasets/ISONE/csv-fixed/*.csv')
         # Initialize dataset list
@@ -208,7 +208,7 @@ def dataCleaning(dataset, dataset_name='ONS'):
     X = dataset.iloc[:, :]
     if dataset_name.find('ONS') != -1:
         X = X.drop(['DEMAND'], axis=1)
-    elif dataset_name.find('isone') != -1:
+    elif dataset_name.find('ISONE') != -1:
         try:
             X = X.drop(['DEMAND', 'DA_DEMD', 'DA_LMP', 'DA_EC', 'DA_CC', 'DA_MLC', 'DATE', 'HOUR',
                         'RT_LMP', 'RT_EC', 'RT_CC', 'RT_MLC', 'SYSLoad', 'RegSP', 'RegCP'], axis=1)
@@ -304,7 +304,7 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
     if dataset_name.find('ONS') != -1:
         # df = X[X['SUBSYSTEM'].str.find("All") != -1]['DATE'].reset_index(drop=True)
         df = X['DATE'].reset_index(drop=True)
-    elif dataset_name.find('isone') != -1:
+    elif dataset_name.find('ISONE') != -1:
         df = X['DATE'].reset_index(drop=True)
 
     if holiday_bridge:
@@ -345,7 +345,7 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
         log('Drop SUBSYSTEM column')
         X = X.drop('SUBSYSTEM', axis=1)
 
-    # elif dataset_name.find('isone') != -1:
+    # elif dataset_name.find('ISONE') != -1:
     #     X.append(X)
     #     y.append(y)
 
@@ -395,7 +395,7 @@ def decomposeSeasonal(X_, y_, dataset_name='ONS', Nmodes=3, mode='stl-a', final_
                     y_.drop(['SUBSYSTEM'], axis=1))]
             except (AttributeError, KeyError) as e:
                 concatlist = [data, pd.DataFrame(y_)]
-        elif dataset_name.find('isone') != -1:
+        elif dataset_name.find('ISONE') != -1:
             concatlist = [data, pd.DataFrame(y_)]
         data = pd.concat(concatlist, axis=1)
 
@@ -714,9 +714,9 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
             # Choose one model for each IMF
             if MULTIMODEL and MODE != 'none':
                 if y_decomposed.columns[0].find('IMF_') != -1 or \
-                   y_decomposed.columns[0].find('Trend') != -1 or \
-                   y_decomposed.columns[0].find('Residual') != -1 or \
-                   y_decomposed.columns[0].find('Seasonal') != -1:                    
+                   y_decomposed.columns[0].find('TREND') != -1 or \
+                   y_decomposed.columns[0].find('RESIDUAL') != -1 or \
+                   y_decomposed.columns[0].find('SEASONAL') != -1:                    
                     model = regressors(ALGORITHM)
                     local_params = open_json(model, ALGORITHM, y.columns[0])
             else: # for individual algorithm Manual tuning                
@@ -801,7 +801,7 @@ def loadForecast(X, y, CrossValidation=False, kfold=5, offset=0, forecastDays=15
                             X_test_final = X_test[0]
                             if DATASET_NAME.find('ONS') != -1:
                                 X_test = np.delete(X_test, 6, 1)
-                            elif DATASET_NAME.find('isone') != -1:
+                            elif DATASET_NAME.find('ISONE') != -1:
                                 X_test = np.delete(X_test, 8, 1)
                     else:
                         X_test_final = X_test[j]
@@ -1476,7 +1476,7 @@ def emd_decompose(y_, Nmodes=3, dataset_name='ONS', mode='eemd', final_test=Fals
     def do_emd():
         emd = EMD()
         # 4 years
-        if DATASET_NAME.find('isone') != -1:
+        if DATASET_NAME.find('ISONE') != -1:
             emd.FIXE_H = 8
             emd.nbsym = 6
         elif DATASET_NAME.find('ONS') != -1:
@@ -1696,7 +1696,7 @@ def data_cleaning_columns(X, y):
             X = X.drop(['SUBSYSTEM', 'DATE'], axis=1)
         except KeyError:
             X = X.drop(['DATE'], axis=1)
-    elif DATASET_NAME.find('isone') != -1:
+    elif DATASET_NAME.find('ISONE') != -1:
         try:
             X = X.drop(['DATE'], axis=1)
         except KeyError:
@@ -1812,9 +1812,9 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
                 # Choose one model for each IMF
                 if MULTIMODEL and MODE != 'none':
                     if y_decomposed.columns[0].find('IMF_') != -1 or \
-                       y_decomposed.columns[0].find('Trend') != -1 or \
-                       y_decomposed.columns[0].find('Residual') != -1 or \
-                       y_decomposed.columns[0].find('Seasonal') != -1:
+                       y_decomposed.columns[0].find('TREND') != -1 or \
+                       y_decomposed.columns[0].find('RESIDUAL') != -1 or \
+                       y_decomposed.columns[0].find('SEASONAL') != -1:
                         model = regressors(ALGORITHM)
                         local_params = open_json(model, ALGORITHM, y_decomposed.columns[0])
                 else: # for individual algorithm Manual tuning                
