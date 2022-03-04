@@ -54,15 +54,15 @@ register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-# DATASET_NAME = 'ISONE'
-DATASET_NAME = 'ONS'
+DATASET_NAME = 'ISONE'
+# DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
 # Set True to plot curves
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'svr'
+ALGORITHM = 'gbr'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
@@ -73,7 +73,7 @@ BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = True
+LOAD_DECOMPOSED = False
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -178,7 +178,7 @@ def datasetImport(selectDatasets, dataset_name='ONS'):
             datasetList.append(dataset[dataset['DATE'].str.find(year) != -1])
     elif dataset_name.find('ISONE') != -1:
         all_files = glob.glob(
-            path + r'/datasets/ISONE/csv-fixed/*.csv')
+            path + r'/datasets/ISONE/csv-fixed/*ISONE*.csv')
         # Initialize dataset list
         datasetList = []
         # Read all csv files and concat them
@@ -210,11 +210,13 @@ def dataCleaning(dataset, dataset_name='ONS'):
         X = X.drop(['DEMAND'], axis=1)
     elif dataset_name.find('ISONE') != -1:
         try:
-            X = X.drop(['DEMAND', 'DA_DEMD', 'DA_LMP', 'DA_EC', 'DA_CC', 'DA_MLC', 'DATE', 'HOUR',
+            X = X.drop(['DEMAND', 'DA_DEMD', 'DA_LMP', 'DA_EC', 'DA_CC', 'DA_MLC',
                         'RT_LMP', 'RT_EC', 'RT_CC', 'RT_MLC', 'SYSLoad', 'RegSP', 'RegCP'], axis=1)
+            X = X.drop(['HOUR', 'DRYBULB', 'DEWPNT'], axis=1)
         except KeyError:
             X = X.drop(['DEMAND', 'DA_DEMD', 'DA_LMP', 'DA_EC', 'DA_CC', 'DA_MLC',
-                        'DATE', 'HOUR', 'RT_LMP', 'RT_EC', 'RT_CC', 'RT_MLC', 'SYSLoad'], axis=1)
+                        'RT_LMP', 'RT_EC', 'RT_CC', 'RT_MLC', 'SYSLoad'], axis=1)
+            X = X.drop(['HOUR', 'DRYBULB', 'DEWPNT'], axis=1)
         # Drop additional unused columns/features
         for columnNames in X.columns:
             if(columnNames.find("5min") != -1):
@@ -281,12 +283,16 @@ def featureEngineering(dataset, X, y, selectDatasets, weekday=True, holiday=True
     if holiday:
         # Add holidays to X data
         br_holidays = []
-        for date2 in holidays.Brazil(years=list(map(int, selectDatasets))).items():
-            br_holidays.append(str(date2[0]))
+        if dataset_name == 'ONS':
+            for date2 in holidays.Brazil(years=list(map(int, selectDatasets))).items():
+                br_holidays.append(str(date2[0]))
+        elif dataset_name == 'ISONE':
+            for date2 in holidays.UnitedStates(years=list(map(int, selectDatasets))).items():
+                br_holidays.append(str(date2[0]))
 
         # Set 1 or 0 for Holiday, when compared between date and br_holidays
-            Holiday = pd.DataFrame(
-                {'Holiday': [1 if str(val).split()[0] in br_holidays else 0 for val in date]})
+        Holiday = pd.DataFrame(
+            {'Holiday': [1 if str(val).split()[0] in br_holidays else 0 for val in date]})
 
     # Concat all new features into X data
     try:
@@ -2279,6 +2285,8 @@ if '-loop' in sys.argv:
     PLOT = False
 if '-load' in sys.argv:
     LOAD_DECOMPOSE = True
+if '-loadoff' in sys.argv:
+    LOAD_DECOMPOSE = False
 if '-plotoff' in sys.argv:
     PLOT = False
 
