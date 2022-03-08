@@ -54,7 +54,7 @@ register_matplotlib_converters()
 sys.path.append('../')
 ### Constants ###
 # Dataset chosen
-DATASET_NAME = 'ISONE'
+DATASET_NAME = 'ONS'
 # DATASET_NAME = 'ONS'
 # Enable nni for AutoML
 enable_nni = False
@@ -62,13 +62,13 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'gbr'
+ALGORITHM = 'svr'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
 NMODES = 1
-MODE = 'emd'
+MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
