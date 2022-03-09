@@ -9,6 +9,7 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import StackingRegressor, RandomForestRegressor, VotingRegressor, GradientBoostingRegressor, ExtraTreesRegressor, AdaBoostRegressor
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing, Holt
 from sklearn import svm
 from sklearn import linear_model, cross_decomposition
 from tensorflow.keras.layers import Dense, Activation, LSTM, Dropout, LeakyReLU
@@ -62,18 +63,18 @@ enable_nni = False
 PLOT = True
 SAVE_FIG = True
 # Configuration for Forecasting
-ALGORITHM = 'svr'
+ALGORITHM = 'xgboost'
 CROSSVALIDATION = True
 KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
-NMODES = 1
+NMODES = 9
 MODE = 'none'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
 DIFF = False
-LOAD_DECOMPOSED = False
+LOAD_DECOMPOSED = True
 RECURSIVE = False
 GET_LAGGED = False
 PREVIOUS = False
@@ -144,6 +145,51 @@ LSTM_PARAMS = {
 # LSTM Implementation
 # model, early_stop = init_lstm(LSTM_PARAMS)
 
+def ensemble_set(mode):
+    regressors = list()
+    if mode == 1:
+        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+        regressors.append(('gbr', GradientBoostingRegressor()))
+        regressors.append(('knn', KNeighborsRegressor()))
+        regressors.append(('svm', svm.SVR()))
+#    elif mode == 2:
+#        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+#        regressors.append(('expsmooth', ExponentialSmoothing()))
+    elif mode == 3:
+        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+        regressors.append(('svm', svm.SVR()))
+        regressors.append(('knn', KNeighborsRegressor()))
+    elif mode == 4:
+        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+        regressors.append(('knn', KNeighborsRegressor()))
+    elif mode == 5:
+        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+        regressors.append(('svm', svm.SVR()))
+    elif mode == 6:
+        regressors.append(('xgboost', xgboost.XGBRegressor(random_state=SEED_VALUE)))
+        regressors.append(('gbr', GradientBoostingRegressor()))
+        
+        
+    # regressors.append(('cart', DecisionTreeRegressor()))
+    # regressors.append(('rf', RandomForestRegressor()))
+    # regressors.append(('extratrees', ExtraTreesRegressor()))
+    # regressors.append(('sgd', linear_model.SGDRegressor()))
+    # regressors.append(('bayes'  , linear_model.BayesianRidge()))
+    # regressors.append(('lasso', linear_model.LassoLars()))
+    # regressors.append(('ard', linear_model.ARDRegression()))
+    # regressors.append(('par', linear_model.PassiveAggressiveRegressor()))
+    # regressors.append(('theilsen', linear_model.TheilSenRegressor()))
+    # regressors.append(('linear', linear_model.LinearRegression()))
+
+    # define meta learner model
+    meta_learner = linear_model.ARDRegression()
+
+    # model = VotingRegressor(estimators=regressors)
+    # model = VotingRegressor(estimators=regressors, n_jobs=-1, verbose=True)
+    model = StackingRegressor(
+        estimators=regressors, final_estimator=meta_learner)
+    return model
+
 def regressors(algorithm : str):
     REGRESSORS = {  "knn": KNeighborsRegressor(),
                     "dt": DecisionTreeRegressor(random_state=SEED_VALUE),
@@ -158,11 +204,58 @@ def regressors(algorithm : str):
                     "lasso": linear_model.LassoLars(),
                     "par": linear_model.PassiveAggressiveRegressor(random_state=SEED_VALUE),
                     "theilsen": linear_model.TheilSenRegressor(random_state=SEED_VALUE),
-                    "linear": linear_model.LinearRegression()
+                    "linear": linear_model.LinearRegression(),
+                    "ensemble_1": ensemble_set(1),
+                    "ensemble_2": ensemble_set(2),
+                    "ensemble_3": ensemble_set(3),
+                    "ensemble_4": ensemble_set(4),
+                    "ensemble_5": ensemble_set(5),
+                    "ensemble_6": ensemble_set(6),
                  }
 
     return REGRESSORS[algorithm]
 
+
+def real_vs_pred(y_test, y_pred, label):
+
+    if type(y_test) == type(list()):
+        fig, ax = plt.subplots()
+        for test, pred in zip(y_test, y_pred):
+            ax.scatter(test, pred, s=25)
+            lims = [
+            np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+            np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+            ]
+            # now plot both limits against eachother
+            ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+            ax.set_aspect('equal')
+            ax.set_xlim(lims)
+            ax.set_ylim(lims)
+            plt.show()
+            
+        return
+        
+    c = y_test**2 + y_pred**2
+
+    fig, ax = plt.subplots()
+    # ax.scatter(y_test, y_pred, s=25, c=c, cmap=plt.cm.coolwarm, zorder=10)
+    ax.scatter(y_test, y_pred, s=25)
+    lims = [
+    np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+    np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+
+    # now plot both limits against eachother
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+    plt.show()
+    fig.savefig(path+f'/results/pdf/real_vs_pred_{label}.pdf', dpi=300)
+    
+
+    # diag_line, = ax.plot(fig.get_xlim(), ax.get_ylim(), ls="--", c=".3")\
+    # diag_line.set_data(x_lims, y_lims)
 
 def datasetImport(selectDatasets, dataset_name='ONS'):
     log('Dataset import has been started')
@@ -1324,6 +1417,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 plt.plot(df2, y_pred[i], label=f'Predicted Load (fold={i})')
                 
                 
+                
             # Fix shape
             if len(y_pred[i]) > 1:
                 y_pred[i] = y_pred[i].ravel()
@@ -1332,6 +1426,9 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                     y_test = y_test.ravel()
                 except AttributeError:
                     y_test = y_test.values.ravel()
+                    
+            #if PLOT:
+                #real_vs_pred(y_test, y_pred[i], f'fold_{i}')
 
             r2test = r2_score(y_test, y_pred[i])
         #    log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
@@ -1398,7 +1495,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.tight_layout()
             if SAVE_FIG:
                 plt.savefig(
-                    path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
+                    path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')            
 
         # Print the results: average per fold
         log(f"Model name: {type(model).__name__}")
@@ -1796,7 +1893,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
             # Indexes
             train_index = np.arange(0, train_size)
             test_index = np.arange(train_size, train_size+test_size)
-            if PLOT:
+            if PLOT and False:
                 plt.figure()
                 plt.plot(y_decomposed, color='darkgray', label='Real data')
             for i in range(0, FINAL_FOLD):
@@ -1900,6 +1997,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
         plt.xticks(fontsize=FONT_SIZE)
         plt.yticks(fontsize=FONT_SIZE)
         plt.legend(fontsize=FONT_SIZE)
+                
         
     
     y_test_list = []
@@ -1914,6 +2012,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
         
         if PLOT:
             plt.plot(X_testset_copy['DATE'].iloc[save_test_index[i]], y_final[i], label=f'Forecasted', linestyle='--')
+            
     
         # Fix shape
         if len(y_final[i]) > 1:
@@ -1974,6 +2073,7 @@ def finalTest(model, X_testset, y_testset, X_all, y_all, n_steps=STEPS_AHEAD, pr
             plt.savefig(path+f'/results/pdf/{MODE}_noCV_composed_pred_vs_real.pdf')
         plt.show()
         plt.tight_layout()
+        real_vs_pred(y_test_list, y_final, 'finalTest')
     # Print results
     # Print the results: average per fold
     log(f"Model name: {type(model).__name__}")
