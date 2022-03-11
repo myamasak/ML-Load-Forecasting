@@ -65,7 +65,7 @@ SAVE_FIG = True
 # Configuration for Forecasting
 ALGORITHM = 'xgboost'
 CROSSVALIDATION = True
-KFOLD = 10
+KFOLD = 20
 OFFSET = 0
 FORECASTDAYS = 15
 NMODES = 9
@@ -234,22 +234,26 @@ def real_vs_pred(y_test, y_pred, label, size=15):
         ax.set_aspect('equal')
         ax.set_xlim(lims)
         ax.set_ylim(lims)
+        i = 0
         for test, pred in zip(y_test, y_pred):
-            ax.scatter(test, pred, s=size)
+            ax.scatter(test, pred, s=size, label=f'fold_{i}')
+            i+=1
         
         # Set common labels
         ax.set_xlabel('Real data')
         ax.set_ylabel('Predicted data')
+        plt.tight_layout()
+        plt.legend()
+        plt.show()
         if SAVE_FIG:
             fig.savefig(path+f'/results/pdf/{DATASET_NAME}_{ALGORITHM}_{MODE}_real_vs_pred_{label}.pdf', dpi=300)
-        plt.show()    
         return
         
     c = y_test**2 + y_pred**2
 
     fig, ax = plt.subplots()
     # ax.scatter(y_test, y_pred, s=25, c=c, cmap=plt.cm.coolwarm, zorder=10)
-    ax.scatter(y_test, y_pred, s=25)
+    ax.scatter(y_test, y_pred, s=25, label=label)
     lims = [
     np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
     np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
@@ -260,7 +264,10 @@ def real_vs_pred(y_test, y_pred, label, size=15):
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
+    plt.tight_layout()
+    plt.legend()    
     plt.show()
+    
     if SAVE_FIG:
         fig.savefig(path+f'/results/pdf/{DATASET_NAME}_{ALGORITHM}_{MODE}_real_vs_pred_{label}.pdf', dpi=300)
     
