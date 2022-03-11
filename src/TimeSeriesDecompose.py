@@ -69,7 +69,7 @@ KFOLD = 10
 OFFSET = 0
 FORECASTDAYS = 15
 NMODES = 9
-MODE = 'none'
+MODE = 'ewt'
 BOXCOX = True
 STANDARDSCALER = True
 MINMAXSCALER = False
@@ -216,23 +216,33 @@ def regressors(algorithm : str):
     return REGRESSORS[algorithm]
 
 
-def real_vs_pred(y_test, y_pred, label):
+def real_vs_pred(y_test, y_pred, label, size=15):
 
     if type(y_test) == type(list()):
         fig, ax = plt.subplots()
+        maxVal = max([max([max(i) for i in y_test]),
+                      max([max(i) for i in y_pred])])
+        minVal = min([min([min(i) for i in y_test]),
+                      min([min(i) for i in y_pred])])
+        #lims = [
+         #   np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+          #  np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+           # ]
+        lims = [minVal, maxVal]
+        # now plot both limits against eachother
+        ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+        ax.set_aspect('equal')
+        ax.set_xlim(lims)
+        ax.set_ylim(lims)
         for test, pred in zip(y_test, y_pred):
-            ax.scatter(test, pred, s=25)
-            lims = [
-            np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-            np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
-            ]
-            # now plot both limits against eachother
-            ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-            ax.set_aspect('equal')
-            ax.set_xlim(lims)
-            ax.set_ylim(lims)
-            plt.show()
-            
+            ax.scatter(test, pred, s=size)
+        
+        # Set common labels
+        ax.set_xlabel('Real data')
+        ax.set_ylabel('Predicted data')
+        if SAVE_FIG:
+            fig.savefig(path+f'/results/pdf/{DATASET_NAME}_{ALGORITHM}_{MODE}_real_vs_pred_{label}.pdf', dpi=300)
+        plt.show()    
         return
         
     c = y_test**2 + y_pred**2
@@ -251,7 +261,8 @@ def real_vs_pred(y_test, y_pred, label):
     ax.set_xlim(lims)
     ax.set_ylim(lims)
     plt.show()
-    fig.savefig(path+f'/results/pdf/real_vs_pred_{label}.pdf', dpi=300)
+    if SAVE_FIG:
+        fig.savefig(path+f'/results/pdf/{DATASET_NAME}_{ALGORITHM}_{MODE}_real_vs_pred_{label}.pdf', dpi=300)
     
 
     # diag_line, = ax.plot(fig.get_xlim(), ax.get_ylim(), ls="--", c=".3")\
@@ -1346,6 +1357,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             finalResults[0].saveResults(path)
 
     else: # CROSSVALIDATION
+        y_test_list = [] # to use later
         # Add real data to PLOT
         if PLOT:
             # fig = go.Figure()
@@ -1427,8 +1439,7 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
                 except AttributeError:
                     y_test = y_test.values.ravel()
                     
-            #if PLOT:
-                #real_vs_pred(y_test, y_pred[i], f'fold_{i}')
+            y_test_list.append(y_test)
 
             r2test = r2_score(y_test, y_pred[i])
         #    log("The R2 score on the Train set is:\t{:0.4f}".format(r2train))
@@ -1495,7 +1506,9 @@ def plotResults(X_, y_, y_pred, testSize, dataset_name='ONS'):
             plt.tight_layout()
             if SAVE_FIG:
                 plt.savefig(
-                    path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')            
+                    path+f'/results/pdf/{MODE}_loadForecast_k-fold_crossvalidation.pdf')
+                
+            real_vs_pred(y_test_list, y_pred, 'plotResults', size=5)
 
         # Print the results: average per fold
         log(f"Model name: {type(model).__name__}")
@@ -2390,7 +2403,9 @@ if '-loadoff' in sys.argv:
 if '-plotoff' in sys.argv:
     PLOT = False
 
-
+log(f"ALGORITHM: {ALGORITHM}")
+log(f"MODE: {MODE}")
+log(f"NMODES: {NMODES}")
 log(f"Dataset: {DATASET_NAME}")
 log(f"Years: {selectDatasets}")
 log(f"CrossValidation: {CROSSVALIDATION}")
