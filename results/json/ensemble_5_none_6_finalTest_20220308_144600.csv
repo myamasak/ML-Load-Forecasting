@@ -1,0 +1,53 @@
+r2train_per_fold,"[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"
+r2test_per_fold,"[0.8000639462964523, 0.30215956891796114, 0.6490172336191625, 0.9489378901088871, 0.7224473534542759, 0.05669257109111525, 0.9887589846346134, 0.9708074067650936, 0.974892945034957, 0.9955833282031146, 0.9503923225656447, 0.989737834963572, 0.924880329987351, 0.9516965426562575, 0.601781009340612, 0.47603549060728534, 0.842962851793481, 0.809593170283605, 0.9677827907518733, 0.31574428431671364]"
+r2testadj_per_fold,"[0.7294982802834354, 0.05586294618312382, 0.525140963131808, 0.9309159689708473, 0.6244875958499027, -0.2762394626414324, 0.9847915674468299, 0.9605041385645384, 0.9660316315178831, 0.9940245028630373, 0.9328837305299899, 0.9861158943624798, 0.8983675052770044, 0.9346482635937601, 0.4612331302843573, 0.29110684023338607, 0.787537975955886, 0.7423907597954655, 0.9564120110172404, 0.0742422670167302]"
+rmse_per_fold,"[2904.936124040252, 5173.014658254786, 3674.379948189032, 1655.172195963759, 3802.5832217492352, 4753.049795589872, 700.7681868688144, 1036.1943419227448, 1086.6629564522088, 458.02367634952265, 1423.3189773236352, 745.4432298823373, 1677.693158452995, 1651.1677536273437, 4991.104905167823, 2938.9791161159774, 2783.7732253043605, 2779.1996556874988, 1270.8601231847222, 2947.240351542703]"
+mae_per_fold,"[2708.3908047235905, 4110.557014496039, 3528.5957716827484, 1408.8495544858497, 3652.5801797726313, 3749.759115095518, 537.9543791674414, 928.8523283600504, 826.0180429092543, 375.9567001475319, 1152.191184741928, 644.3246365954805, 1089.8672649192613, 1487.0346096083595, 4389.9475954264535, 2443.0211779082333, 2597.2343076572847, 2212.169773981004, 919.4147889634332, 2532.278681525487]"
+maep_per_fold,"[3.6077037641323204, 5.834784173879577, 5.519937962153464, 1.9398691740751997, 5.349655228882508, 6.688323623196552, 0.8022688748130872, 1.7751128608432822, 1.2922541030604333, 0.592872776944661, 2.0272710194117423, 1.044944618548737, 2.1457806358360805, 2.1384795696186303, 6.877164643533974, 3.86031679776751, 3.7538836275033587, 3.7518534069760814, 1.3123082606054743, 4.083535926687945]"
+mape_per_fold,"[3.5196987364937864, 6.214032099759698, 5.453440198717612, 1.8343226694381636, 5.285547156049117, 6.3993497298161115, 0.775269285995941, 1.8775906073238435, 1.4311654495071076, 0.6104881122162097, 2.1614619557004873, 1.0118219896707308, 2.3131389338253787, 2.1845557933285176, 7.085949578672733, 3.858601149327803, 3.775640469839778, 3.88897500505481, 1.2370982747563333, 4.082514107994918]"
+smape_per_fold,"[3.5899932861069517, 5.904718193583288, 5.613750543812349, 1.8571505859996975, 5.142290483247231, 6.562568655601648, 0.7731439047720324, 1.8550044699590582, 1.4129247762203467, 0.6077053313297498, 2.124493887145003, 1.0168227350080123, 2.2492657014727575, 2.2153307096662944, 6.772878680461234, 3.924247239627642, 3.6959586867604206, 3.7707701021584454, 1.250351028987219, 3.9872506380037596]"
+test_name,finalTest
+name,"['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none']"
+model_name,"['StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor', 'StackingRegressor']"
+decomposition,none
+nmodes,6
+algorithm,ensemble_5
+avg_r2train,0.0
+std_r2train,0.0
+avg_r2test,0.762
+std_r2test,0.2704
+avg_r2testadj,0.678
+std_r2testadj,0.3658
+avg_rmse,2422.6783
+std_rmse,1440.5629
+avg_mae,2064.7499
+std_mae,1266.1114
+avg_maep,3.2199
+std_maep,1.9525
+avg_mape,3.25
+std_mape,1.9594
+avg_smape,3.2163
+std_smape,1.9217
+model_params,"{'cv': None, 'estimators': [('xgboost', XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None, gamma=None,
+             gpu_id=None, importance_type='gain', interaction_constraints=None,
+             learning_rate=None, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=100, n_jobs=None, num_parallel_tree=None,
+             objective='reg:squarederror', random_state=4242, reg_alpha=None,
+             reg_lambda=None, scale_pos_weight=None, subsample=None,
+             tree_method=None, validate_parameters=False, verbosity=None)), ('svm', SVR(C=1.0, cache_size=200, coef0=0.0, degree=3, epsilon=0.1, gamma='scale',
+    kernel='rbf', max_iter=-1, shrinking=True, tol=0.001, verbose=False))], 'final_estimator__alpha_1': 1e-06, 'final_estimator__alpha_2': 1e-06, 'final_estimator__compute_score': False, 'final_estimator__copy_X': True, 'final_estimator__fit_intercept': True, 'final_estimator__lambda_1': 1e-06, 'final_estimator__lambda_2': 1e-06, 'final_estimator__n_iter': 300, 'final_estimator__normalize': False, 'final_estimator__threshold_lambda': 10000.0, 'final_estimator__tol': 0.001, 'final_estimator__verbose': False, 'final_estimator': ARDRegression(alpha_1=1e-06, alpha_2=1e-06, compute_score=False, copy_X=True,
+              fit_intercept=True, lambda_1=1e-06, lambda_2=1e-06, n_iter=300,
+              normalize=False, threshold_lambda=10000.0, tol=0.001,
+              verbose=False), 'n_jobs': None, 'passthrough': False, 'verbose': 0, 'xgboost': XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None, gamma=None,
+             gpu_id=None, importance_type='gain', interaction_constraints=None,
+             learning_rate=None, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=100, n_jobs=None, num_parallel_tree=None,
+             objective='reg:squarederror', random_state=4242, reg_alpha=None,
+             reg_lambda=None, scale_pos_weight=None, subsample=None,
+             tree_method=None, validate_parameters=False, verbosity=None), 'svm': SVR(C=1.0, cache_size=200, coef0=0.0, degree=3, epsilon=0.1, gamma='scale',
+    kernel='rbf', max_iter=-1, shrinking=True, tol=0.001, verbose=False), 'xgboost__objective': 'reg:squarederror', 'xgboost__base_score': None, 'xgboost__booster': None, 'xgboost__colsample_bylevel': None, 'xgboost__colsample_bynode': None, 'xgboost__colsample_bytree': None, 'xgboost__gamma': None, 'xgboost__gpu_id': None, 'xgboost__importance_type': 'gain', 'xgboost__interaction_constraints': None, 'xgboost__learning_rate': None, 'xgboost__max_delta_step': None, 'xgboost__max_depth': None, 'xgboost__min_child_weight': None, 'xgboost__missing': nan, 'xgboost__monotone_constraints': None, 'xgboost__n_estimators': 100, 'xgboost__n_jobs': None, 'xgboost__num_parallel_tree': None, 'xgboost__random_state': 4242, 'xgboost__reg_alpha': None, 'xgboost__reg_lambda': None, 'xgboost__scale_pos_weight': None, 'xgboost__subsample': None, 'xgboost__tree_method': None, 'xgboost__validate_parameters': False, 'xgboost__verbosity': None, 'svm__C': 1.0, 'svm__cache_size': 200, 'svm__coef0': 0.0, 'svm__degree': 3, 'svm__epsilon': 0.1, 'svm__gamma': 'scale', 'svm__kernel': 'rbf', 'svm__max_iter': -1, 'svm__shrinking': True, 'svm__tol': 0.001, 'svm__verbose': False}"
+duration,8.74

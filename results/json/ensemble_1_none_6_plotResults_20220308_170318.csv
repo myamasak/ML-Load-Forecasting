@@ -1,0 +1,73 @@
+r2train_per_fold,"[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"
+r2test_per_fold,"[0.9554716293699009, 0.9384124395839566, 0.8383550937288696, 0.9772252293448764, 0.9069241504677461, 0.901485580759661, 0.9181177885958225, 0.7693953574692632, 0.9052908310471257, 0.22533716987789987]"
+r2testadj_per_fold,"[0.9545861219994161, 0.9371876869620466, 0.835140564342796, 0.9767723219738939, 0.9050732102781842, 0.8995264871952224, 0.9164894491644894, 0.7648094696916634, 0.903407410073631, 0.20993194314251717]"
+rmse_per_fold,"[1728.0550726740203, 2145.231863885702, 3344.8359254835, 1238.3600739577855, 2138.252983381906, 2557.3371684721537, 2369.8537461472256, 4007.080190591728, 2368.3119075395502, 7309.94420803091]"
+mae_per_fold,"[1371.5675097455514, 1615.6569947787427, 2729.393622765428, 989.4275231138408, 1601.7256843485663, 1981.2479252846724, 1951.91755522957, 3243.6813363940378, 1833.996091872136, 5502.864630694553]"
+maep_per_fold,"[2.3298487697016803, 2.6004437604508426, 4.223980599651871, 1.6976542378785493, 2.6013411729158586, 3.238157684100742, 3.085608840109765, 4.6702904706647494, 3.0320370749262806, 8.496328814446446]"
+mape_per_fold,"[2.43030151592454, 2.598328807037532, 4.413762999508932, 1.7007392165015962, 2.6312755699993264, 3.3778889721027534, 3.1009609036503063, 4.482128953800919, 3.1489199315811414, 9.041481352420032]"
+smape_per_fold,"[2.409078860144738, 2.6082030093313193, 4.341419059852261, 1.7056186515642682, 2.6826299167329646, 3.354300913353942, 3.1111725511637816, 4.622796738988498, 3.1236740187218763, 8.403123769795467]"
+test_name,plotResults
+name,"['kfold_0', 'kfold_1', 'kfold_2', 'kfold_3', 'kfold_4', 'kfold_5', 'kfold_6', 'kfold_7', 'kfold_8', 'kfold_9']"
+model_name,['StackingRegressor']
+decomposition,none
+nmodes,6
+algorithm,ensemble_1
+avg_r2train,0.0
+std_r2train,0.0
+avg_r2test,0.8336
+std_r2test,0.2104
+avg_r2testadj,0.8303
+std_r2testadj,0.2146
+avg_rmse,2920.7263
+std_rmse,1638.0604
+avg_mae,2282.1479
+std_mae,1237.1537
+avg_maep,3.5976
+std_maep,1.8291
+avg_mape,3.6926
+std_mape,1.9592
+avg_smape,3.6362
+std_smape,1.7892
+model_params,"{'cv': None, 'estimators': [('xgboost', XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None, gamma=None,
+             gpu_id=None, importance_type='gain', interaction_constraints=None,
+             learning_rate=None, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=100, n_jobs=None, num_parallel_tree=None,
+             objective='reg:squarederror', random_state=4242, reg_alpha=None,
+             reg_lambda=None, scale_pos_weight=None, subsample=None,
+             tree_method=None, validate_parameters=False, verbosity=None)), ('gbr', GradientBoostingRegressor(alpha=0.9, ccp_alpha=0.0, criterion='friedman_mse',
+                          init=None, learning_rate=0.1, loss='ls', max_depth=3,
+                          max_features=None, max_leaf_nodes=None,
+                          min_impurity_decrease=0.0, min_impurity_split=None,
+                          min_samples_leaf=1, min_samples_split=2,
+                          min_weight_fraction_leaf=0.0, n_estimators=100,
+                          n_iter_no_change=None, presort='deprecated',
+                          random_state=None, subsample=1.0, tol=0.0001,
+                          validation_fraction=0.1, verbose=0, warm_start=False)), ('knn', KNeighborsRegressor(algorithm='auto', leaf_size=30, metric='minkowski',
+                    metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                    weights='uniform')), ('svm', SVR(C=1.0, cache_size=200, coef0=0.0, degree=3, epsilon=0.1, gamma='scale',
+    kernel='rbf', max_iter=-1, shrinking=True, tol=0.001, verbose=False))], 'final_estimator__alpha_1': 1e-06, 'final_estimator__alpha_2': 1e-06, 'final_estimator__compute_score': False, 'final_estimator__copy_X': True, 'final_estimator__fit_intercept': True, 'final_estimator__lambda_1': 1e-06, 'final_estimator__lambda_2': 1e-06, 'final_estimator__n_iter': 300, 'final_estimator__normalize': False, 'final_estimator__threshold_lambda': 10000.0, 'final_estimator__tol': 0.001, 'final_estimator__verbose': False, 'final_estimator': ARDRegression(alpha_1=1e-06, alpha_2=1e-06, compute_score=False, copy_X=True,
+              fit_intercept=True, lambda_1=1e-06, lambda_2=1e-06, n_iter=300,
+              normalize=False, threshold_lambda=10000.0, tol=0.001,
+              verbose=False), 'n_jobs': None, 'passthrough': False, 'verbose': 0, 'xgboost': XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None, gamma=None,
+             gpu_id=None, importance_type='gain', interaction_constraints=None,
+             learning_rate=None, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=100, n_jobs=None, num_parallel_tree=None,
+             objective='reg:squarederror', random_state=4242, reg_alpha=None,
+             reg_lambda=None, scale_pos_weight=None, subsample=None,
+             tree_method=None, validate_parameters=False, verbosity=None), 'gbr': GradientBoostingRegressor(alpha=0.9, ccp_alpha=0.0, criterion='friedman_mse',
+                          init=None, learning_rate=0.1, loss='ls', max_depth=3,
+                          max_features=None, max_leaf_nodes=None,
+                          min_impurity_decrease=0.0, min_impurity_split=None,
+                          min_samples_leaf=1, min_samples_split=2,
+                          min_weight_fraction_leaf=0.0, n_estimators=100,
+                          n_iter_no_change=None, presort='deprecated',
+                          random_state=None, subsample=1.0, tol=0.0001,
+                          validation_fraction=0.1, verbose=0, warm_start=False), 'knn': KNeighborsRegressor(algorithm='auto', leaf_size=30, metric='minkowski',
+                    metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                    weights='uniform'), 'svm': SVR(C=1.0, cache_size=200, coef0=0.0, degree=3, epsilon=0.1, gamma='scale',
+    kernel='rbf', max_iter=-1, shrinking=True, tol=0.001, verbose=False), 'xgboost__objective': 'reg:squarederror', 'xgboost__base_score': None, 'xgboost__booster': None, 'xgboost__colsample_bylevel': None, 'xgboost__colsample_bynode': None, 'xgboost__colsample_bytree': None, 'xgboost__gamma': None, 'xgboost__gpu_id': None, 'xgboost__importance_type': 'gain', 'xgboost__interaction_constraints': None, 'xgboost__learning_rate': None, 'xgboost__max_delta_step': None, 'xgboost__max_depth': None, 'xgboost__min_child_weight': None, 'xgboost__missing': nan, 'xgboost__monotone_constraints': None, 'xgboost__n_estimators': 100, 'xgboost__n_jobs': None, 'xgboost__num_parallel_tree': None, 'xgboost__random_state': 4242, 'xgboost__reg_alpha': None, 'xgboost__reg_lambda': None, 'xgboost__scale_pos_weight': None, 'xgboost__subsample': None, 'xgboost__tree_method': None, 'xgboost__validate_parameters': False, 'xgboost__verbosity': None, 'gbr__alpha': 0.9, 'gbr__ccp_alpha': 0.0, 'gbr__criterion': 'friedman_mse', 'gbr__init': None, 'gbr__learning_rate': 0.1, 'gbr__loss': 'ls', 'gbr__max_depth': 3, 'gbr__max_features': None, 'gbr__max_leaf_nodes': None, 'gbr__min_impurity_decrease': 0.0, 'gbr__min_impurity_split': None, 'gbr__min_samples_leaf': 1, 'gbr__min_samples_split': 2, 'gbr__min_weight_fraction_leaf': 0.0, 'gbr__n_estimators': 100, 'gbr__n_iter_no_change': None, 'gbr__presort': 'deprecated', 'gbr__random_state': None, 'gbr__subsample': 1.0, 'gbr__tol': 0.0001, 'gbr__validation_fraction': 0.1, 'gbr__verbose': 0, 'gbr__warm_start': False, 'knn__algorithm': 'auto', 'knn__leaf_size': 30, 'knn__metric': 'minkowski', 'knn__metric_params': None, 'knn__n_jobs': None, 'knn__n_neighbors': 5, 'knn__p': 2, 'knn__weights': 'uniform', 'svm__C': 1.0, 'svm__cache_size': 200, 'svm__coef0': 0.0, 'svm__degree': 3, 'svm__epsilon': 0.1, 'svm__gamma': 'scale', 'svm__kernel': 'rbf', 'svm__max_iter': -1, 'svm__shrinking': True, 'svm__tol': 0.001, 'svm__verbose': False}"
+duration,0.34

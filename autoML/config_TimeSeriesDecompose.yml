@@ -1,11 +1,11 @@
 authorName: Marcos Yamasaki
-experimentName: TimeSeriesDecompose_ONS_GBR_STL-A_RESIDUAL_RMSE
+experimentName: TimeSeriesDecompose_ONS_XGB_EWT_8_RMSE
 trialConcurrency: 1
 maxExecDuration: 999999h
 maxTrialNum: 99999
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space_gbr.json
+searchSpacePath: search_space_xgboost.json
 #choice: true, false
 useAnnotation: false
 tuner:
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: minimize
 trial:
-  command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe ../src/TimeSeriesDecompose.py -nni -algo gbr -mode stl-a -nmodes 2 -load -imf RESIDUAL -dataset ISONE
+  command: C:\Users\marko\Anaconda3\envs\venvAUTO_CPU\python.exe ../src/TimeSeriesDecompose.py -nni -algo xgboost -mode ewt -nmodes 9 -load -imf IMF_8 -dataset ONS
   codeDir: .
   gpuNum: 0
