@@ -1,6 +1,6 @@
 **This is a Machine Learning for Load Forecasting repository.**
 
-Focused on Load Forecasting techniques, this repository has the algorithms and the datasets that has been used in my study.
+Focused on Load Forecasting techniques, this repository has the algorithms and the datasets that have been used in my study.
 
 The paper has been published, you can check here:
 https://www.sciencedirect.com/science/article/pii/S0142061523006361
